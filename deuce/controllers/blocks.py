@@ -2,6 +2,8 @@
 from pecan import expose, response
 from pecan.rest import RestController
 
+from deuce.model import Vault, Block
+
 BLOCK_ID_LENGTH = 40
 
 class BlocksController(RestController):
@@ -23,15 +25,27 @@ class BlocksController(RestController):
         """Returns a specific block data from Deuce
         """
 
-        # Perform a fast sanity-check. We need not even
-        # go to the datastore if the size is wrong
-        if len(block_id) <> BLOCK_ID_LENGTH:
+        if not block_id:
             response.status_code = 404
             return
 
         # Step 1: Is the block in our vault store?  If not, return 404
         # Step 2: Stream the block back to the user
-        return vault_id + block_id
+
+        vault = Vault.get(vault_id)
+
+        if not vault:
+            response.status_code = 404
+            return
+
+        block = vault.get_block(block_id)
+
+        if not block:
+            response.status_code = 404
+            return
+
+        response.body_file = block.get_obj()
+        response.status_code = 200
 
     @expose()
     def post(self):

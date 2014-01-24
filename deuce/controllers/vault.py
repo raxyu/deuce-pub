@@ -2,10 +2,12 @@
 from pecan import expose, response
 from pecan.rest import RestController
 from blocks import BlocksController
+from files import FilesController
 
 class VaultController(RestController):
 
     blocks = BlocksController()
+    files = FilesController()
 
     @expose()
     def index(self):
