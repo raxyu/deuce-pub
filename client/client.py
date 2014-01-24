@@ -55,9 +55,14 @@ class Blocks:
   def Insert(self, blockId, blocksize, fileoffset):
     self.blocks.append((blockId, blocksize, fileoffset))
 
-  def Decode(self):
-    print (json.dumps(self.blocks))
-    return json.dumps(self.blocks)
+  def DecodeBlocks(self):
+    names = ["hash", "size", "offset"]
+    data = {'blocks':[]}
+    for block in self.blocks:
+      data['blocks'].append(dict(zip(names, block)))
+
+    return json.dumps(data)
+
   #YUDEBUG
   def Dump(self):
     for block in self.blocks:
@@ -144,7 +149,7 @@ class FileBlocks:
     url = self.config.GetApiHost() + '/v1.0/' + self.config.GetVaultId() + '/blocks/query'  
     hdrs = {'content-type': 'application/json'}
     params = {'Query':'contains'}
-    data = backup_blocks.Decode()
+    data = backup_blocks.DecodeBlocks()
     response = requests.post(url, params=params, data=data, headers=hdrs)
 
     #print (response.text)
@@ -158,7 +163,7 @@ class FileBlocks:
     url = self.config.GetApiHost() + '/v1.0/' + self.config.GetVaultId() + '/blocks'  
     hdrs = {'content-type': 'application/octet-stream'}
     params = {}
-    data = backup_blocks.Decode()
+    data = backup_blocks.DecodeBlocks()
     response = requests.post(url, params=params, data=data, headers=hdrs)
 
     #print (response.text)
@@ -172,7 +177,7 @@ class FileBlocks:
     url = self.config.GetApiHost() + '/v1.0/' + self.config.GetVaultId() + '/objects/metacreate'  
     hdrs = {'content-type': 'application/x-deuce-block-list'}
     params = {}
-    data = backup_blocks.Decode()
+    data = backup_blocks.DecodeBlocks()
     response = requests.post(url, params=params, data=data, headers=hdrs)
 
     #print (response.text)
