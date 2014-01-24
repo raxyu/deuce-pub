@@ -1,15 +1,19 @@
 
+import deuce
+
+from pecan import conf
+import os
 
 class Block:
 
-    def __init__():
-        pass
+    def __init__(self, vault_id, block_id, obj):
+        self.vault_id = vault_id
+        self.block_id = block_id
+        self._fileobj = obj
 
-    @staticmethod
-    def get(block_hash):
-        """Returns a block instance representing the
-        block with the specified hash
-
-        :param block_hash: The block hash to use
-
+    def get_obj(self):
+        """Returns a file-like object that can be used for
+        reading the data. The stream should be closed when
+        by the caller when done.
         """
+        return self._fileobj

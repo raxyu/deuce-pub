@@ -39,9 +39,16 @@ logging = {
     }
 }
 
-# Custom Configurations must be in Python dictionary format::
-#
-# foo = {'bar':'baz'}
-#
-# All configurations are accessible at::
-# pecan.conf
+block_storage_driver = {
+    'driver': 'deuce.drivers.storage.blocks.disk.DiskStorageDriver',
+    'options': {
+        'path': '/tmp/block_storage'
+    }
+}
+
+metadata_driver = {
+    'driver': 'deuce.metadata.driver.SqliteStorageDriver',
+    'options': {
+        'path': '/tmp/vaultmeta.db'
+    }
+}
