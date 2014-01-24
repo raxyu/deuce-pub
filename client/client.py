@@ -1,51 +1,43 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+
 """
-Utility for checking whether a given Cloud Files bundle matches 
-the metadata stored in a container's VaultDB.
+Deuce Client Sample
 
 :author:  Xuan Yu
-:date:  2013/11/22
+:date:  2014/01/22
 """
+
 from __future__ import print_function
 
 import json
 import sys
-import sqlite3
 import requests
 import os
+import io
 import hashlib
-import subprocess
-from collections import namedtuple
+from rabin import RabinFingerprint
 
 
-def from_utf8(data):
-    """
-    Short-hand function decoding utf8-encoded strings.
-    """
-    return data.decode('utf8')
-
-#Container = namedtuple('Container',
-#                       ['name', 'count', 'num_bytes'])
-#
-#CloudObject = namedtuple('CloudBundleObject',
-#                         ['name', 'hash', 'num_bytes'])
-#
-#DbBundleObject = namedtuple('DbBundleObject',
-#                            ['id', 'hash', 'num_bytes',
-#                             'garbage_bytes', 'deleteflag'])
+# -*- coding: utf-8 -*-
+#import sqlite3
+#import subprocess
+#from collections import namedtuple
+#def from_utf8(data):
+#    """
+#    Short-hand function decoding utf8-encoded strings.
+#    """
+#    return data.decode('utf8')
 
 
-
-
-
+'''
+class Configuration:
+'''
 class Configuration:
   def __init__(self, configuration_file_name):
     if not os.path.exists(configuration_file_name):
       raise IOError('File {} does not exist.'.format(configuration_file_name))
-    file_data = open(configuration_file_name)
-    self.config = json.load(file_data)
-    file_data.close()
+    with open(configuration_file_name) as file_data: 
+      self.config = json.load(file_data)
 
   def GetApiHost(self):
     return  self.config["ApiHostName"]
@@ -53,12 +45,34 @@ class Configuration:
   def GetVaultId(self):
     return  self.config["VaultId"]
 
+'''
+class Blocks:
+'''
+class Blocks:
+  def __init__(self):
+    self.blocks = list()
+
+  def Insert(self, blockId, blocksize, fileoffset):
+    self.blocks.append((blockId, blocksize, fileoffset))
+
+  def Decode(self):
+    print (json.dumps(self.blocks))
+    return json.dumps(self.blocks)
+  #YUDEBUG
+  def Dump(self):
+    for block in self.blocks:
+      print (block[0], repr(block[1]).rjust(10), repr(block[2]).rjust(12))
+      
+backup_blocks = Blocks()  
+
 
 class FileBlocks:
+  global backup_blocks
+  
   def __init__(self, file_name):
     if not os.path.exists(file_name):
       raise IOError('File {} does not exist.'.format(file_name))
-    self.fd = open(file_name)
+    self.fd = io.open(file_name, 'rb', buffering=4096*4)
     global config
     self.config = config
 
@@ -68,49 +82,97 @@ class FileBlocks:
     except Exception, e:
       pass
 
+
+  '''
+    Run 
+  '''
   def Run(self):
     # Create blocks and Calculate hashes
-    # Query blocks (with hashses)
-    self.QueryBlocks()
-    # Upload blocks
-    self.UploadBlock()
+    self.RabinFile()
     # Upload file manifest
     self.UploadFileManifest()
-    
-  def QueryBlocks(self):
-    blocks = {'1': 'ALyE6SRSaIjtZbycQcV0asYHMt+H0h'}
 
+    # Query blocks (with hashses)
+    #self.QueryBlocks()
+    # Upload blocks
+    #self.UploadBlock()
+
+
+  '''
+    RabinFile 
+  '''
+  def RabinFile(self):
+    total_bytes_in_blocks = 0
+    min_block_size = 50 * 1024
+    fingerprint = RabinFingerprint(0x39392FAAAAAAAE)
+    block_size = 0
+    sha1 = hashlib.sha1()
+
+    while True:
+        buff = self.fd.read(4096)
+        bytes_read = len(buff)
+
+        if bytes_read == 0:
+            if block_size > 0:
+                # Finish off the last part of the file as a block
+                backup_blocks.Insert(sha1.hexdigest(), 
+                      block_size, total_bytes_in_blocks)
+                total_bytes_in_blocks += block_size
+            break
+
+        for i in range(0, bytes_read):
+            fp = fingerprint.update(buff[i])
+            sha1.update(buff[i:i + 1])
+
+            block_size += 1
+
+            if fp == 0x04 and block_size > min_block_size:
+                backup_blocks.Insert(sha1.hexdigest(), 
+                      block_size, total_bytes_in_blocks)
+                total_bytes_in_blocks += block_size
+
+                # Reset everything
+                block_size = 0
+                sha1 = hashlib.sha1()
+                fingerprint.clear()
+
+
+  '''
+    QueryBlocks 
+  '''
+  def QueryBlocks(self):
     url = self.config.GetApiHost() + '/v1.0/' + self.config.GetVaultId() + '/blocks/query'  
     hdrs = {'content-type': 'application/json'}
     params = {'Query':'contains'}
-    data = json.dumps(blocks)
+    data = backup_blocks.Decode()
     response = requests.post(url, params=params, data=data, headers=hdrs)
 
     #print (response.text)
     print (response.status_code)
 
-  def UploadBlock(self):
-    #blocks = {'1','123456'}
-    blocks = {'1': 'ALyE6SRSaIjtZbycQcV0asYHMt+H0h'}
 
+  '''
+    UploadBlock 
+  '''
+  def UploadBlock(self):
     url = self.config.GetApiHost() + '/v1.0/' + self.config.GetVaultId() + '/blocks'  
     hdrs = {'content-type': 'application/octet-stream'}
     params = {}
-    #data = blocks
-    data = json.dumps(blocks)
+    data = backup_blocks.Decode()
     response = requests.post(url, params=params, data=data, headers=hdrs)
 
     #print (response.text)
     print (response.status_code)
 
 
+  '''
+    UploadFileManifest
+  '''
   def UploadFileManifest(self):
-    blocks = {'1': 'ALyE6SRSaIjtZbycQcV0asYHMt+H0h'}
-
     url = self.config.GetApiHost() + '/v1.0/' + self.config.GetVaultId() + '/objects/metacreate'  
     hdrs = {'content-type': 'application/x-deuce-block-list'}
     params = {}
-    data = json.dumps(blocks)
+    data = backup_blocks.Decode()
     response = requests.post(url, params=params, data=data, headers=hdrs)
 
     #print (response.text)
@@ -120,20 +182,15 @@ class FileBlocks:
 
 
 
+"""
+Execute the program.
+"""
 def main():
-  #"""
-  #Execute the program.
-  #"""
   if len(sys.argv) < 3:
     print('Usage: {}   Configuration_File_Name_json Backup_File_Name'.format(sys.argv[0]))
     print('   Configuration_File_Name_json ... Configuration file name in json, e.g., bootstrap.json')
     print('   Backup_File_Name ... The file to backup.')
     quit()
-
-  #if not os.path.exists('.validate_cache'):
-  #    os.mkdir('.validate_cache')
-
-  #credentials = Credentials(sys.argv[1], sys.argv[2])
 
   try:
     # Load Configuration.
@@ -141,18 +198,12 @@ def main():
     config = Configuration(sys.argv[1])
 
     # Back up the File.
-    blocks = FileBlocks(sys.argv[2])
-    blocks.Run()
-    
-
-
-
-
-
-
+    backup = FileBlocks(sys.argv[2])
+    backup.Run()
   except Exception, e:
     print ("Exception: ", e)
   
+
 if __name__ == '__main__':
   main()
 
