@@ -1,35 +1,39 @@
 
 from pecan import conf, response
 from block import Block
+from file import File
 
 import deuce
 
-class Vault(object):
+import uuid
 
-    def __init__(self, vault_id):
-        self.vault_id = vault_id
+class Vault(object):
 
     @staticmethod
     def get(vault_id):
         """Fetches the vault for the specified vault ID.
         """
 
-        # TODO: check the metadata driver to ensure that
-        # we are working with a real vault
-
+        # TODO: Check metadata driver to ensure that we
+        # are working with an actual vault.
         return Vault(vault_id)
 
+    def __init__(self, vault_id):
+        self.id = vault_id
+
     def get_block(self, block_id):
-        # Try to fetch the block data from the
-        # storage driver.
-        obj = deuce.storage_driver.get_block_obj(self.vault_id, block_id)
-
-        if not obj:
-            response.status_code = 404
-            return
-
-        return Block(self.vault_id, block_id, obj)
+        obj = deuce.storage_driver.get_block_obj(self.id, block_id)
+        return Block(self.id, block_id, obj)
 
     def create_file(self):
-        file_id = deuce.metadata_driver.create_file()
+        file_id = str(uuid.uuid4())
+        file_id = deuce.metadata_driver.create_file(self.id, file_id)
         return file_id
+
+    def get_file(self, file_id):
+        try:
+            data = deuce.metadata_driver.get_file_data(self.id, file_id)
+        except Exception as ex:
+            return None
+
+        return File(self.id, file_id, finalized=data[0])
