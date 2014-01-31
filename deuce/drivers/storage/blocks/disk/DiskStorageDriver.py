@@ -2,6 +2,7 @@
 from pecan import conf
 
 import os
+import io
 
 class DiskStorageDriver(object):
     """A driver for storing blocks onto local disk
@@ -24,6 +25,24 @@ class DiskStorageDriver(object):
     def block_exists(self, vault_id, block_id):
         path = os.path.join(self._path, block_id)
         return os.path.exists(path)
+
+
+    def insert_block_obj(self, vault_id, block_id, blockdata):
+        """
+        """
+        path = os.path.join(self._path, block_id)
+
+        if os.path.exists(path):
+            print ("File ",path," existed")
+            #TODO: need compare both?
+            return True
+        else:
+            print ("File ",path," not existed")
+
+        fd = open (path, 'w+')
+        fd.write(blockdata)
+        fd.close()
+        return True
 
 
     def get_block_obj(self, vault_id, block_id):
