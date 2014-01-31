@@ -52,16 +52,27 @@ class Blocks:
   def __init__(self):
     self.blocks = list()
 
+  def Read(self, stringdata, removes, splitter):
+    for i in range(0, len(removes)):
+      stringdata = stringdata.replace(removes[i], "")
+    self.blocks = stringdata.split(splitter)
+    print(self.blocks)
+      
+
   def Insert(self, blockId, blocksize, fileoffset):
     self.blocks.append((blockId, blocksize, fileoffset))
 
   def DecodeBlocks(self):
-    names = ["hash", "size", "offset"]
+    names = ["id", "size", "offset"]
     data = {'blocks':[]}
     for block in self.blocks:
       data['blocks'].append(dict(zip(names, block)))
 
     return json.dumps(data)
+
+  def FindBlock(self, blockId):
+    block = [v for v in self.blocks if v[0] == blockId]
+    return block
 
   #YUDEBUG
   def Dump(self):
@@ -69,10 +80,12 @@ class Blocks:
       print (block[0], repr(block[1]).rjust(10), repr(block[2]).rjust(12))
       
 backup_blocks = Blocks()  
+file_url = ''
 
 
 class FileBlocks:
   global backup_blocks
+  global file_url
   
   def __init__(self, file_name):
     if not os.path.exists(file_name):
@@ -80,6 +93,7 @@ class FileBlocks:
     self.fd = io.open(file_name, 'rb', buffering=4096*4)
     global config
     self.config = config
+    file_url = ''
 
   def __del__(self):
     try:
@@ -95,13 +109,14 @@ class FileBlocks:
     # Create blocks and Calculate hashes
     self.RabinFile()
     # Upload file manifest
-    self.UploadFileManifest()
+    missing_blocks = self.UploadFileManifest()
+    # Upload blocks
+    self.UploadBlocks(missing_blocks)
+    # Finalize File
+    #missing_blocks = self.UploadFileManifest()
 
     # Query blocks (with hashses)
     #self.QueryBlocks()
-    # Upload blocks
-    #self.UploadBlock()
-
 
   '''
     RabinFile 
@@ -143,8 +158,50 @@ class FileBlocks:
 
 
   '''
-    QueryBlocks 
+    UploadFileManifest
   '''
+  def UploadFileManifest(self):
+    global file_url
+    if file_url == '':
+      # Create a file
+      url = self.config.GetApiHost() + '/v1.0/' + self.config.GetVaultId() + '/files'
+      response = requests.post(url)
+      file_url = response.headers['location']
+
+    #Submit the assigned blocks.
+    hdrs = {'content-type': 'application/x-deuce-block-list'}
+    params = {}
+    data = backup_blocks.DecodeBlocks()
+    response = requests.post(file_url, params=params, data=data, headers=hdrs)
+
+    missing_blocks = Blocks()
+    missing_blocks.Read(response.text, "[]\" ", ',')
+    return missing_blocks
+
+
+  '''
+    UploadBlock 
+  '''
+  def UploadBlocks(self, missing_blocks):
+    global backup_blocks
+    blocks_url = self.config.GetApiHost() + '/v1.0/' + self.config.GetVaultId() + '/blocks'  
+    hdrs = {'content-type': 'application/octet-stream'}
+    params = {}
+    for block_id in missing_blocks.blocks:
+      url = blocks_url + '/' + block_id
+      block = backup_blocks.FindBlock(block_id)
+      block = block[0]
+      hdrs['content-length'] = block[1]
+      if self.fd.tell() != block[2]:
+        self.fd.seek(block[2], os.SEEK_SET)
+      data = self.fd.read(block[1])
+      response = requests.post(url, params=params, data=data, headers=hdrs)
+      #print (response.text)
+      print (response.status_code)
+
+
+  '''
+    QueryBlocks 
   def QueryBlocks(self):
     url = self.config.GetApiHost() + '/v1.0/' + self.config.GetVaultId() + '/blocks/query'  
     hdrs = {'content-type': 'application/json'}
@@ -154,34 +211,7 @@ class FileBlocks:
 
     #print (response.text)
     print (response.status_code)
-
-
   '''
-    UploadBlock 
-  '''
-  def UploadBlock(self):
-    url = self.config.GetApiHost() + '/v1.0/' + self.config.GetVaultId() + '/blocks'  
-    hdrs = {'content-type': 'application/octet-stream'}
-    params = {}
-    data = backup_blocks.DecodeBlocks()
-    response = requests.post(url, params=params, data=data, headers=hdrs)
-
-    #print (response.text)
-    print (response.status_code)
-
-
-  '''
-    UploadFileManifest
-  '''
-  def UploadFileManifest(self):
-    url = self.config.GetApiHost() + '/v1.0/' + self.config.GetVaultId() + '/objects/metacreate'  
-    hdrs = {'content-type': 'application/x-deuce-block-list'}
-    params = {}
-    data = backup_blocks.DecodeBlocks()
-    response = requests.post(url, params=params, data=data, headers=hdrs)
-
-    #print (response.text)
-    print (response.status_code)
 
 
 
