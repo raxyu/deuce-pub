@@ -47,6 +47,8 @@ SQL_CREATE_FILE = 'insert into files (vaultid, fileid) values (:vaultid, :fileid
 SQL_GET_FILE = 'select finalized from files where vaultid=:vaultid and fileid=:fileid'
 SQL_FINALIZE_FILE = 'update files set finalized=1 where fileid=:fileid and vaultid=:vaultid'
 SQL_ASSIGN_BLOCK_TO_FILE = 'insert into fileblocks (vaultid, fileid, blockid, offset) values (:vaultid, :fileid, :blockid, :offset)'
+SQL_REGISTER_BLOCK = 'INSERT INTO blocks (vaultid, blockid, size) values (:vaultid, :blockid, :blocksize)'
+SQL_HAS_BLOCK = 'SELECT count(*) FROM blocks WHERE blockid = :blockid and vaultid = :vaultid'
 
 class SqliteStorageDriver(object):
 
@@ -116,9 +118,18 @@ class SqliteStorageDriver(object):
         # lazy-load the block lists if it all possible.
         import pdb; pdb.set_trace()
 
-    def has_block(self, vault_id, blocks):
-        # TODO: query the blocks table
-        return False
+    def has_block(self, vault_id, block_id):
+        # Query the blocks table
+        retval = False
+        args = {'vaultid': vault_id, 'blockid': block_id}
+        res = self._conn.execute(SQL_HAS_BLOCK, args)
+        try:
+            cnt = res.next()
+            return cnt[0] > 0
+        except StopIteration:
+            raise Exception("No such file: {0}".format(file_id))
+
+
 
     def assign_block(self, vault_id, file_id, block_id, offset):
         # TODO(jdp): tweak this to support multiple assignments
@@ -132,3 +143,13 @@ class SqliteStorageDriver(object):
 
         res = self._conn.execute(SQL_ASSIGN_BLOCK_TO_FILE, args)
         self._conn.commit()
+
+    def register_block(self, vault_id, block_id, blocksize):
+        if not self.has_block(vault_id, block_id):
+          args = {
+              'vaultid': vault_id,
+              'blockid': block_id,
+              'blocksize': blocksize
+          }
+          res = self._conn.execute(SQL_REGISTER_BLOCK, args)
+          self._conn.commit()
