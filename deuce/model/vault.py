@@ -21,6 +21,14 @@ class Vault(object):
     def __init__(self, vault_id):
         self.id = vault_id
 
+    def put_block(self, block_id, blockdata, data_len):
+        try:
+          retval = deuce.storage_driver.insert_block_obj(self.id, block_id, blockdata)
+          file_id = deuce.metadata_driver.register_block(self.id, block_id, data_len)
+        except Exception as ex:
+          return False
+        return retval
+
     def get_block(self, block_id):
         obj = deuce.storage_driver.get_block_obj(self.id, block_id)
         return Block(self.id, block_id, obj)

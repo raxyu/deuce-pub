@@ -1,5 +1,5 @@
 
-from pecan import expose, response
+from pecan import expose, request, response
 from pecan.rest import RestController
 
 from deuce.model import Vault, Block
@@ -48,7 +48,11 @@ class BlocksController(RestController):
         response.status_code = 200
 
     @expose()
-    def post(self):
+    def put(self, vault_id, block_id=None):
         """Uploads a block into Deuce. The URL of the block
         is returned in the Location header
         """
+        vault = Vault.get(vault_id)
+        if not vault:
+            abort(404)
+        vault.put_block(block_id, request.body, request.headers['content-length'])
