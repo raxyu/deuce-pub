@@ -5,6 +5,7 @@ from pecan.rest import RestController
 
 import deuce
 from deuce.model import Vault, Block, File
+from deuce.util import FileCat
 
 class FilesController(RestController):
 
@@ -18,6 +19,8 @@ class FilesController(RestController):
     def get_one(self, vault_id, file_id):
         """Fetches, re-assembles and streams a single
         file out of Deuce"""
+
+        print vault_id
         vault = Vault.get(vault_id)
 
         if not vault:
@@ -28,7 +31,11 @@ class FilesController(RestController):
         if not f:
             abort(404)
 
-        response.body_file = f.get_obj()
+        # Get the block generator from the metadata driver
+        blks = deuce.metadata_driver.get_file_blocks(vault_id, file_id)
+        objs = deuce.storage_driver.get_block_objs(vault_id, blks)
+
+        response.body_file = FileCat(objs)
         response.status_code = 200
 
     @expose('json')

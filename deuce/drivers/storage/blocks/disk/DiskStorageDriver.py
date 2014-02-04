@@ -27,6 +27,16 @@ class DiskStorageDriver(object):
         return os.path.exists(path)
 
 
+    def get_block_objs(self, vault_id, block_gen):
+        """Returns a generator of file-like objects
+        for the specified block IDs"""
+
+        filenames = (os.path.join(self._path, bid) for bid in block_gen)
+        generator = (open(fname, 'rb') for fname in filenames)
+
+        return generator
+
+
     def insert_block_obj(self, vault_id, block_id, blockdata):
         """
         """
