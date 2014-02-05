@@ -43,11 +43,8 @@ class DiskStorageDriver(object):
         path = os.path.join(self._path, block_id)
 
         if os.path.exists(path):
-            print ("File ",path," existed")
             #TODO: need compare both?
             return True
-        else:
-            print ("File ",path," not existed")
 
         fd = open (path, 'w+')
         fd.write(blockdata)

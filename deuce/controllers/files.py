@@ -20,7 +20,6 @@ class FilesController(RestController):
         """Fetches, re-assembles and streams a single
         file out of Deuce"""
 
-        print vault_id
         vault = Vault.get(vault_id)
 
         if not vault:
@@ -44,8 +43,6 @@ class FilesController(RestController):
         the new file is returned in the Location
         header
         """
-
-        print "File ID:",file_id
 
         if file_id == "": # i.e .../files/
             abort(404)

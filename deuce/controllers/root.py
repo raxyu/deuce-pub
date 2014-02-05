@@ -1,7 +1,7 @@
 from pecan import expose, redirect, response
 from webob.exc import status_map
 
-from vault import VaultController
+from deuce.controllers.vault import VaultController
 
 class RootController(object):
 

@@ -1,8 +1,8 @@
 
 from pecan import expose, response
 from pecan.rest import RestController
-from blocks import BlocksController
-from files import FilesController
+from deuce.controllers.blocks import BlocksController
+from deuce.controllers.files import FilesController
 
 class VaultController(RestController):
 
@@ -20,5 +20,3 @@ class VaultController(RestController):
         if vault_id != 'myvault':
             response.status_code = 404
             return
-
-        print vault_id
