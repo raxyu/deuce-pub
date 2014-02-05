@@ -1,10 +1,10 @@
-from pecan import conf  # noqa
-
 # Hoist up stuff into the model namespace
-from vault import Vault
-from block import Block
-from file import File
+from deuce.model.vault import Vault
+from deuce.model.block import Block
+from deuce.model.file import File
 
+# Load the storage drivers manually into the model. Note:
+# This should change significantly.
 from deuce.drivers.storage.blocks.disk import DiskStorageDriver
 from deuce.drivers.storage.metadata.sqlite import SqliteStorageDriver
 

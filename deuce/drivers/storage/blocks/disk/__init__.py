@@ -1,4 +1,3 @@
+from deuce.drivers.storage.blocks.disk import diskstoragedriver
 
-# Hoist up DiskStorageDriver into the disk ns
-
-from DiskStorageDriver import DiskStorageDriver
+DiskStorageDriver = diskstoragedriver.DiskStorageDriver

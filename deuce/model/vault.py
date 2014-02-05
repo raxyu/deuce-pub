@@ -1,10 +1,10 @@
 
 from pecan import conf, response
-from block import Block
-from file import File
+
+from deuce.model.block import Block
+from deuce.model.file import File
 
 import deuce
-
 import uuid
 
 class Vault(object):

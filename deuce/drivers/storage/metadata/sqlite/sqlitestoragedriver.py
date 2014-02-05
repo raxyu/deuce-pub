@@ -45,7 +45,7 @@ CURRENT_DB_VERSION = len(schemas)
 
 SQL_CREATE_FILE = 'insert into files (vaultid, fileid) values (:vaultid, :fileid)'
 SQL_GET_FILE = 'select finalized from files where vaultid=:vaultid and fileid=:fileid'
-SQL_GET_FILE_BLOCKS = 'select blockid from fileblocks where vaultid=:vaultid and fileid=:fileid'
+SQL_GET_FILE_BLOCKS = 'select blockid from fileblocks where vaultid=:vaultid and fileid=:fileid order by offset'
 SQL_FINALIZE_FILE = 'update files set finalized=1 where fileid=:fileid and vaultid=:vaultid'
 SQL_ASSIGN_BLOCK_TO_FILE = 'insert into fileblocks (vaultid, fileid, blockid, offset) values (:vaultid, :fileid, :blockid, :offset)'
 SQL_REGISTER_BLOCK = 'INSERT INTO blocks (vaultid, blockid, size) values (:vaultid, :blockid, :blocksize)'

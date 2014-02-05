@@ -6,15 +6,15 @@ except ImportError:
     use_setuptools()
     from setuptools import setup, find_packages
 
+REQUIRES = ['six', 'pecan']
+
 setup(
     name='deuce',
     version='0.1',
     description='',
     author='',
     author_email='',
-    install_requires=[
-        "pecan",
-    ],
+    install_requires=REQUIRES,
     test_suite='deuce',
     zip_safe=False,
     include_package_data=True,
