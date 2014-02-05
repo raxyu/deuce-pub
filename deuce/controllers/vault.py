@@ -4,6 +4,7 @@ from pecan.rest import RestController
 from deuce.controllers.blocks import BlocksController
 from deuce.controllers.files import FilesController
 
+
 class VaultController(RestController):
 
     blocks = BlocksController()

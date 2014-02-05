@@ -4,7 +4,9 @@ from pecan import conf
 import os
 import io
 
+
 class DiskStorageDriver(object):
+
     """A driver for storing blocks onto local disk
 
     IMPORTANT: This driver should not be considered
@@ -19,13 +21,11 @@ class DiskStorageDriver(object):
         if not os.path.exists(self._path):
             # TODO: Use a real exception
             raise Exception("Block path does not exist {0}"
-                    .format(self._path))
-
+                            .format(self._path))
 
     def block_exists(self, vault_id, block_id):
         path = os.path.join(self._path, block_id)
         return os.path.exists(path)
-
 
     def get_block_objs(self, vault_id, block_gen):
         """Returns a generator of file-like objects
@@ -36,21 +36,19 @@ class DiskStorageDriver(object):
 
         return generator
 
-
     def insert_block_obj(self, vault_id, block_id, blockdata):
         """
         """
         path = os.path.join(self._path, block_id)
 
         if os.path.exists(path):
-            #TODO: need compare both?
+            # TODO: need compare both?
             return True
 
-        fd = open (path, 'w+')
+        fd = open(path, 'w+')
         fd.write(blockdata)
         fd.close()
         return True
-
 
     def get_block_obj(self, vault_id, block_id):
         """Returns a file-like object capable or streaming the
@@ -63,7 +61,6 @@ class DiskStorageDriver(object):
             return None
 
         return open(path, 'rb')
-
 
     def get_objects_list(self, vault_id):
         """Lists (and yields) a list of each object that is in

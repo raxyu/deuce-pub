@@ -7,6 +7,7 @@ from deuce.model.file import File
 import deuce
 import uuid
 
+
 class Vault(object):
 
     @staticmethod
@@ -23,10 +24,12 @@ class Vault(object):
 
     def put_block(self, block_id, blockdata, data_len):
         try:
-          retval = deuce.storage_driver.insert_block_obj(self.id, block_id, blockdata)
-          file_id = deuce.metadata_driver.register_block(self.id, block_id, data_len)
+            retval = deuce.storage_driver.insert_block_obj(
+                self.id, block_id, blockdata)
+            file_id = deuce.metadata_driver.register_block(
+                self.id, block_id, data_len)
         except Exception as ex:
-          return False
+            return False
         return retval
 
     def get_block(self, block_id):

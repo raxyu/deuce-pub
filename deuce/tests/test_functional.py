@@ -6,7 +6,7 @@ from deuce.tests import FunctionalTest
 class TestRootController(FunctionalTest):
 
     def dummy_test(self):
-        assert 2 == 1+1
+        assert True
 
     """
     def test_get(self):

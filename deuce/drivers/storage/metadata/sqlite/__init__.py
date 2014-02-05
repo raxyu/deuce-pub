@@ -1,5 +1,5 @@
 
-#Hoist up into the sqlite namespace
+# Hoist up into the sqlite namespace
 
 from deuce.drivers.storage.metadata.sqlite import sqlitestoragedriver
 

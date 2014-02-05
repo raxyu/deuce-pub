@@ -7,6 +7,7 @@ import deuce
 from deuce.model import Vault, Block, File
 from deuce.util import FileCat
 
+
 class FilesController(RestController):
 
     @expose('json')
@@ -44,7 +45,7 @@ class FilesController(RestController):
         header
         """
 
-        if file_id == "": # i.e .../files/
+        if file_id == "":  # i.e .../files/
             abort(404)
 
         if file_id:
@@ -58,7 +59,7 @@ class FilesController(RestController):
         file_id = vault.create_file()
 
         response.headers["Location"] = "files/%s" % file_id
-        response.status_code = 201 # Created
+        response.status_code = 201  # Created
 
     def _assign(self, vault_id, file_id):
 
@@ -92,6 +93,6 @@ class FilesController(RestController):
                 missing_blocks.append(block_id)
 
             deuce.metadata_driver.assign_block(vault_id,
-                file_id, mapping['id'], mapping['offset'])
+               file_id, mapping['id'], mapping['offset'])
 
         return missing_blocks

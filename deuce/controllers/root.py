@@ -3,6 +3,7 @@ from webob.exc import status_map
 
 from deuce.controllers.vault import VaultController
 
+
 class RootController(object):
 
     def __init__(self):
@@ -27,7 +28,7 @@ class RootController(object):
     def error(self, status):
         try:
             status = int(status)
-        except ValueError: # pragma: no cover
+        except ValueError:  # pragma: no cover
             status = 500
 
         message = getattr(status_map.get(status), 'explanation', '')

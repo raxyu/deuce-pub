@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
+
 class FileCat(object):
+
     """FileCat: Allows multiple files to be handled
     as a single file-like-object for read-only
     operations. Seek is not supported"""
@@ -43,4 +45,3 @@ if __name__ == '__main__':
 
             if len(content) == 0:
                 break
-

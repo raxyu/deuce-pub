@@ -10,7 +10,7 @@ from sqlite3 import Connection
 
 schemas = list()
 
-schemas.append ([
+schemas.append([
     """
     CREATE TABLE files
     (
@@ -38,18 +38,55 @@ schemas.append ([
         PRIMARY KEY(vaultid, blockid)
     )
     """
-]) # Version 1
+])  # Version 1
 
 
 CURRENT_DB_VERSION = len(schemas)
 
-SQL_CREATE_FILE = 'insert into files (vaultid, fileid) values (:vaultid, :fileid)'
-SQL_GET_FILE = 'select finalized from files where vaultid=:vaultid and fileid=:fileid'
-SQL_GET_FILE_BLOCKS = 'select blockid from fileblocks where vaultid=:vaultid and fileid=:fileid order by offset'
-SQL_FINALIZE_FILE = 'update files set finalized=1 where fileid=:fileid and vaultid=:vaultid'
-SQL_ASSIGN_BLOCK_TO_FILE = 'insert into fileblocks (vaultid, fileid, blockid, offset) values (:vaultid, :fileid, :blockid, :offset)'
-SQL_REGISTER_BLOCK = 'INSERT INTO blocks (vaultid, blockid, size) values (:vaultid, :blockid, :blocksize)'
-SQL_HAS_BLOCK = 'SELECT count(*) FROM blocks WHERE blockid = :blockid and vaultid = :vaultid'
+SQL_CREATE_FILE = ''''
+    INSERT INTO files (vaultid, fileid)
+    VALUES (:vaultid, :fileid)
+'''
+
+SQL_GET_FILE = '''
+    SELECT finalized
+    FROM files
+    WHERE vaultid=:vaultid AND fileid=:fileid
+'''
+
+SQL_GET_FILE_BLOCKS = '''
+    SELECT blockid
+    FROM fileblocks
+    WHERE vaultid=:vaultid
+    AND fileid=:fileid
+    ORDER BY offset
+'''
+
+SQL_FINALIZE_FILE = '''
+    update files
+    set finalized=1
+    where fileid=:fileid and vaultid=:vaultid
+'''
+
+SQL_ASSIGN_BLOCK_TO_FILE = '''
+    INSERT INTO fileblocks
+    (vaultid, fileid, blockid, offset)
+    VALUES (:vaultid, :fileid, :blockid, :offset)
+'''
+
+SQL_REGISTER_BLOCK = '''
+    INSERT INTO blocks
+    (vaultid, blockid, size)
+    values (:vaultid, :blockid, :blocksize)
+'''
+
+SQL_HAS_BLOCK = '''
+    SELECT count(*)
+    FROM blocks
+    WHERE blockid = :blockid
+    and vaultid = :vaultid
+'''
+
 
 class SqliteStorageDriver(object):
 
@@ -97,13 +134,13 @@ class SqliteStorageDriver(object):
         makes no assumptions about whether or not the file record actually
         exists"""
 
-        args = {'vaultid':vault_id, 'fileid':file_id}
+        args = {'vaultid': vault_id, 'fileid': file_id}
         res = self._conn.execute(SQL_FINALIZE_FILE, args)
         self._conn.commit()
 
     def get_file_data(self, vault_id, file_id):
         """Returns a tuple representing data for this file"""
-        args = {'vaultid':vault_id, 'fileid':file_id}
+        args = {'vaultid': vault_id, 'fileid': file_id}
         res = self._conn.execute(SQL_GET_FILE, args)
 
         try:
@@ -117,7 +154,8 @@ class SqliteStorageDriver(object):
         # Creates and returns generator that will return the block IDs for
         # each block in this file. The generator should
         # lazy-load the block lists if it all possible.
-        import pdb; pdb.set_trace()
+        import pdb
+        pdb.set_trace()
 
     def has_block(self, vault_id, block_id):
         # Query the blocks table
@@ -131,11 +169,10 @@ class SqliteStorageDriver(object):
             raise Exception("No such file: {0}".format(file_id))
 
     def get_file_blocks(self, vault_id, file_id):
-        args = {'vaultid':vault_id, 'fileid':file_id}
+        args = {'vaultid': vault_id, 'fileid': file_id}
         res = self._conn.execute(SQL_GET_FILE_BLOCKS, args)
 
         return (row[0] for row in res)
-
 
     def assign_block(self, vault_id, file_id, block_id, offset):
         # TODO(jdp): tweak this to support multiple assignments
@@ -152,10 +189,10 @@ class SqliteStorageDriver(object):
 
     def register_block(self, vault_id, block_id, blocksize):
         if not self.has_block(vault_id, block_id):
-          args = {
-              'vaultid': vault_id,
-              'blockid': block_id,
-              'blocksize': blocksize
-          }
-          res = self._conn.execute(SQL_REGISTER_BLOCK, args)
-          self._conn.commit()
+            args = {
+                'vaultid': vault_id,
+                'blockid': block_id,
+                'blocksize': blocksize
+            }
+            res = self._conn.execute(SQL_REGISTER_BLOCK, args)
+            self._conn.commit()

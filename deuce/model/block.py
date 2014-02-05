@@ -4,6 +4,7 @@ import deuce
 from pecan import conf
 import os
 
+
 class Block:
 
     def __init__(self, vault_id, block_id, obj):

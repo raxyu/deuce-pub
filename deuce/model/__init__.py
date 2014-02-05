@@ -12,6 +12,7 @@ import deuce
 deuce.storage_driver = None
 deuce.metadata_driver = None
 
+
 def init_model():
     # TODO: Use stevedore for loading drivers
     deuce.storage_driver = DiskStorageDriver()

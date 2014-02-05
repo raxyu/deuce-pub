@@ -6,7 +6,9 @@ from deuce.model import Vault, Block
 
 BLOCK_ID_LENGTH = 40
 
+
 class BlocksController(RestController):
+
     """The BlocksController is responsible for:
 
     a) Listing blocks stored in a particular vault
@@ -55,4 +57,5 @@ class BlocksController(RestController):
         vault = Vault.get(vault_id)
         if not vault:
             abort(404)
-        vault.put_block(block_id, request.body, request.headers['content-length'])
+        vault.put_block(
+            block_id, request.body, request.headers['content-length'])
