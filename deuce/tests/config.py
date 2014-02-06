@@ -8,8 +8,8 @@ server = {
 app = {
     'root': 'deuce.controllers.root.RootController',
     'modules': ['deuce'],
-    'static_root': '%(confdir)s/public',
-    'template_path': '%(confdir)s/deuce/templates',
+    'static_root': '%(confdir)s/../../public',
+    'template_path': '%(confdir)s/../../deuce/templates',
     'debug': True,
     'errors': {
         404: '/error/404',
