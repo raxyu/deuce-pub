@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+import six
 
 
 class FileCat(object):
@@ -17,31 +17,33 @@ class FileCat(object):
         self._current_file = next(fileobjs)
 
     def read(self, count=None):
-        """Reads data and returns it"""
 
-        while True:
-            res = self._current_file.read(count)
+        res = six.binary_type()
 
-            if len(res) > 0:
-                return res
-            else:
+        if not self._current_file:
+            return res
+
+        while count is None or len(res) < count:
+
+            bytes_to_read = count - len(res) if count else None
+
+            buff = self._current_file.read(bytes_to_read)
+
+            if len(buff) == 0:  # End of file
+
+                # Close this file. We're going
+                # to move on to the next one
+                self._current_file.close()
+
                 try:
-                    self._current_file.close()
                     self._current_file = next(self._objs)
                 except StopIteration:
-                    return bytes()
+                    # We are done, just break and
+                    # return whatever we've already
+                    # read (if anything)
+                    self._current_file = None
+                    break
+            else:
+                res += buff
 
-if __name__ == '__main__':
-    filenames = ["file1.dat", "file2.dat", "file3.dat"]
-    file_generator = (open(f, 'rb') for f in filenames)
-
-    with open('outfile.dat', 'wb') as outfile:
-        obj = FileCat(file_generator)
-
-        while True:
-            content = obj.read(4096)
-
-            outfile.write(content)
-
-            if len(content) == 0:
-                break
+        return res
