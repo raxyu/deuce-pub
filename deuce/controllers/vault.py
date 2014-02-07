@@ -15,7 +15,7 @@ class VaultController(RestController):
         response.status_code = 404
 
     @expose()
-    def get(self, vault_id):
+    def get_one(self, vault_id):
         """Returns the vault controller object"""
 
         if vault_id != 'myvault':

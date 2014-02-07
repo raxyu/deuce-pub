@@ -39,6 +39,11 @@ logging = {
     }
 }
 
+import os
+
+if not os.path.exists('/tmp/block_storage'):
+    os.mkdir('/tmp/block_storage')
+
 block_storage_driver = {
     'driver': 'deuce.drivers.storage.blocks.disk.DiskStorageDriver',
     'options': {

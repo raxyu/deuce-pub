@@ -98,7 +98,7 @@ class SqliteStorageDriver(object):
 
     def _get_user_version(self):
         res = self._conn.execute('pragma user_version')
-        row = res.next()
+        row = next(res)
         return row[0]
 
     def _set_user_version(self, version):
@@ -144,7 +144,7 @@ class SqliteStorageDriver(object):
         res = self._conn.execute(SQL_GET_FILE, args)
 
         try:
-            row = res.next()
+            row = next(res)
         except StopIteration:
             raise Exception("No such file: {0}".format(file_id))
 
@@ -163,7 +163,7 @@ class SqliteStorageDriver(object):
         args = {'vaultid': vault_id, 'blockid': block_id}
         res = self._conn.execute(SQL_HAS_BLOCK, args)
         try:
-            cnt = res.next()
+            cnt = next(res)
             return cnt[0] > 0
         except StopIteration:
             raise Exception("No such file: {0}".format(file_id))
