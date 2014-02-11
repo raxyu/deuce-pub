@@ -1,34 +1,12 @@
 from unittest import TestCase
 from deuce.util import FileCat
+from deuce.tests.util import MockFile
 import os
 from random import randrange
 from hashlib import md5
 
 # TODO: We probably want to move this to a
 # test helpers library
-
-
-class DummyFile(object):
-
-    def __init__(self, size):
-        self._pos = 0
-        self._content = os.urandom(size)
-
-    def close(self):
-        pass
-
-    def read(self, cnt=None):
-
-        if cnt is None:
-            cnt = len(self._content)
-
-        bytes_remain = len(self._content) - self._pos
-        bytes_to_read = min(cnt, bytes_remain)
-
-        res = self._content[self._pos:self._pos + bytes_to_read]
-        self._pos += bytes_to_read
-
-        return res
 
 
 class TestFileCat(TestCase):
@@ -41,7 +19,7 @@ class TestFileCat(TestCase):
         file_sizes = [randrange(min_file_size, max_file_size)
                       for i in range(0, num_files)]
 
-        files = [DummyFile(size) for size in file_sizes]
+        files = [MockFile(size) for size in file_sizes]
 
         # Calculate an md5 of all of our files.
         z = md5()
@@ -71,7 +49,7 @@ class TestFileCat(TestCase):
         file_sizes = [randrange(min_file_size, max_file_size)
                       for i in range(0, num_files)]
 
-        files = [DummyFile(size) for size in file_sizes]
+        files = [MockFile(size) for size in file_sizes]
 
         # Calculate an md5 of all of our files.
         z = md5()
