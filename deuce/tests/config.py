@@ -57,3 +57,8 @@ metadata_driver = {
         'path': '/tmp/vaultmeta.db'
     }
 }
+
+# Always remove the database so that we can start over on
+# test execution
+if os.path.exists('/tmp/vaultmeta.db'):
+    os.remove('/tmp/vaultmeta.db')

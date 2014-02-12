@@ -18,7 +18,6 @@ class BlockStorageDriver(object):
 
         :param vault_id: The ID of the vault to check
         :param block_id: The ID of the block to check"""
-        pass
 
     @abstractmethod
     def create_vault(self, vault_id):
@@ -26,7 +25,6 @@ class BlockStorageDriver(object):
         vault ID
 
         :param vault_id: The ID of the vault"""
-        pass
 
     @abstractmethod
     def delete_vault(self, vault_id):
@@ -42,12 +40,10 @@ class BlockStorageDriver(object):
         specified vault_id
 
         :param vault_id: The ID of the vault to check for"""
-        pass
 
     @abstractmethod
     def get_block_obj(self, vault_id, block_id):
         """Returns a single file-like object"""
-        pass
 
     @abstractmethod
     def store_block(self, vault_id, block_id, block_data):
@@ -59,13 +55,10 @@ class BlockStorageDriver(object):
     def block_exists(self, vault_id, block_id):
         """Determines if the specified block exists in the
         vault."""
-        pass
 
     @abstractmethod
     def delete_block(self, vault_id, block_id):
-        """Deletes the specified block from storage
-        """
-        pass
+        """Deletes the specified block from storage"""
 
     def create_blocks_generator(self, vault_id, block_gen):
         """Returns a generator of file-like objects that are

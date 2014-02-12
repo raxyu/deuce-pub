@@ -2,6 +2,7 @@
 from pecan import conf
 
 from sqlite3 import Connection
+from deuce.drivers.storage.metadata import MetadataStorageDriver
 
 # SQL schemas. Note: the schema is versions
 # in such a way that new instances always start
@@ -40,10 +41,9 @@ schemas.append([
     """
 ])  # Version 1
 
-
 CURRENT_DB_VERSION = len(schemas)
 
-SQL_CREATE_FILE = ''''
+SQL_CREATE_FILE = '''
     INSERT INTO files (vaultid, fileid)
     VALUES (:vaultid, :fileid)
 '''
@@ -52,6 +52,12 @@ SQL_GET_FILE = '''
     SELECT finalized
     FROM files
     WHERE vaultid=:vaultid AND fileid=:fileid
+'''
+
+SQL_DELETE_FILE = '''
+    DELETE FROM files
+    where vaultid=:vaultid
+    AND fileid=:fileid
 '''
 
 SQL_GET_FILE_BLOCKS = '''
@@ -80,6 +86,11 @@ SQL_REGISTER_BLOCK = '''
     values (:vaultid, :blockid, :blocksize)
 '''
 
+SQL_UNREGISTER_BLOCK = '''
+    DELETE FROM blocks
+    where blockid=:blockid
+'''
+
 SQL_HAS_BLOCK = '''
     SELECT count(*)
     FROM blocks
@@ -88,7 +99,7 @@ SQL_HAS_BLOCK = '''
 '''
 
 
-class SqliteStorageDriver(object):
+class SqliteStorageDriver(MetadataStorageDriver):
 
     def __init__(self):
         self._dbfile = conf.metadata_driver.options.path
@@ -123,11 +134,38 @@ class SqliteStorageDriver(object):
     def create_file(self, vault_id, file_id):
         """Creates a new file with no blocks and no files"""
         args = {'vaultid': vault_id, 'fileid': file_id}
+
         res = self._conn.execute(SQL_CREATE_FILE, args)
         self._conn.commit()
 
         # TODO: check that one row was inserted
         return file_id
+
+    def has_file(self, vault_id, file_id):
+        args = {'vaultid': vault_id, 'fileid': file_id}
+
+        res = self._conn.execute(SQL_GET_FILE, args)
+
+        try:
+            row = next(res)
+            return True
+        except StopIteration:
+            return False
+
+    def is_finalized(self, vault_id, file_id):
+        args = {'vaultid': vault_id, 'fileid': file_id}
+        res = self._conn.execute(SQL_GET_FILE, args)
+
+        try:
+            row = next(res)
+            return row[0] == 1
+        except StopIteration:
+            return False
+
+    def delete_file(self, vault_id, file_id):
+        args = {'vaultid': vault_id, 'fileid': file_id}
+        res = self._conn.execute(SQL_DELETE_FILE, args)
+        self._conn.commit()
 
     def finalize_file(self, vault_id, file_id):
         """Updates the files table to set a file to finalized. This function
@@ -150,25 +188,16 @@ class SqliteStorageDriver(object):
 
         return row
 
-    def create_block_generator(self, vault_id, file_id):
-        # Creates and returns generator that will return the block IDs for
-        # each block in this file. The generator should
-        # lazy-load the block lists if it all possible.
-        import pdb
-        pdb.set_trace()
-
     def has_block(self, vault_id, block_id):
         # Query the blocks table
         retval = False
         args = {'vaultid': vault_id, 'blockid': block_id}
         res = self._conn.execute(SQL_HAS_BLOCK, args)
-        try:
-            cnt = next(res)
-            return cnt[0] > 0
-        except StopIteration:
-            raise Exception("No such file: {0}".format(file_id))
 
-    def get_file_blocks(self, vault_id, file_id):
+        cnt = next(res)
+        return cnt[0] > 0
+
+    def create_block_generator(self, vault_id, file_id):
         args = {'vaultid': vault_id, 'fileid': file_id}
         res = self._conn.execute(SQL_GET_FILE_BLOCKS, args)
 
@@ -196,3 +225,13 @@ class SqliteStorageDriver(object):
             }
             res = self._conn.execute(SQL_REGISTER_BLOCK, args)
             self._conn.commit()
+
+    def unregister_block(self, vault_id, block_id):
+
+        args = {
+            'vaultid': vault_id,
+            'blockid': block_id
+        }
+
+        res = self._conn.execute(SQL_UNREGISTER_BLOCK, args)
+        self._conn.commit()

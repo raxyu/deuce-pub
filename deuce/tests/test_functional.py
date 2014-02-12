@@ -5,9 +5,6 @@ from deuce.tests import FunctionalTest
 
 class TestRootController(FunctionalTest):
 
-    def dummy_test(self):
-        assert True
-
     def test_get(self):
         response = self.app.get('/')
         assert response.status_int == 200
