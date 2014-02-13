@@ -1,6 +1,9 @@
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 
+# Note: calling NotImplementedError in each abstract method
+# is to enable 100% code coverage when testing
+
 
 class MetadataStorageDriver(object):
     """MetadataStorageDriver is an abstract base class that
@@ -13,14 +16,17 @@ class MetadataStorageDriver(object):
     @abstractmethod
     def create_file(self, vault_id, file_id):
         """Creates a representation of an empty file."""
+        raise NotImplementedError
 
     @abstractmethod
     def delete_file(self, vault_id, file_id):
         """Deletes the file from storage."""
+        raise NotImplementedError
 
     @abstractmethod
     def has_file(self, vault_id, file_id):
         """Determines if the specified file exists in the vault."""
+        raise NotImplementedError
 
     @abstractmethod
     def finalize_file(self, vault_id, file_id):
@@ -28,20 +34,24 @@ class MetadataStorageDriver(object):
         check ensures that all blocks have been marked have
         been uploaded and that there are no 'gaps' in the
         metadata that comprise the file."""
+        raise NotImplementedError
 
     @abstractmethod
     def is_finalized(self, vault_id, file_id):
         """Determines if this file has been finalized"""
+        raise NotImplementedError
 
     @abstractmethod
     def create_block_generator(self, vault_id, file_id):
         """Creates and returns a generator that will return
         the ID of each block contained in the specified
         file. The file must previously have been finalized."""
+        raise NotImplementedError
 
     @abstractmethod
     def has_block(self, vault_id, block_id):
         """Determines if the vault has the specified block."""
+        raise NotImplementedError
 
     @abstractmethod
     def assign_block(self, vault_id, file_id, block_id, offset):
@@ -54,12 +64,15 @@ class MetadataStorageDriver(object):
         :param file_id: The ID of the file
         :param block_id: The ID of the block being assigned to the file
         :param offset: The position of the block in"""
+        raise NotImplementedError
 
     @abstractmethod
     def register_block(self, vault_id, block_id, size):
         """Registers a block in the metadata driver."""
+        raise NotImplementedError
 
     @abstractmethod
     def unregister_block(self, vault_id, block_id):
         """Unregisters (removes) the block from the metadata
         store"""
+        raise NotImplementedError
