@@ -12,11 +12,16 @@ class Vault(object):
 
     @staticmethod
     def get(vault_id):
-        """Fetches the vault for the specified vault ID.
-        """
 
-        # TODO: Check metadata driver to ensure that we
-        # are working with an actual vault.
+        if deuce.storage_driver.vault_exists(vault_id):
+            return Vault(vault_id)
+
+        return None
+
+    @staticmethod
+    def create(vault_id):
+        """Creates the vault with the specified vault_id"""
+        deuce.storage_driver.create_vault(vault_id)
         return Vault(vault_id)
 
     def __init__(self, vault_id):
@@ -33,18 +38,27 @@ class Vault(object):
         return retval
 
     def get_block(self, block_id):
-        obj = deuce.storage_driver.get_block_obj(self.id, block_id)
+        obj = deuce.storage_driver.get_block_obj(self.id,
+            block_id)
+
         return Block(self.id, block_id, obj)
 
     def create_file(self):
         file_id = str(uuid.uuid4())
-        file_id = deuce.metadata_driver.create_file(self.id, file_id)
+        file_id = deuce.metadata_driver.create_file(self.id,
+            file_id)
+
         return file_id
 
     def get_file(self, file_id):
         try:
-            data = deuce.metadata_driver.get_file_data(self.id, file_id)
+            data = deuce.metadata_driver.get_file_data(self.id,
+                file_id)
+
         except Exception as ex:
             return None
 
         return File(self.id, file_id, finalized=data[0])
+
+    def delete(self):
+        deuce.storage_driver.delete_vault(self.id)
