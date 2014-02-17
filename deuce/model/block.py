@@ -5,9 +5,9 @@ from pecan import conf
 import os
 
 
-class Block:
+class Block(object):
 
-    def __init__(self, vault_id, block_id, obj):
+    def __init__(self, vault_id, block_id, obj=None):
         self.vault_id = vault_id
         self.block_id = block_id
         self._fileobj = obj
@@ -18,3 +18,6 @@ class Block:
         by the caller when done.
         """
         return self._fileobj
+
+    def __json__(self):
+        return self.block_id

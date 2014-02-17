@@ -18,14 +18,23 @@ class BlocksController(RestController):
     """
     @expose('json')
     def get_all(self, vault_id):
-        """Returns a json-formatted list of all blocks that
-        are returned"""
-        return ['whatever']
+        vault = Vault.get(vault_id)
+
+        if not vault:
+            response.status_code = 404
+            return
+
+        blocks = vault.get_blocks()
+
+        # Convert the block object to JSON and return.
+        # TODO: figure out a way to stream this back
+        resp = list(blocks)
+
+        return resp
 
     @expose()
     def get_one(self, vault_id, block_id):
-        """Returns a specific block data from Deuce
-        """
+        """Returns a specific block"""
 
         if not block_id:
             response.status_code = 404
@@ -36,10 +45,11 @@ class BlocksController(RestController):
 
         vault = Vault.get(vault_id)
 
-        if not vault:
-            response.status_code = 404
-            return
-
+        # Note: vault_id should have been validated in the
+        # vault controller so we can assume that it's OK
+        # here. If vault is None, it's going to throw and
+        # cause a 500 error which is what should happen
+        # in this scenario.
         block = vault.get_block(block_id)
 
         if not block:
@@ -54,8 +64,7 @@ class BlocksController(RestController):
         """Uploads a block into Deuce. The URL of the block
         is returned in the Location header
         """
-        vault = Vault.get(vault_id)
-        if not vault:
-            abort(404)
+        vault = Vault.get(vault_id)  # Validated in VaultController
+
         vault.put_block(
             block_id, request.body, request.headers['content-length'])

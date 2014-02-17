@@ -119,3 +119,15 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         for x in range(0, len(fetched_blocks)):
             assert fetched_blocks[x] == block_ids[x]
+
+        # Add 2 more blocks that aren't assigned.
+        driver.register_block(vault_id, 'unassigned_1', 1024)
+        driver.register_block(vault_id, 'unassigned_2', 1024)
+
+        # Now create a generator of the files. The output
+        # should be in the same order as block_ids
+        gen = driver.create_block_generator(vault_id)
+
+        fetched_blocks = list(gen)
+
+        assert len(fetched_blocks) == 12

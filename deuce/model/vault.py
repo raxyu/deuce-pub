@@ -29,19 +29,27 @@ class Vault(object):
 
     def put_block(self, block_id, blockdata, data_len):
         try:
-            retval = deuce.storage_driver.insert_block_obj(
+            retval = deuce.storage_driver.store_block(
                 self.id, block_id, blockdata)
+
             file_id = deuce.metadata_driver.register_block(
                 self.id, block_id, data_len)
+
         except Exception as ex:
-            return False
+            raise ex
+
         return retval
+
+    def get_blocks(self):
+        #TODO: pagination, ranges, etc.
+        gen = deuce.metadata_driver.create_block_generator(self.id)
+        return (Block(self.id, bid) for bid in gen)
 
     def get_block(self, block_id):
         obj = deuce.storage_driver.get_block_obj(self.id,
             block_id)
 
-        return Block(self.id, block_id, obj)
+        return Block(self.id, block_id, obj) if obj else None
 
     def create_file(self):
         file_id = str(uuid.uuid4())

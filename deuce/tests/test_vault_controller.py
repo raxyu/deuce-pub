@@ -19,7 +19,7 @@ class TestVaultController(FunctionalTest):
         assert response.status_code == 404
 
         # Now we create the vault, which should return a 201 (created)
-        response = self.app.post('/v1.0/{0}'.format(vault_name))
+        response = self.app.post(vault_path)
         assert response.status_code == 201
 
         # Now if we get the vault, what do we get? For now,

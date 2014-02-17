@@ -68,6 +68,12 @@ SQL_GET_FILE_BLOCKS = '''
     ORDER BY offset
 '''
 
+SQL_GET_ALL_BLOCKS = '''
+    SELECT blockid
+    FROM blocks
+    order by blockid
+'''
+
 SQL_FINALIZE_FILE = '''
     update files
     set finalized=1
@@ -197,10 +203,17 @@ class SqliteStorageDriver(MetadataStorageDriver):
         cnt = next(res)
         return cnt[0] > 0
 
-    def create_block_generator(self, vault_id, file_id):
-        args = {'vaultid': vault_id, 'fileid': file_id}
-        res = self._conn.execute(SQL_GET_FILE_BLOCKS, args)
+    def create_block_generator(self, vault_id, file_id=None):
 
+        args = {'vaultid': vault_id}
+
+        if file_id:
+            args['fileid'] = file_id
+            query = SQL_GET_FILE_BLOCKS
+        else:
+            query = SQL_GET_ALL_BLOCKS
+
+        res = self._conn.execute(query, args)
         return (row[0] for row in res)
 
     def assign_block(self, vault_id, file_id, block_id, offset):
