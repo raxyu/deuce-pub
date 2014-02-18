@@ -14,7 +14,10 @@ class FileCat(object):
             must be ready-to-read
         """
         self._objs = fileobjs
-        self._current_file = next(fileobjs)
+        if fileobjs != None:
+          self._current_file = next(fileobjs)
+        else:
+          self._current_file = None
 
     def read(self, count=None):
 
