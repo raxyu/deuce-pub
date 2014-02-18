@@ -10,12 +10,6 @@ from deuce.util import FileCat
 
 class FilesController(RestController):
 
-    @expose('json')
-    def get_all(self, vault_id):
-        """Returns a json-formatted list of all files that
-        are stored in this vault"""
-        return ['whatever']
-
     @expose()
     def get_one(self, vault_id, file_id):
         """Fetches, re-assembles and streams a single
@@ -32,8 +26,10 @@ class FilesController(RestController):
             abort(404)
 
         # Get the block generator from the metadata driver
-        blks = deuce.metadata_driver.get_file_blocks(vault_id, file_id)
-        objs = deuce.storage_driver.get_block_objs(vault_id, blks)
+        blks = deuce.metadata_driver.create_block_generator(vault_id,
+            file_id)
+
+        objs = deuce.storage_driver.create_blocks_generator(vault_id, blks)
 
         response.body_file = FileCat(objs)
         response.status_code = 200
