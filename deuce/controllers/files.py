@@ -32,8 +32,8 @@ class FilesController(RestController):
             abort(404)
 
         # Get the block generator from the metadata driver
-        blks = deuce.metadata_driver.get_file_blocks(vault_id, file_id)
-        objs = deuce.storage_driver.get_block_objs(vault_id, blks)
+        blks = deuce.metadata_driver.create_block_generator(vault_id, file_id)
+        objs = deuce.storage_driver.get_block_obj(vault_id, blks)
 
         response.body_file = FileCat(objs)
         response.status_code = 200
