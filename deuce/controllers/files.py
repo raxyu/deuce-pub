@@ -69,6 +69,11 @@ class FilesController(RestController):
         if not f:
             abort(404)
 
+        # Fileid with an empty body will finalize the file.
+        if not request.body:
+            deuce.metadata_driver.finalize_file(vault_id, file_id)
+            return
+
         if f.finalized:
             # A finalized file cannot be
             # modified
