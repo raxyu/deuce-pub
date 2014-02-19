@@ -43,6 +43,9 @@ class TestFilesController(FunctionalTest):
         response = self.app.post('/v1.0/files_vault_test/files/', expect_errors=True)
         assert response.status_int == 404
 
+        response = self.app.post('/v1.0/files_vault_test/files')
+
+
         response = self.app.post('/v1.0/files_vault_test/files/not_exists', expect_errors=True)
         assert response.status_int == 404
 
@@ -50,6 +53,16 @@ class TestFilesController(FunctionalTest):
         data = "{\"blocks\":[{\"id\": \"1\", \"size\": 100, \"offset\": 0}, {\"id\": \"2\", \"size\": 100, \"offset\": 100}]}"
         response = self.app.post(self._file_id, params=data, headers=hdrs)
 
-        print ("YUDEBUG: file id: ", self._file_id)
+
+        response = self.app.get(self._file_id, expect_errors=True)
+
+        response = self.app.post('/v1.0/files_vault_test/files/not_exists', expect_errors=True)
+        assert response.status_int == 404
+
+        hdrs = {'content-type': 'application/x-deuce-block-list'}
+        data = "{\"blocks\":[{\"id\": \"1\", \"size\": 100, \"offset\": 0}, {\"id\": \"2\", \"size\": 100, \"offset\": 100}]}"
+        response = self.app.post(self._file_id, params=data, headers=hdrs)
+
+
         response = self.app.get(self._file_id, expect_errors=True)
 
