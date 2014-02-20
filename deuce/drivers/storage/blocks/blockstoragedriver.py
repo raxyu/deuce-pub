@@ -1,7 +1,9 @@
 
+import six
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 
+@six.add_metaclass(ABCMeta)
 class BlockStorageDriver(object):
 
     """Defines an abstract class for implementing a block storage
@@ -9,8 +11,6 @@ class BlockStorageDriver(object):
     for storing and retrieving individual blocks and has no notion
     of files (files exist only as a notion in the metadata layer).
     """
-
-    __metaclass__ = ABCMeta
 
     @abstractmethod
     def block_exists(self, vault_id, block_id):
