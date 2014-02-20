@@ -28,15 +28,12 @@ class Vault(object):
         self.id = vault_id
 
     def put_block(self, block_id, blockdata, data_len):
-        try:
-            retval = deuce.storage_driver.store_block(
-                self.id, block_id, blockdata)
+        retval = deuce.storage_driver.store_block(
+            self.id, block_id, blockdata)
 
-            file_id = deuce.metadata_driver.register_block(
-                self.id, block_id, data_len)
+        file_id = deuce.metadata_driver.register_block(
+            self.id, block_id, data_len)
 
-        except Exception as ex:
-            raise ex
 
         return retval
 
@@ -56,14 +53,15 @@ class Vault(object):
         file_id = deuce.metadata_driver.create_file(self.id,
             file_id)
 
-        return file_id
+        return File(self.id, file_id)
 
     def get_file(self, file_id):
         try:
             data = deuce.metadata_driver.get_file_data(self.id,
                 file_id)
-
-        except Exception as ex:
+        except:
+            # TODO: Improve this. This could be very
+            # dangerous and cause a lot of head-scratching.
             return None
 
         return File(self.id, file_id, finalized=data[0])

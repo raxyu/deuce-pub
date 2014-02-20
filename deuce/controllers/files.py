@@ -51,9 +51,9 @@ class FilesController(RestController):
         if file_id:
             return self._assign(vault, vault_id, file_id)
 
-        file_id = vault.create_file()
+        file = vault.create_file()
 
-        response.headers["Location"] = "files/%s" % file_id
+        response.headers["Location"] = "files/%s" % file.file_id
         response.status_code = 201  # Created
 
     def _assign(self, vault, vault_id, file_id):

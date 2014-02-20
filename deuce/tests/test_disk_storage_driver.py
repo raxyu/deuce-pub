@@ -12,10 +12,6 @@ from hashlib import md5
 
 class DiskStorageDriverTest(FunctionalTest):
 
-    def __drivertype__(self):
-        """The type of driver that should be created
-        for this test"""
-
     def test_ancestry(self):
         d = DiskStorageDriver()
 
@@ -49,9 +45,7 @@ class DiskStorageDriverTest(FunctionalTest):
         vault_id = 'block_crud_vault_test'
         block_id = 'blah'
 
-        # set up test.
-        if not d.vault_exists(vault_id):
-            d.create_vault(vault_id)
+        d.create_vault(vault_id)
 
         # Create a file-like object
         block_data = MockFile(block_size)

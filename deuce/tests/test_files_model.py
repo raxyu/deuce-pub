@@ -18,10 +18,6 @@ class TestFilesModel(FunctionalTest):
         self._file = File(vault_name, fileid)
 
     def tests(self):
-        self._file.get_blocks()
-        self._file.get_obj()
-        self._file.finalize()
-
         retval = self._file.file_id
         retval = self._file.vault_id
         retval = self._file.finalized
