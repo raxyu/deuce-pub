@@ -29,6 +29,9 @@ class TestFileCat(TestCase):
         expected_size = sum(file_sizes)
         expected_md5 = z.hexdigest()
 
+        # Pass None to FileCat
+        fc = FileCat(None)
+
         # FileCat only takes generators
         fc = FileCat((f for f in files))
 

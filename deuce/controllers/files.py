@@ -44,30 +44,29 @@ class FilesController(RestController):
         if file_id == "":  # i.e .../files/
             abort(404)
 
-        if file_id:
-            return self._assign(vault_id, file_id)
-
         vault = Vault.get(vault_id)
-
         if not vault:
             abort(404)
+
+        if file_id:
+            return self._assign(vault, vault_id, file_id)
 
         file_id = vault.create_file()
 
         response.headers["Location"] = "files/%s" % file_id
         response.status_code = 201  # Created
 
-    def _assign(self, vault_id, file_id):
-
-        vault = Vault.get(vault_id)
-
-        if not vault:
-            abort(404)
+    def _assign(self, vault, vault_id, file_id):
 
         f = vault.get_file(file_id)
 
         if not f:
             abort(404)
+
+        # Fileid with an empty body will finalize the file.
+        if not request.body:
+            deuce.metadata_driver.finalize_file(vault_id, file_id)
+            return
 
         if f.finalized:
             # A finalized file cannot be
