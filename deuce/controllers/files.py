@@ -4,11 +4,12 @@ from pecan.core import abort
 from pecan.rest import RestController
 
 import deuce
+from deuce.controllers import DeuceController
 from deuce.model import Vault, Block, File
 from deuce.util import FileCat
 
 
-class FilesController(RestController):
+class FilesController(DeuceController):
 
     @expose()
     def get_one(self, vault_id, file_id):

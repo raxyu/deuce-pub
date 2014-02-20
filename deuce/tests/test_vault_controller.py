@@ -5,6 +5,11 @@ from deuce.tests import FunctionalTest
 
 class TestVaultController(FunctionalTest):
 
+    def setUp(self):
+        super(TestVaultController, self).setUp()
+
+        self._hdrs = {"X-Project-ID": "sample_project_id"}
+
     def test_vault_leaf(self):
         response = self.app.get('/v1.0/', expect_errors=True)
         assert response.status_int == 404
@@ -15,45 +20,37 @@ class TestVaultController(FunctionalTest):
 
         # If we try to get the vault before it exists, it should
         # return a 404
-        response = self.app.get(vault_path, expect_errors=True)
+        response = self.app.get(vault_path,
+            headers=self._hdrs, expect_errors=True)
+
         assert response.status_code == 404
 
         # Now we create the vault, which should return a 201 (created)
-        response = self.app.post(vault_path)
+        response = self.app.post(vault_path, headers=self._hdrs)
         assert response.status_code == 201
 
         # Now if we get the vault, what do we get? For now,
         # let's enforce that we get a 204 (No Content)
-        response = self.app.get(vault_path, expect_errors=True)
+        response = self.app.get(vault_path, headers=self._hdrs,
+            expect_errors=True)
+
         assert response.status_code == 200
 
         # Now delete the vault (this should be OK since it
         # contains nothing in it.
-        response = self.app.delete(vault_path, expect_errors=True)
+        response = self.app.delete(vault_path, headers=self._hdrs,
+            expect_errors=True)
+
         assert response.status_code == 200
 
         # Now we should get a 404 when trying to get the vault
-        response = self.app.get(vault_path, expect_errors=True)
+        response = self.app.get(vault_path, headers=self._hdrs,
+            expect_errors=True)
+
         assert response.status_code == 404
 
         # Try to delete again, this time it should be a 404
-        response = self.app.delete(vault_path, expect_errors=True)
+        response = self.app.delete(vault_path, headers=self._hdrs,
+            expect_errors=True)
+
         assert response.status_code == 404
-
-    """
-    def test_get(self):
-        response = self.app.get('/')
-        assert response.status_int == 200
-
-    def test_search(self):
-        response = self.app.post('/', params={'q': 'RestController'})
-        assert response.status_int == 302
-        assert response.headers['Location'] == (
-            'http://pecan.readthedocs.org/en/latest/search.html'
-            '?q=RestController'
-        )
-
-    def test_get_not_found(self):
-        response = self.app.get('/a/bogus/url', expect_errors=True)
-        assert response.status_int == 404
-    """

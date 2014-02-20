@@ -1,12 +1,12 @@
 
 from pecan import expose, response
-from pecan.rest import RestController
+from deuce.controllers import DeuceController
 from deuce.controllers.blocks import BlocksController
 from deuce.controllers.files import FilesController
 from deuce.model import Vault
 
 
-class VaultController(RestController):
+class VaultController(DeuceController):
 
     blocks = BlocksController()
     files = FilesController()
