@@ -1,9 +1,11 @@
 import os
 import hashlib
+import string
 from random import randrange
 import six
 from unittest import TestCase
 from deuce.tests import FunctionalTest
+from deuce.drivers.storage.metadata.sqlite import SqliteStorageDriver
 
 
 class TestFilesController(FunctionalTest):
@@ -12,8 +14,8 @@ class TestFilesController(FunctionalTest):
         super(TestFilesController, self).setUp()
 
         # Create a vault and a file for us to work with
-        vault_name = 'files_vault_test'
-        self._vault_path = '/v1.0/' + vault_name
+        self.vault_id = 'files_vault_test'
+        self._vault_path = '/v1.0/' + self.vault_id
         self._files_path = self._vault_path + '/files'
         # Create Vault
         response = self.app.post(self._vault_path)
@@ -27,9 +29,7 @@ class TestFilesController(FunctionalTest):
 
     def test_get_one(self):
         # vault does not exists
-        response = self.app.get(self._NOT_EXIST_files_path,
-            expect_errors=True)
-
+        response = self.app.get(self._NOT_EXIST_files_path, expect_errors=True)
         assert response.status_int == 404
         response = self.app.get(self._NOT_EXIST_files_path + '/',
                                 expect_errors=True)
@@ -51,11 +51,9 @@ class TestFilesController(FunctionalTest):
         response = self.app.post(self._NOT_EXIST_files_path,
                                  expect_errors=True)
         assert response.status_int == 404
-
         response = self.app.post(self._NOT_EXIST_files_path + '/',
                                  expect_errors=True)
         assert response.status_int == 404
-
         response = self.app.post(self._NOT_EXIST_files_path + '/not_matter',
                                  expect_errors=True)
         assert response.status_int == 404
@@ -63,7 +61,6 @@ class TestFilesController(FunctionalTest):
         # fileid is not provided
         response = self.app.post(self._files_path + '/', expect_errors=True)
         assert response.status_int == 404
-
         # fileid does not exists
         response = self.app.post(self._files_path + '/not_exists',
                                  expect_errors=True)
@@ -71,10 +68,16 @@ class TestFilesController(FunctionalTest):
 
         # Register blocks to fileid
         hdrs = {'content-type': 'application/x-deuce-block-list'}
-        data = "{\"blocks\":[{\"id\": \"1\",\"size\": 100,\"offset\": 0},\
-                {\"id\": \"2\", \"size\": 100, \"offset\": 100}]}"
+        blockid1 = "1"
+        blockid2 = "2"
+        data = "{\"blocks\":[{\"id\": \"" + blockid1 + "\", \"size\": 100, \
+                 \"offset\": 0}, {\"id\": \"" + blockid2 + "\", \
+                 \"size\": 100, \"offset\": 100}]}"
+        response = self.app.post(self._file_id, params=data, headers=hdrs)
 
-        print self._file_id
+        driver = SqliteStorageDriver()
+        driver.register_block(self.vault_id, blockid1, 100)
+        driver.register_block(self.vault_id, blockid2, 100)
         response = self.app.post(self._file_id, params=data, headers=hdrs)
 
         # Get file.
