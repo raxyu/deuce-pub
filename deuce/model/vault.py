@@ -34,7 +34,6 @@ class Vault(object):
         file_id = deuce.metadata_driver.register_block(
             self.id, block_id, data_len)
 
-
         return retval
 
     def get_blocks(self):
