@@ -27,7 +27,8 @@ schemas.append([
         vaultid TEXT NOT NULL,
         fileid TEXT NOT NULL,
         blockid TEXT NOT NULL,
-        offset INTEGER NOT NULL
+        offset INTEGER NOT NULL,
+        UNIQUE (vaultid, fileid, blockid, offset)
     )
     """,
     """
@@ -61,17 +62,21 @@ SQL_DELETE_FILE = '''
 '''
 
 SQL_GET_FILE_BLOCKS = '''
-    SELECT blockid
+    SELECT blockid, offset
     FROM fileblocks
     WHERE vaultid=:vaultid
     AND fileid=:fileid
+    AND offset>:offset
     ORDER BY offset
+    LIMIT :limit
 '''
 
 SQL_GET_ALL_BLOCKS = '''
     SELECT blockid
     FROM blocks
+    WHERE blockid>:marker
     order by blockid
+    LIMIT :limit
 '''
 
 SQL_FINALIZE_FILE = '''
@@ -81,7 +86,7 @@ SQL_FINALIZE_FILE = '''
 '''
 
 SQL_ASSIGN_BLOCK_TO_FILE = '''
-    INSERT INTO fileblocks
+    INSERT OR REPLACE INTO fileblocks
     (vaultid, fileid, blockid, offset)
     VALUES (:vaultid, :fileid, :blockid, :offset)
 '''
@@ -203,18 +208,40 @@ class SqliteStorageDriver(MetadataStorageDriver):
         cnt = next(res)
         return cnt[0] > 0
 
-    def create_block_generator(self, vault_id, file_id=None):
+    def create_block_generator(self, vault_id, marker=0, limit=0):
 
         args = {'vaultid': vault_id}
+        args['limit'] = limit \
+            if limit != 0 \
+            and (int(limit) <= conf.api_configuration.max_returned_num) \
+            else conf.api_configuration.max_returned_num
+        args['marker'] = marker
 
-        if file_id:
-            args['fileid'] = file_id
-            query = SQL_GET_FILE_BLOCKS
-        else:
-            query = SQL_GET_ALL_BLOCKS
-
+        query = SQL_GET_ALL_BLOCKS
         res = self._conn.execute(query, args)
         return (row[0] for row in res)
+
+    def create_file_block_generator(self, vault_id, file_id,
+            offset=0, limit=0):
+
+        args = {'vaultid': vault_id}
+        args['limit'] = limit \
+            if limit != 0 \
+            and (int(limit) <= conf.api_configuration.max_returned_num) \
+            else conf.api_configuration.max_returned_num
+        args['fileid'] = file_id
+        if offset == 0:
+            offset = -1
+        args['offset'] = offset
+
+        query = SQL_GET_FILE_BLOCKS
+        query_res = self._conn.execute(query, args)
+        res = list((row[0], row[1]) for row in query_res)
+
+        if not res:
+            return None, 0
+
+        return (row[0] for row in res), res[len(res)-1][1]
 
     def assign_block(self, vault_id, file_id, block_id, offset):
         # TODO(jdp): tweak this to support multiple assignments
