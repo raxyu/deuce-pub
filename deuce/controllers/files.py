@@ -31,7 +31,7 @@ class FilesController(RestController):
         while True:
             retblks, offset = \
                 deuce.metadata_driver.create_file_block_generator(
-                    vault_id, file_id, offset, limit)
+                    request.project_id, vault_id, file_id, offset, limit)
             if not retblks:
                 break
             retblks = list(retblks)
@@ -39,7 +39,8 @@ class FilesController(RestController):
             if len(retblks) < limit:
                 break
 
-        objs = deuce.storage_driver.create_blocks_generator(vault_id, blks)
+        objs = deuce.storage_driver.create_blocks_generator(request.project_id,
+            vault_id, blks)
 
         response.body_file = FileCat(objs)
         response.status_code = 200
@@ -75,7 +76,9 @@ class FilesController(RestController):
 
         # Fileid with an empty body will finalize the file.
         if not request.body:
-            deuce.metadata_driver.finalize_file(vault_id, file_id)
+            deuce.metadata_driver.finalize_file(request.project_id, vault_id,
+                file_id)
+
             return
 
         if f.finalized:
@@ -94,10 +97,12 @@ class FilesController(RestController):
             block_id = mapping['id']
             offset = mapping['offset']
 
-            if not deuce.metadata_driver.has_block(vault_id, block_id):
+            if not deuce.metadata_driver.has_block(request.project_id,
+                    vault_id, block_id):
+
                 missing_blocks.append(block_id)
 
-            deuce.metadata_driver.assign_block(vault_id,
+            deuce.metadata_driver.assign_block(request.project_id, vault_id,
                file_id, mapping['id'], mapping['offset'])
 
         return missing_blocks

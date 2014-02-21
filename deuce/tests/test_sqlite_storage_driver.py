@@ -16,76 +16,81 @@ class SqliteStorageDriverTest(FunctionalTest):
     def test_file_crud(self):
         driver = SqliteStorageDriver()
 
+        project_id = 'project_id'
         vault_id = 'vault_id'
         file_id = 'blah'
 
-        assert not driver.has_file(vault_id, file_id)
+        assert not driver.has_file(project_id, vault_id, file_id)
 
-        driver.create_file(vault_id, file_id)
+        driver.create_file(project_id, vault_id, file_id)
 
-        assert driver.has_file(vault_id, file_id)
+        assert driver.has_file(project_id, vault_id, file_id)
 
-        data = driver.get_file_data(vault_id, file_id)
+        data = driver.get_file_data(project_id, vault_id, file_id)
 
-        driver.delete_file(vault_id, file_id)
+        driver.delete_file(project_id, vault_id, file_id)
 
-        assert not driver.has_file(vault_id, file_id)
+        assert not driver.has_file(project_id, vault_id, file_id)
 
     def test_finalize_empty_file(self):
         driver = SqliteStorageDriver()
 
+        project_id = 'project_id'
         vault_id = 'vault_id'
         file_id = 'whatever'
 
-        driver.create_file(vault_id, file_id)
+        driver.create_file(project_id, vault_id, file_id)
 
-        assert not driver.is_finalized(vault_id, file_id)
+        assert not driver.is_finalized(project_id, vault_id, file_id)
 
-        driver.finalize_file(vault_id, file_id)
+        driver.finalize_file(project_id, vault_id, file_id)
 
-        assert driver.is_finalized(vault_id, file_id)
+        assert driver.is_finalized(project_id, vault_id, file_id)
 
     def test_finalize_nonexistent_file(self):
         driver = SqliteStorageDriver()
 
+        project_id = 'project_id'
         vault_id = 'vault_id'
         file_id = 'should_not_exist'
 
-        assert not driver.has_file(vault_id, file_id)
-        driver.finalize_file(vault_id, file_id)
+        assert not driver.has_file(project_id, vault_id, file_id)
+        driver.finalize_file(project_id, vault_id, file_id)
 
         try:
-            data = driver.get_file_data(vault_id, file_id)
+            data = driver.get_file_data(project_id, vault_id, file_id)
         except:
             assert True
 
-        assert not driver.has_file(vault_id, file_id)
-        assert not driver.is_finalized(vault_id, file_id)
+        assert not driver.has_file(project_id, vault_id, file_id)
+        assert not driver.is_finalized(project_id, vault_id, file_id)
 
     def test_block_crud(self):
         driver = SqliteStorageDriver()
 
+        project_id = 'project_id'
         vault_id = 'vault_id'
         block_id = 'block_id'
         size = 4096
 
-        assert not driver.has_block(vault_id, block_id)
-        driver.register_block(vault_id, block_id, size)
+        assert not driver.has_block(project_id, vault_id, block_id)
+        driver.register_block(project_id, vault_id, block_id, size)
 
-        assert driver.has_block(vault_id, block_id)
+        assert driver.has_block(project_id, vault_id, block_id)
 
         # Call again, shouldn't throw
-        driver.register_block(vault_id, block_id, size)
+        driver.register_block(project_id, vault_id, block_id, size)
 
-        driver.unregister_block(vault_id, block_id)
-        assert not driver.has_block(vault_id, block_id)
+        driver.unregister_block(project_id, vault_id, block_id)
+        assert not driver.has_block(project_id, vault_id, block_id)
 
-        assert not driver.has_block(vault_id, 'invalid_block_id')
+        assert not driver.has_block(project_id, vault_id, 'invalidid')
 
     def test_file_assignment(self):
 
         driver = SqliteStorageDriver()
 
+        project_id = 'project_id'
         vault_id = 'vault_id'
         file_id = 'file_id'
 
@@ -95,18 +100,18 @@ class SqliteStorageDriverTest(FunctionalTest):
         pairs = dict(zip(block_ids, offsets))
 
         # Create a file
-        driver.create_file(vault_id, file_id)
+        driver.create_file(project_id, vault_id, file_id)
 
         # Assign each block
         for bid, offset in pairs.items():
-            driver.register_block(vault_id, bid, 1024)  # Add the block
-            driver.assign_block(vault_id, file_id, bid, offset)
+            driver.register_block(project_id, vault_id, bid, 1024)
+            driver.assign_block(project_id, vault_id, file_id, bid, offset)
 
-        assert not driver.is_finalized(vault_id, file_id)
+        assert not driver.is_finalized(project_id, vault_id, file_id)
 
-        driver.finalize_file(vault_id, file_id)
+        driver.finalize_file(project_id, vault_id, file_id)
 
-        assert driver.is_finalized(vault_id, file_id)
+        assert driver.is_finalized(project_id, vault_id, file_id)
 
         # Now create a generator of the files. The output
         # should be in the same order as block_ids
@@ -116,7 +121,7 @@ class SqliteStorageDriverTest(FunctionalTest):
         while True:
             retgen, offset = \
                 driver.create_file_block_generator(
-                    vault_id, file_id, offset, limit)
+                    project_id, vault_id, file_id, offset, limit)
             retgen = list(retgen)
             gen.extend(retgen)
             if len(retgen) < limit:
@@ -130,12 +135,12 @@ class SqliteStorageDriverTest(FunctionalTest):
             assert fetched_blocks[x] == block_ids[x]
 
         # Add 2 more blocks that aren't assigned.
-        driver.register_block(vault_id, 'unassigned_1', 1024)
-        driver.register_block(vault_id, 'unassigned_2', 1024)
+        driver.register_block(project_id, vault_id, 'unassigned_1', 1024)
+        driver.register_block(project_id, vault_id, 'unassigned_2', 1024)
 
         # Now create a generator of the files. The output
         # should be in the same order as block_ids
-        gen = driver.create_block_generator(vault_id)
+        gen = driver.create_block_generator(project_id, vault_id)
 
         fetched_blocks = list(gen)
 

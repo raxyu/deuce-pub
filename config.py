@@ -4,6 +4,7 @@ server = {
     'host': '0.0.0.0'
 }
 
+
 def get_hooks():
     from deuce.hooks import ProjectIDHook
     return [ProjectIDHook()]

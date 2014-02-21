@@ -17,6 +17,7 @@ class TestFilesController(FunctionalTest):
         self._hdrs = {"X-Project-ID": "test_project_id"}
 
         # Create a vault and a file for us to work with
+        self.project_id = 'test_project_id'
         self.vault_id = 'files_vault_test'
         self._vault_path = '/v1.0/' + self.vault_id
         self._files_path = self._vault_path + '/files'
@@ -128,7 +129,7 @@ class TestFilesController(FunctionalTest):
         '''
         # Register 150 blocks into system.
         for cnt in range(0, enough_num):
-            driver.register_block(self.vault_id, cnt, 100)
+            driver.register_block(self.project_id, self.vault_id, cnt, 100)
         # Then add blocks to files again. resp is empty.
         response = self.app.post(self._file_id, params=data, headers=hdrs)
         assert len(response.body) == 2
@@ -143,7 +144,7 @@ class TestFilesController(FunctionalTest):
             data = data + '{' + '\"id\": {0}, \"size\": 100, \"offset\": {1}'.format(cnt, cnt*100) + '}'
             if cnt < enough_num-1:
                 data = data + ','
-            driver.register_block(self.vault_id, cnt, 100)
+            driver.register_block(self.project_id, self.vault_id, cnt, 100)
         data = data + ']}'
         # Then add blocks to files again. resp is empty.
         response = self.app.post(self._file_id, params=data, headers=hdrs)
