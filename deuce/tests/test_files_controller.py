@@ -108,8 +108,9 @@ class TestFilesController(FunctionalTest):
         data = "{\"blocks\":["
         enough_num = int(1.5 * conf.api_configuration.max_returned_num)
         for cnt in range(0, enough_num):
-            data = data + '{' + '\"id\": {0}, \"size\": 100, \"offset\": {1}'.format(cnt, cnt*100) + '}'
-            if cnt < enough_num-1:
+            data = data + '{' + '\"id\": {0}, \"size\": 100, \
+                \"offset\": {1}'.format(cnt, cnt * 100) + '}'
+            if cnt < enough_num - 1:
                 data = data + ','
         data = data + ']}'
         # Add blocks to files, resp has a list of missing blocks.
@@ -126,14 +127,16 @@ class TestFilesController(FunctionalTest):
         assert len(response.body) == 2
 
         # Get file.
-        response = self.app.get(self._file_id, headers=hdrs, expect_errors=True)
+        response = self.app.get(self._file_id,
+            headers=hdrs, expect_errors=True)
 
         # Register 200 blocks into system.
         data = "{\"blocks\":["
         enough_num = int(2 * conf.api_configuration.max_returned_num)
         for cnt in range(0, enough_num):
-            data = data + '{' + '\"id\": {0}, \"size\": 100, \"offset\": {1}'.format(cnt, cnt*100) + '}'
-            if cnt < enough_num-1:
+            data = data + '{' + '\"id\": {0}, \"size\": 100, \
+                \"offset\": {1}'.format(cnt, cnt * 100) + '}'
+            if cnt < enough_num - 1:
                 data = data + ','
             driver.register_block(self.project_id, self.vault_id, cnt, 100)
         data = data + ']}'

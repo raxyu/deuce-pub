@@ -284,7 +284,7 @@ class SqliteStorageDriver(MetadataStorageDriver):
         if not res:
             return None, 0
 
-        return (row[0] for row in res), res[len(res)-1][1]
+        return (row[0] for row in res), res[len(res) - 1][1]
 
     def assign_block(self, project_id, vault_id, file_id, block_id, offset):
         # TODO(jdp): tweak this to support multiple assignments

@@ -22,7 +22,6 @@ class FileCat(object):
         except StopIteration:
             self._current_file = None
 
-
     def read(self, count=None):
 
         res = six.binary_type()

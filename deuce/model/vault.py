@@ -39,7 +39,7 @@ class Vault(object):
 
     def get_blocks(self, marker, limit):
         #TODO: ranges, etc.
-        gen = deuce.metadata_driver.create_block_generator(self.project_id, 
+        gen = deuce.metadata_driver.create_block_generator(self.project_id,
             self.id, marker=marker, limit=limit)
 
         return (Block(self.project_id, self.id, bid) for bid in gen)

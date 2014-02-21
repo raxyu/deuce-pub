@@ -93,18 +93,19 @@ class TestBlocksController(FunctionalTest):
 
         # ask for some blocks from the system
         params = {'marker': 0, 'limit': 4}
-        response = self.app.get(self._blocks_path, params=params, headers=self._hdrs)
+        response = self.app.get(self._blocks_path,
+            params=params, headers=self._hdrs)
         result = response.json_body
         assert len(result) == 4
 
         # ask for the rest blocks from the system
         params = {'marker': result[-1], 'limit': 8}
-        response = self.app.get(self._blocks_path, params=params, headers=self._hdrs)
+        response = self.app.get(self._blocks_path,
+            params=params, headers=self._hdrs)
         result = response.json_body
         assert len(result) == 1
 
         # TODO: blocks of a file
-
 
         # Try to get some blocks that don't exist. This should
         # result in 404s
