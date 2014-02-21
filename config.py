@@ -4,6 +4,10 @@ server = {
     'host': '0.0.0.0'
 }
 
+def get_hooks():
+    from deuce.hooks import ProjectIDHook
+    return [ProjectIDHook()]
+
 # Pecan Application Configurations
 app = {
     'root': 'deuce.controllers.root.RootController',
@@ -11,6 +15,7 @@ app = {
     'static_root': '%(confdir)s/public',
     'template_path': '%(confdir)s/deuce/templates',
     'debug': True,
+    'hooks': get_hooks(),
     'errors': {
         404: '/error/404',
         '__force_dict__': True
