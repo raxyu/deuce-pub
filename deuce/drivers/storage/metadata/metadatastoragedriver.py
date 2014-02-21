@@ -1,17 +1,17 @@
 
+import six
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 # Note: calling NotImplementedError in each abstract method
 # is to enable 100% code coverage when testing
 
 
+@six.add_metaclass(ABCMeta)
 class MetadataStorageDriver(object):
     """MetadataStorageDriver is an abstract base class that
     defines all functions necessary for a Deuce metadata
     driver.
     """
-
-    __metaclass__ = ABCMeta
 
     @abstractmethod
     def create_file(self, vault_id, file_id):

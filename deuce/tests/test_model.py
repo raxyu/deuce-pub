@@ -7,32 +7,38 @@ from deuce.model import Vault, Block, File
 
 class TestModel(FunctionalTest):
 
+    def setUp(self):
+        super(TestModel, self).setUp()
+
+        self.project_id = 'test_project_id'
+
     def test_get_nonexistent_block(self):
-        v = Vault.get('should_not_exist')
+        v = Vault.get(self.project_id, 'should_not_exist')
         assert v is None
 
     def test_vault_crud(self):
 
         vault_id = 'my_vault_id'
 
-        v = Vault.get(vault_id)
-        assert v is None
-        v = Vault.get(vault_id)
+        v = Vault.get(self.project_id, vault_id)
         assert v is None
 
-        v = Vault.create(vault_id)
+        v = Vault.get(self.project_id, vault_id)
+        assert v is None
+
+        v = Vault.create(self.project_id, vault_id)
         assert v is not None
 
         v.delete()
 
-        v = Vault.get(vault_id)
+        v = Vault.get(self.project_id, vault_id)
         assert v is None
 
     def test_file_crud(self):
         vault_id = 'test_file_vault'
         vault_id = 'my_vault_id'
 
-        v = Vault.create(vault_id)
+        v = Vault.create(self.project_id, vault_id)
 
         f = v.create_file()
 
@@ -47,11 +53,12 @@ class TestModel(FunctionalTest):
 
         assert isinstance(file2, File)
         assert file2.file_id == file_id
+        assert file2.project_id == self.project_id
 
-    def test_block_crud(block_id):
+    def test_block_crud(self):
         vault_id = 'block_test_vault'
 
-        v = Vault.create(vault_id)
+        v = Vault.create(self.project_id, vault_id)
 
         # Check for blocks, should be none
         blocks_gen = v.get_blocks(0, 0)

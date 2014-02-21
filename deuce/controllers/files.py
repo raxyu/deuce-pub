@@ -14,7 +14,7 @@ class FilesController(RestController):
         """Fetches, re-assembles and streams a single
         file out of Deuce"""
 
-        vault = Vault.get(vault_id)
+        vault = Vault.get(request.project_id, vault_id)
 
         if not vault:
             abort(404)
@@ -54,7 +54,7 @@ class FilesController(RestController):
         if file_id == "":  # i.e .../files/
             abort(404)
 
-        vault = Vault.get(vault_id)
+        vault = Vault.get(request.project_id, vault_id)
         if not vault:
             abort(404)
 

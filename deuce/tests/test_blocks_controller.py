@@ -16,11 +16,14 @@ class TestBlocksController(FunctionalTest):
         self._vault_path = '/v1.0/{0}'.format(vault_name)
         self._blocks_path = '{0}/blocks'.format(self._vault_path)
 
-        response = self.app.post(self._vault_path)
+        self._hdrs = {"X-Project-ID": "sample_project_id"}
+
+        response = self.app.post(self._vault_path,
+            headers=self._hdrs)
 
     def test_no_block_state(self):
         # Try listing the blocks. There should be none
-        response = self.app.get(self._blocks_path)
+        response = self.app.get(self._blocks_path, headers=self._hdrs)
         assert response.json_body == []
 
     def _calc_sha1(self, data):
@@ -33,12 +36,16 @@ class TestBlocksController(FunctionalTest):
 
     def test_get_all_with_trailing_slash(self):
         path = self._get_block_path('')
-        response = self.app.get(path, expect_errors=True)
+
+        response = self.app.get(path, headers=self._hdrs,
+            expect_errors=True)
+
         assert response.status_int == 404
 
     def test_get_all_invalid_vault_id(self):
         path = '/v1.0/{0}/blocks'.format('bad_vault_id')
-        response = self.app.get(path, expect_errors=True)
+        response = self.app.get(path, headers=self._hdrs,
+            expect_errors=True)
         assert response.status_int == 404
 
     def test_put_and_list(self):
@@ -66,11 +73,13 @@ class TestBlocksController(FunctionalTest):
                 "Content-Length": str(size),
             }
 
+            headers.update(self._hdrs)
+
             response = self.app.put(path, headers=headers,
                 params=data)
 
         # Now list the contents
-        response = self.app.get(self._blocks_path)
+        response = self.app.get(self._blocks_path, headers=self._hdrs)
         res = response.json_body
 
         assert isinstance(res, list)
@@ -84,7 +93,7 @@ class TestBlocksController(FunctionalTest):
 
         # ask for some blocks from the system
         params = {'marker': 0, 'limit': 4}
-        response = self.app.get(self._blocks_path, params=params)
+        response = self.app.get(self._blocks_path, params=params, headers=self._hdrs)
         result = response.json_body
         assert len(result) == 4
 
@@ -103,14 +112,17 @@ class TestBlocksController(FunctionalTest):
 
         for bad_id in bad_block_ids:
             path = self._get_block_path(bad_id)
-            response = self.app.get(path, expect_errors=True)
+
+            response = self.app.get(path, headers=self._hdrs,
+                expect_errors=True)
+
             assert response.status_int == 404
 
         # Now try to fetch each block, and compare against
         # the original block data
         for sha1 in res:
             path = self._get_block_path(sha1)
-            response = self.app.get(path)
+            response = self.app.get(path, headers=self._hdrs)
             assert response.status_int == 200
 
             bindata = response.body
@@ -121,21 +133,3 @@ class TestBlocksController(FunctionalTest):
             z = hashlib.sha1()
             z.update(bindata)
             assert z.hexdigest() == sha1
-
-    """
-    def test_get(self):
-        response = self.app.get('/')
-        assert response.status_int == 200
-
-    def test_search(self):
-        response = self.app.post('/', params={'q': 'RestController'})
-        assert response.status_int == 302
-        assert response.headers['Location'] == (
-            'http://pecan.readthedocs.org/en/latest/search.html'
-            '?q=RestController'
-        )
-
-    def test_get_not_found(self):
-        response = self.app.get('/a/bogus/url', expect_errors=True)
-        assert response.status_int == 404
-    """

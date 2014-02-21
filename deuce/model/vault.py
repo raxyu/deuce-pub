@@ -11,20 +11,21 @@ import uuid
 class Vault(object):
 
     @staticmethod
-    def get(vault_id):
+    def get(project_id, vault_id):
 
         if deuce.storage_driver.vault_exists(vault_id):
-            return Vault(vault_id)
+            return Vault(project_id, vault_id)
 
         return None
 
     @staticmethod
-    def create(vault_id):
+    def create(project_id, vault_id):
         """Creates the vault with the specified vault_id"""
         deuce.storage_driver.create_vault(vault_id)
-        return Vault(vault_id)
+        return Vault(project_id, vault_id)
 
-    def __init__(self, vault_id):
+    def __init__(self, project_id, vault_id):
+        self.project_id = project_id
         self.id = vault_id
 
     def put_block(self, block_id, blockdata, data_len):
@@ -38,22 +39,22 @@ class Vault(object):
 
     def get_blocks(self, marker, limit):
         #TODO: ranges, etc.
-        gen = deuce.metadata_driver.create_block_generator(vault_id=self.id,
+        gen = deuce.metadata_driver.create_block_generator(self.id,
             marker=marker, limit=limit)
-        return (Block(self.id, bid) for bid in gen)
+        return (Block(self.project_id, self.id, bid) for bid in gen)
 
     def get_block(self, block_id):
         obj = deuce.storage_driver.get_block_obj(self.id,
             block_id)
 
-        return Block(self.id, block_id, obj) if obj else None
+        return Block(self.project_id, self.id, block_id, obj) if obj else None
 
     def create_file(self):
         file_id = str(uuid.uuid4())
         file_id = deuce.metadata_driver.create_file(self.id,
             file_id)
 
-        return File(self.id, file_id)
+        return File(self.project_id, self.id, file_id)
 
     def get_file(self, file_id):
         try:
@@ -64,7 +65,7 @@ class Vault(object):
             # dangerous and cause a lot of head-scratching.
             return None
 
-        return File(self.id, file_id, finalized=data[0])
+        return File(self.project_id, self.id, file_id, finalized=data[0])
 
     def delete(self):
         deuce.storage_driver.delete_vault(self.id)

@@ -1,7 +1,6 @@
 
 from pecan import expose, request, response
 from pecan.rest import RestController
-
 from deuce.model import Vault, Block
 
 BLOCK_ID_LENGTH = 40
@@ -18,7 +17,7 @@ class BlocksController(RestController):
     """
     @expose('json')
     def get_all(self, vault_id):
-        vault = Vault.get(vault_id)
+        vault = Vault.get(request.project_id, vault_id)
 
         if not vault:
             response.status_code = 404
@@ -46,7 +45,7 @@ class BlocksController(RestController):
         # Step 1: Is the block in our vault store?  If not, return 404
         # Step 2: Stream the block back to the user
 
-        vault = Vault.get(vault_id)
+        vault = Vault.get(request.project_id, vault_id)
 
         # Note: vault_id should have been validated in the
         # vault controller so we can assume that it's OK
@@ -67,7 +66,7 @@ class BlocksController(RestController):
         """Uploads a block into Deuce. The URL of the block
         is returned in the Location header
         """
-        vault = Vault.get(vault_id)  # Validated in VaultController
+        vault = Vault.get(request.project_id, vault_id)
 
         vault.put_block(
             block_id, request.body, request.headers['content-length'])
