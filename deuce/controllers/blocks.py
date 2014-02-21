@@ -24,7 +24,10 @@ class BlocksController(RestController):
             response.status_code = 404
             return
 
-        blocks = vault.get_blocks()
+        marker = request.params.get('marker', 0)
+        limit = request.params.get('limit', 0)
+
+        blocks = vault.get_blocks(marker, limit)
 
         # Convert the block object to JSON and return.
         # TODO: figure out a way to stream this back
