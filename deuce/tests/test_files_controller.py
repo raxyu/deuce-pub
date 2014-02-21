@@ -1,3 +1,4 @@
+from pecan import conf
 import os
 import hashlib
 import string
@@ -66,19 +67,51 @@ class TestFilesController(FunctionalTest):
                                  expect_errors=True)
         assert response.status_int == 404
 
-        # Register blocks to fileid
+        driver = SqliteStorageDriver()
         hdrs = {'content-type': 'application/x-deuce-block-list'}
-        blockid1 = "1"
-        blockid2 = "2"
-        data = "{\"blocks\":[{\"id\": \"" + blockid1 + "\", \"size\": 100, \
-                 \"offset\": 0}, {\"id\": \"" + blockid2 + "\", \
-                 \"size\": 100, \"offset\": 100}]}"
+        data = "{\"blocks\":["
+        enough_num = int(1.5 * conf.api_configuration.max_returned_num)
+        for cnt in range(0, enough_num):
+            data = data + '{' + '\"id\": {0}, \"size\": 100, \"offset\": {1}'.format(cnt, cnt*100) + '}'
+            if cnt < enough_num-1:
+                data = data + ','
+        data = data + ']}'
+        # Add blocks to files, resp has a list of missing blocks.
         response = self.app.post(self._file_id, params=data, headers=hdrs)
+        assert len(response.body) == 640
 
         driver = SqliteStorageDriver()
-        driver.register_block(self.vault_id, blockid1, 100)
-        driver.register_block(self.vault_id, blockid2, 100)
+        '''
+        data = "{\"blocks\":["
+        enough_num = int(1.5 * conf.api_configuration.max_returned_num)
+        for cnt in range(0, enough_num):
+            data = data + '{' + '\"id\": {0}, \"size\": 100, \"offset\": {1}'.format(cnt, cnt*100) + '}'
+            if cnt < enough_num-1:
+                data = data + ','
+        data = data + ']}'
+        '''
+        # Register 150 blocks into system.
+        for cnt in range(0, enough_num):
+            driver.register_block(self.vault_id, cnt, 100)
+        # Then add blocks to files again. resp is empty.
         response = self.app.post(self._file_id, params=data, headers=hdrs)
+        assert len(response.body) == 2
+
+        # Get file.
+        response = self.app.get(self._file_id, expect_errors=True)
+
+        # Register 200 blocks into system.
+        data = "{\"blocks\":["
+        enough_num = int(2 * conf.api_configuration.max_returned_num)
+        for cnt in range(0, enough_num):
+            data = data + '{' + '\"id\": {0}, \"size\": 100, \"offset\": {1}'.format(cnt, cnt*100) + '}'
+            if cnt < enough_num-1:
+                data = data + ','
+            driver.register_block(self.vault_id, cnt, 100)
+        data = data + ']}'
+        # Then add blocks to files again. resp is empty.
+        response = self.app.post(self._file_id, params=data, headers=hdrs)
+        assert len(response.body) == 2
 
         # Get file.
         response = self.app.get(self._file_id, expect_errors=True)

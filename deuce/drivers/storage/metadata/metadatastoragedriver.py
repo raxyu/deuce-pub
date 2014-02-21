@@ -42,7 +42,16 @@ class MetadataStorageDriver(object):
         raise NotImplementedError
 
     @abstractmethod
-    def create_block_generator(self, vault_id, file_id=None):
+    def create_block_generator(self, vault_id, file_id=None,
+            marker=0, limit=0):
+        """Creates and returns a generator that will return
+        the ID of each block file. The file must previously
+        have been finalized."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def create_file_block_generator(self, vault_id, file_id,
+            offset=0, limit=0):
         """Creates and returns a generator that will return
         the ID of each block contained in the specified
         file. The file must previously have been finalized."""

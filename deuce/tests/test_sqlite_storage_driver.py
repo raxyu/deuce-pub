@@ -1,4 +1,3 @@
-
 from deuce.tests import FunctionalTest
 from deuce.drivers.storage.metadata import MetadataStorageDriver
 from deuce.drivers.storage.metadata.sqlite import SqliteStorageDriver
@@ -111,7 +110,17 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         # Now create a generator of the files. The output
         # should be in the same order as block_ids
-        gen = driver.create_block_generator(vault_id, file_id)
+        gen = []
+        offset = 0
+        limit = 4
+        while True:
+            retgen, offset = \
+                driver.create_file_block_generator(
+                    vault_id, file_id, offset, limit)
+            retgen = list(retgen)
+            gen.extend(retgen)
+            if len(retgen) < limit:
+                break
 
         fetched_blocks = list(gen)
 
