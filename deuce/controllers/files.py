@@ -1,5 +1,4 @@
-
-from pecan import expose, request, response
+from pecan import conf, expose, request, response
 from pecan.core import abort
 from pecan.rest import RestController
 
@@ -26,8 +25,19 @@ class FilesController(RestController):
             abort(404)
 
         # Get the block generator from the metadata driver
-        blks = deuce.metadata_driver.create_block_generator(vault_id,
-            file_id)
+        blks = []
+        offset = 0
+        limit = conf.api_configuration.max_returned_num
+        while True:
+            retblks, offset = \
+                deuce.metadata_driver.create_file_block_generator(
+                    vault_id, file_id, offset, limit)
+            if not retblks:
+                break
+            retblks = list(retblks)
+            blks.extend(retblks)
+            if len(retblks) < limit:
+                break
 
         objs = deuce.storage_driver.create_blocks_generator(vault_id, blks)
 
