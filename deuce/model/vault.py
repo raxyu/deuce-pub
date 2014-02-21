@@ -36,9 +36,10 @@ class Vault(object):
 
         return retval
 
-    def get_blocks(self):
-        #TODO: pagination, ranges, etc.
-        gen = deuce.metadata_driver.create_block_generator(self.id)
+    def get_blocks(self, marker, limit):
+        #TODO: ranges, etc.
+        gen = deuce.metadata_driver.create_block_generator(vault_id=self.id,
+            marker=marker, limit=limit)
         return (Block(self.id, bid) for bid in gen)
 
     def get_block(self, block_id):
