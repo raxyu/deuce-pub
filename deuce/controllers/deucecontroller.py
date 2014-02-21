@@ -5,10 +5,11 @@ from pecan import expose, request, response
 
 
 class DeuceController(RestController):
-    """DeuceController allows us to enforce
-    policies one each routed request (such as requiring
-    an X-Project-ID header, without having to
-    explicitly decorate each exposed endpoint.
+    """DeuceController allows us to enforce policies one each routed
+    request (such as requiring an X-Project-ID header, without having to
+    explicitly decorate each exposed endpoint. When the request
+    is passed to the calling application, it will have the project_id
+    assign to it.
     """
     def __init__(self):
         super(RestController, self).__init__()
@@ -16,7 +17,7 @@ class DeuceController(RestController):
     @expose()
     def _route(self, args):
         try:
-            project_id = request.headers['X-PROJECT-ID']
+            request.project_id = request.headers['X-PROJECT-ID']
         except KeyError:
             abort(400)  # Bad Request
 

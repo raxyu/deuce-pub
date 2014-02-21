@@ -17,7 +17,7 @@ class BlocksController(DeuceController):
     """
     @expose('json')
     def get_all(self, vault_id):
-        vault = Vault.get(vault_id)
+        vault = Vault.get(request.project_id, vault_id)
 
         if not vault:
             response.status_code = 404
@@ -42,7 +42,7 @@ class BlocksController(DeuceController):
         # Step 1: Is the block in our vault store?  If not, return 404
         # Step 2: Stream the block back to the user
 
-        vault = Vault.get(vault_id)
+        vault = Vault.get(request.project_id, vault_id)
 
         # Note: vault_id should have been validated in the
         # vault controller so we can assume that it's OK
@@ -63,7 +63,7 @@ class BlocksController(DeuceController):
         """Uploads a block into Deuce. The URL of the block
         is returned in the Location header
         """
-        vault = Vault.get(vault_id)  # Validated in VaultController
+        vault = Vault.get(request.project_id, vault_id)
 
         vault.put_block(
             block_id, request.body, request.headers['content-length'])
