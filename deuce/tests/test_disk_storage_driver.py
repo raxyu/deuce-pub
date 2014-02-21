@@ -25,17 +25,18 @@ class DiskStorageDriverTest(FunctionalTest):
 
         d = DiskStorageDriver()
 
+        projectid = 'test_project_id'
         vaultid = 'test_vault_id'
 
-        assert not d.vault_exists(vaultid)
+        assert not d.vault_exists(projectid, vaultid)
 
-        d.create_vault(vaultid)
+        d.create_vault(projectid, vaultid)
 
-        assert d.vault_exists(vaultid)
+        assert d.vault_exists(projectid, vaultid)
 
-        d.delete_vault(vaultid)
+        d.delete_vault(projectid, vaultid)
 
-        assert not d.vault_exists(vaultid)
+        assert not d.vault_exists(projectid, vaultid)
 
     def test_block_crud(self):
 
@@ -44,20 +45,21 @@ class DiskStorageDriverTest(FunctionalTest):
         block_size = 3000
         vault_id = 'block_crud_vault_test'
         block_id = 'blah'
+        projectid = 'test_project_id'
 
-        d.create_vault(vault_id)
+        d.create_vault(projectid, vault_id)
 
         # Create a file-like object
         block_data = MockFile(block_size)
 
-        d.store_block(vault_id, block_id, block_data.read())
+        d.store_block(projectid, vault_id, block_id, block_data.read())
 
         block_data.seek(0)
 
-        assert d.block_exists(vault_id, block_id)
+        assert d.block_exists(projectid, vault_id, block_id)
 
         # Read back the block data and compare
-        file_obj = d.get_block_obj(vault_id, block_id)
+        file_obj = d.get_block_obj(projectid, vault_id, block_id)
 
         returned_data = file_obj.read()
 
@@ -66,23 +68,24 @@ class DiskStorageDriverTest(FunctionalTest):
         assert len(returned_data) == block_size
         assert returned_data == block_data._content
 
-        d.delete_block(vault_id, block_id)
-        d.delete_block(vault_id, block_id)
+        d.delete_block(projectid, vault_id, block_id)
+        d.delete_block(projectid, vault_id, block_id)
 
-        assert not d.block_exists(vault_id, block_id)
+        assert not d.block_exists(projectid, vault_id, block_id)
 
-        assert None == d.get_block_obj(vault_id, 'invalid_block_id')
+        assert None == d.get_block_obj(projectid, vault_id, 'invalid_block_id')
 
     def test_block_generator(self):
         d = DiskStorageDriver()
 
         block_size = 3000
         vault_id = 'generator_test'
+        projectid = 'test_project_id'
 
-        d.create_vault(vault_id)
+        d.create_vault(projectid, vault_id)
 
         # Test re-entrance
-        d.create_vault(vault_id)
+        d.create_vault(projectid, vault_id)
 
         blocks = [(x, MockFile(block_size)) for x in range(0, 10)]
 
@@ -94,14 +97,14 @@ class DiskStorageDriverTest(FunctionalTest):
         orig_hex = orig_hash.hexdigest()
 
         for block_id, block_data in blocks:
-            d.store_block(vault_id, block_id, block_data.read())
+            d.store_block(projectid, vault_id, block_id, block_data.read())
             block_data.seek(0)
 
         # Now call the block generator.
 
         blockid_gen = (x[0] for x in blocks)
 
-        gen = d.create_blocks_generator(vault_id, blockid_gen)
+        gen = d.create_blocks_generator(projectid, vault_id, blockid_gen)
 
         fetched_data = list(gen)
 

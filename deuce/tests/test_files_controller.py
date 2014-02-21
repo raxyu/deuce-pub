@@ -16,6 +16,7 @@ class TestFilesController(FunctionalTest):
         self._hdrs = {"X-Project-ID": "test_project_id"}
 
         # Create a vault and a file for us to work with
+        self.project_id = 'test_project_id'
         self.vault_id = 'files_vault_test'
         self._vault_path = '/v1.0/' + self.vault_id
         self._files_path = self._vault_path + '/files'
@@ -113,8 +114,8 @@ class TestFilesController(FunctionalTest):
         response = self.app.post(self._file_id, params=data, headers=hdrs)
 
         driver = SqliteStorageDriver()
-        driver.register_block(self.vault_id, blockid1, 100)
-        driver.register_block(self.vault_id, blockid2, 100)
+        driver.register_block(self.project_id, self.vault_id, blockid1, 100)
+        driver.register_block(self.project_id, self.vault_id, blockid2, 100)
 
         response = self.app.post(self._file_id, params=data, headers=hdrs)
 
