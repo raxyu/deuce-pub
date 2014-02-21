@@ -11,7 +11,9 @@ class TestVaultController(FunctionalTest):
         self._hdrs = {"X-Project-ID": "sample_project_id"}
 
     def test_vault_leaf(self):
-        response = self.app.get('/v1.0/', expect_errors=True)
+        response = self.app.get('/v1.0/', headers=self._hdrs,
+            expect_errors=True)
+
         assert response.status_int == 404
 
     def test_vault_crud(self):

@@ -1,12 +1,12 @@
 
 from pecan import expose, request, response
-from deuce.controllers import DeuceController
+from pecan.rest import RestController
 from deuce.model import Vault, Block
 
 BLOCK_ID_LENGTH = 40
 
 
-class BlocksController(DeuceController):
+class BlocksController(RestController):
 
     """The BlocksController is responsible for:
 
