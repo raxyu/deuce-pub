@@ -52,3 +52,7 @@ metadata_driver = {
         'path': '/tmp/vaultmeta.db'
     }
 }
+
+api_configuration = {
+    'max_returned_num': 100
+}

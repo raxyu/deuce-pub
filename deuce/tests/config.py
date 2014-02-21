@@ -58,6 +58,10 @@ metadata_driver = {
     }
 }
 
+api_configuration = {
+    'max_returned_num': 100
+}
+
 # Always remove the database so that we can start over on
 # test execution
 if os.path.exists('/tmp/vaultmeta.db'):
