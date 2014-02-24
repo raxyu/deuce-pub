@@ -1,7 +1,8 @@
 
-from pecan import expose, request, response
+from pecan import conf, expose, request, response
 from pecan.rest import RestController
 from deuce.model import Vault, Block
+from six.moves.urllib.parse import urlparse
 
 BLOCK_ID_LENGTH = 40
 
@@ -24,7 +25,7 @@ class BlocksController(RestController):
             return
 
         marker = request.params.get('marker', 0)
-        limit = request.params.get('limit', 0)
+        limit = int(request.params.get('limit', 0))
 
         blocks = vault.get_blocks(marker, limit)
 
@@ -32,6 +33,22 @@ class BlocksController(RestController):
         # TODO: figure out a way to stream this back
         resp = list(blocks)
 
+        returl = ''
+        resplen = int(len(resp))
+        if resplen != 0 and \
+                ((limit != 0 and
+                resplen == limit) or
+                (limit == 0 and
+                resplen == conf.api_configuration.max_returned_num)):
+            # Return a full list.
+            parsedurl = urlparse(request.url)
+            returl = parsedurl.scheme + '://' + \
+                parsedurl.netloc + parsedurl.path
+            returl = returl + '?marker=' + resp[-1].block_id
+            if limit != 0:
+                returl = returl + '&limit=' + str(limit)
+
+        response.headers["X-Next-Batch"] = returl
         return resp
 
     @expose()

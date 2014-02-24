@@ -1,3 +1,4 @@
+from pecan import conf
 import os
 import hashlib
 from random import randrange
@@ -81,6 +82,8 @@ class TestBlocksController(FunctionalTest):
         # Now list the contents
         response = self.app.get(self._blocks_path, headers=self._hdrs)
         res = response.json_body
+        next_batch_url = response.headers["X-Next-Batch"]
+        assert not next_batch_url
 
         assert isinstance(res, list)
         assert len(res) == len(hashes)
@@ -96,6 +99,8 @@ class TestBlocksController(FunctionalTest):
         response = self.app.get(self._blocks_path,
             params=params, headers=self._hdrs)
         result = response.json_body
+        next_batch_url = response.headers["X-Next-Batch"]
+        assert next_batch_url
         assert len(result) == 4
 
         # ask for the rest blocks from the system
@@ -103,7 +108,37 @@ class TestBlocksController(FunctionalTest):
         response = self.app.get(self._blocks_path,
             params=params, headers=self._hdrs)
         result = response.json_body
+        next_batch_url = response.headers["X-Next-Batch"]
+        assert not next_batch_url
         assert len(result) == 1
+
+        # Try again without limit
+        num_blocks = 150
+        block_sizes = [randrange(min_size, max_size) for x in
+            range(0, num_blocks)]
+        data = [os.urandom(x) for x in block_sizes]
+        hashes = [self._calc_sha1(d) for d in data]
+        block_data = zip(block_sizes, data, hashes)
+        # Put each one of the generated blocks on the
+        # size
+        for size, data, sha1 in block_data:
+            path = self._get_block_path(sha1)
+            # NOTE: Very important to set the content-type
+            # header. Otherwise pecan tries to do a UTF-8 test.
+            headers = {
+                "Content-Type": "application/binary",
+                "Content-Length": str(size),
+            }
+            headers.update(self._hdrs)
+            response = self.app.put(path, headers=headers,
+                params=data)
+        params = {'marker': 0}
+        response = self.app.get(self._blocks_path,
+            params=params, headers=self._hdrs)
+        result = response.json_body
+        next_batch_url = response.headers["X-Next-Batch"]
+        assert next_batch_url
+        assert len(result) == conf.api_configuration.max_returned_num
 
         # TODO: blocks of a file
 
@@ -116,7 +151,6 @@ class TestBlocksController(FunctionalTest):
 
             response = self.app.get(path, headers=self._hdrs,
                 expect_errors=True)
-
             assert response.status_int == 404
 
         # Now try to fetch each block, and compare against
