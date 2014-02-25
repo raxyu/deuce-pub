@@ -80,8 +80,20 @@ SQL_GET_ALL_BLOCKS = '''
     SELECT blockid
     FROM blocks
     WHERE projectid=:projectid
+    AND vaultid=:vaultid
     AND blockid>:marker
     order by blockid
+    LIMIT :limit
+'''
+
+SQL_GET_ALL_FILES = '''
+    SELECT fileid
+    FROM files
+    WHERE projectid=:projectid
+    AND vaultid=:vaultid
+    AND fileid>:marker
+    AND finalized=:finalized
+    order by fileid
     LIMIT :limit
 '''
 
@@ -252,7 +264,6 @@ class SqliteStorageDriver(MetadataStorageDriver):
         return cnt[0] > 0
 
     def create_block_generator(self, project_id, vault_id, marker=0, limit=0):
-
         args = {'projectid': project_id, 'vaultid': vault_id}
         args['limit'] = limit \
             if limit != 0 \
@@ -261,6 +272,20 @@ class SqliteStorageDriver(MetadataStorageDriver):
         args['marker'] = marker
 
         query = SQL_GET_ALL_BLOCKS
+        res = self._conn.execute(query, args)
+        return (row[0] for row in res)
+
+    def create_file_generator(self, project_id, vault_id,
+            marker=0, limit=0, finalized=True):
+        args = {'projectid': project_id, 'vaultid': vault_id}
+        args['limit'] = limit \
+            if limit != 0 \
+            and (int(limit) <= conf.api_configuration.max_returned_num) \
+            else conf.api_configuration.max_returned_num
+        args['marker'] = marker
+        args['finalized'] = finalized
+
+        query = SQL_GET_ALL_FILES
         res = self._conn.execute(query, args)
         return (row[0] for row in res)
 
