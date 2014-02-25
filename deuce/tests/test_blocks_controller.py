@@ -113,7 +113,7 @@ class TestBlocksController(FunctionalTest):
         assert len(result) == 1
 
         # Try again without limit
-        num_blocks = 150
+        num_blocks = int(1.5 * conf.api_configuration.max_returned_num)
         block_sizes = [randrange(min_size, max_size) for x in
             range(0, num_blocks)]
         data = [os.urandom(x) for x in block_sizes]
