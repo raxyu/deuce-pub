@@ -5,9 +5,43 @@ from pecan.rest import RestController
 import deuce
 from deuce.model import Vault, Block, File
 from deuce.util import FileCat
+from six.moves.urllib.parse import urlparse
 
 
 class FilesController(RestController):
+
+    @expose('json')
+    def get_all(self, vault_id):
+        vault = Vault.get(request.project_id, vault_id)
+        if not vault:
+            abort(404)
+
+        marker = request.params.get('marker', 0)
+        limit = int(request.params.get('limit', 0))
+
+        files = vault.get_files(marker, limit)
+
+        # List the files to JSON and return.
+        resp = list(files)
+
+        returl = ''
+        resplen = int(len(resp))
+        if resplen != 0 and \
+                ((limit != 0 and
+                resplen == limit) or
+                (limit == 0 and
+                resplen == conf.api_configuration.max_returned_num)):
+            # Return a full list.
+            parsedurl = urlparse(request.url)
+            returl = parsedurl.scheme + '://' + \
+                parsedurl.netloc + parsedurl.path
+            returl = returl + '?marker=' + resp[-1].file_id
+            if limit != 0:
+                returl = returl + '&limit=' + str(limit)
+
+        response.headers["X-Next-Batch"] = returl
+
+        return resp
 
     @expose()
     def get_one(self, vault_id, file_id):
@@ -15,12 +49,10 @@ class FilesController(RestController):
         file out of Deuce"""
 
         vault = Vault.get(request.project_id, vault_id)
-
         if not vault:
             abort(404)
 
         f = vault.get_file(file_id)
-
         if not f:
             abort(404)
 

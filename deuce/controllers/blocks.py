@@ -29,8 +29,8 @@ class BlocksController(RestController):
 
         blocks = vault.get_blocks(marker, limit)
 
-        # Convert the block object to JSON and return.
-        # TODO: figure out a way to stream this back
+        # List the blocks into JSON and return.
+        # TODO: figure out a way to stream this back(??)
         resp = list(blocks)
 
         returl = ''
