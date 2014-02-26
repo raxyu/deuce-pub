@@ -167,34 +167,30 @@ class TestFilesController(FunctionalTest):
 
         assert response.status_int == 404
 
-    def test_post_one(self):
+    def test_post_and_check_one_file(self):
         # vault does not exists
         response = self.app.post(self._NOT_EXIST_files_path,
             headers=self._hdrs, expect_errors=True)
-
         assert response.status_int == 404
+
         response = self.app.post(self._NOT_EXIST_files_path + '/',
             headers=self._hdrs, expect_errors=True)
-
         assert response.status_int == 404
+
         response = self.app.post(self._NOT_EXIST_files_path + '/not_matter',
             headers=self._hdrs, expect_errors=True)
-
         assert response.status_int == 404
 
         # fileid is not provided
         response = self.app.post(self._files_path + '/',
             headers=self._hdrs, expect_errors=True)
-
         assert response.status_int == 404
 
         # fileid does not exists
         response = self.app.post(self._files_path + '/not_exists',
             headers=self._hdrs, expect_errors=True)
-
         assert response.status_int == 404
 
-        driver = SqliteStorageDriver()
         hdrs = {'content-type': 'application/x-deuce-block-list'}
         hdrs.update(self._hdrs)
         data = "{\"blocks\":["
@@ -210,7 +206,6 @@ class TestFilesController(FunctionalTest):
         assert len(response.body) == 640
 
         driver = SqliteStorageDriver()
-
         # Register 150 blocks into system.
         for cnt in range(0, enough_num):
             driver.register_block(self.project_id, self.vault_id, cnt, 100)
@@ -218,9 +213,9 @@ class TestFilesController(FunctionalTest):
         response = self.app.post(self._file_id, params=data, headers=hdrs)
         assert len(response.body) == 2
 
-        # Get file.
-        response = self.app.get(self._file_id,
-            headers=hdrs, expect_errors=True)
+        # Get unfinalized file.
+        response = self.app.get(self._file_id, headers=hdrs)
+        assert len(response.body) == 0
 
         # Register 200 blocks into system.
         data = "{\"blocks\":["
@@ -237,14 +232,19 @@ class TestFilesController(FunctionalTest):
         assert len(response.body) == 2
 
         # Get the file.
-        response = self.app.get(self._file_id, headers=hdrs,
-            expect_errors=True)
+        response = self.app.get(self._file_id, headers=hdrs)
+        assert len(response.body) == 0
 
         # Finalize file
         params = {}
         response = self.app.post(self._file_id, params=params, headers=hdrs)
+        assert response.status_int == 200
 
         # Error on trying to change Finalized file.
         response = self.app.post(self._file_id, params=data, headers=hdrs,
                                  expect_errors=True)
         assert response.status_int == 400
+
+        # Get finalized file.
+        response = self.app.get(self._file_id, headers=hdrs)
+        assert response.status_int == 200
