@@ -73,6 +73,7 @@ class TestFilesController(FunctionalTest):
                 params=params, headers=self._hdrs)
             next_batch_url = response.headers["X-Next-Batch"]
             resp_file_list += list(response.json_body)
+            assert isinstance(response.json_body, list)
 
             if not repeat:
                 assert (not next_batch_url) == (not assert_return_url)
