@@ -3,12 +3,15 @@ from pecan.core import abort
 from pecan.rest import RestController
 
 import deuce
+from deuce.controllers.fileblocks import FileBlocksController
 from deuce.model import Vault, Block, File
 from deuce.util import FileCat
 from six.moves.urllib.parse import urlparse
 
 
 class FilesController(RestController):
+
+    blocks = FileBlocksController()
 
     @expose('json')
     def get_all(self, vault_id):
@@ -26,11 +29,15 @@ class FilesController(RestController):
 
         returl = ''
         resplen = int(len(resp))
-        if resplen != 0 and \
-                ((limit != 0 and
-                resplen == limit) or
+        #if resplen != 0 and \
+        #        ((limit != 0 and
+        #        resplen == limit) or
+        #        (limit == 0 and
+        #        resplen == conf.api_configuration.max_returned_num)):
+        if (limit != 0 and resplen == limit) or \
                 (limit == 0 and
-                resplen == conf.api_configuration.max_returned_num)):
+                resplen == conf.api_configuration.max_returned_num):
+
             # Return a full list.
             parsedurl = urlparse(request.url)
             returl = parsedurl.scheme + '://' + \

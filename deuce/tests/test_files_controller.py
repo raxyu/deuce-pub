@@ -41,13 +41,11 @@ class TestFilesController(FunctionalTest):
         # If we pass in no headers, we should get a 400 back
         response = self.app.get(self._NOT_EXIST_files_path,
             expect_errors=True)
-
         assert response.status_int == 400
 
         # vault does not exists
         response = self.app.get(self._NOT_EXIST_files_path,
             headers=self._hdrs, expect_errors=True)
-
         assert response.status_int == 404  # Not found
 
     def helper_create_files(self, num):
@@ -142,29 +140,24 @@ class TestFilesController(FunctionalTest):
         # vault does not exists
         response = self.app.get(self._NOT_EXIST_files_path,
             headers=self._hdrs, expect_errors=True)
-
         assert response.status_int == 404
 
         response = self.app.get(self._NOT_EXIST_files_path + '/',
             headers=self._hdrs, expect_errors=True)
-
         assert response.status_int == 404
 
         response = self.app.get(self._NOT_EXIST_files_path + '/not_matter',
             headers=self._hdrs, expect_errors=True)
-
         assert response.status_int == 404
 
         # fileid is not privded
         response = self.app.get(self._files_path + '/', headers=self._hdrs,
             expect_errors=True)
-
         assert response.status_int == 404
 
         # fileid does not exists
         response = self.app.get(self._files_path + '/not_exists',
             headers=self._hdrs, expect_errors=True)
-
         assert response.status_int == 404
 
     def test_post_and_check_one_file(self):
@@ -194,7 +187,7 @@ class TestFilesController(FunctionalTest):
         hdrs = {'content-type': 'application/x-deuce-block-list'}
         hdrs.update(self._hdrs)
         data = "{\"blocks\":["
-        enough_num = int(1.5 * conf.api_configuration.max_returned_num)
+        enough_num = int(conf.api_configuration.max_returned_num)
         for cnt in range(0, enough_num):
             data = data + '{' + '\"id\": {0}, \"size\": 100, \
                 \"offset\": {1}'.format(cnt, cnt * 100) + '}'
@@ -203,10 +196,10 @@ class TestFilesController(FunctionalTest):
         data = data + ']}'
         # Add blocks to files, resp has a list of missing blocks.
         response = self.app.post(self._file_id, params=data, headers=hdrs)
-        assert len(response.body) == 640
+        assert len(response.body) > 2
 
         driver = SqliteStorageDriver()
-        # Register 150 blocks into system.
+        # Register 100 blocks into system.
         for cnt in range(0, enough_num):
             driver.register_block(self.project_id, self.vault_id, cnt, 100)
         # Then add blocks to files again. resp is empty.
@@ -217,10 +210,10 @@ class TestFilesController(FunctionalTest):
         response = self.app.get(self._file_id, headers=hdrs)
         assert len(response.body) == 0
 
-        # Register 200 blocks into system.
+        # Register 120 blocks into system.
         data = "{\"blocks\":["
-        enough_num = int(2 * conf.api_configuration.max_returned_num)
-        for cnt in range(0, enough_num):
+        enough_num = int(1.2 * conf.api_configuration.max_returned_num)
+        for cnt in range(conf.api_configuration.max_returned_num, enough_num):
             data = data + '{' + '\"id\": {0}, \"size\": 100, \
                 \"offset\": {1}'.format(cnt, cnt * 100) + '}'
             if cnt < enough_num - 1:
@@ -248,3 +241,42 @@ class TestFilesController(FunctionalTest):
         # Get finalized file.
         response = self.app.get(self._file_id, headers=hdrs)
         assert response.status_int == 200
+
+        self.helper_test_file_blocks_controller(self._file_id, hdrs)
+
+    def helper_test_file_blocks_controller(self, file_id, hdrs):
+        # Get blocks of a file.
+        response = self.app.get(file_id+'/blocks', headers=hdrs)
+        assert response.status_int == 200
+        next_batch_url = response.headers["X-Next-Batch"]
+
+        # vault does not exists
+        response = self.app.get(self._NOT_EXIST_files_path + '/notmatter/blocks',
+            headers=self._hdrs, expect_errors=True)
+        assert response.status_int == 404  # Not found
+
+        # fileid does not exists
+        response = self.app.get(self._files_path + '/not_exists/blocks',
+            headers=self._hdrs, expect_errors=True)
+        assert response.status_int == 404
+
+        # Get blocks of a file. with limit not zero
+        params = {'limit': 5}
+        response = self.app.get(file_id+'/blocks', params=params, headers=hdrs)
+        assert response.status_int == 200
+        next_batch_url = response.headers["X-Next-Batch"]
+
+        resp_block_list = []
+        params = {'marker': 0}
+        while True:
+            response = self.app.get(file_id+'/blocks',
+                params=params, headers=self._hdrs)
+            next_batch_url = response.headers["X-Next-Batch"]
+            resp_block_list += list(response.json_body)
+            assert isinstance(response.json_body, list)
+            if not next_batch_url:
+                break
+            params['marker'] = \
+                parse_qs(urlparse(next_batch_url).query)['marker']
+
+        assert len(resp_block_list) ==  1.2 * conf.api_configuration.max_returned_num
