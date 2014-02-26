@@ -72,8 +72,7 @@ class TestFilesController(FunctionalTest):
             response = self.app.get(self._files_path,
                 params=params, headers=self._hdrs)
             next_batch_url = response.headers["X-Next-Batch"]
-            tmp_file_list = list(response.json_body)
-            resp_file_list = resp_file_list + tmp_file_list
+            resp_file_list += list(response.json_body)
 
             if not repeat:
                 assert (not next_batch_url) == (not assert_return_url)
