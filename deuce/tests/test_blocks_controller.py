@@ -3,6 +3,7 @@ import os
 import hashlib
 from random import randrange
 import six
+from six.moves.urllib.parse import urlparse, parse_qs
 from unittest import TestCase
 from deuce.tests import FunctionalTest
 
@@ -21,6 +22,8 @@ class TestBlocksController(FunctionalTest):
 
         response = self.app.post(self._vault_path,
             headers=self._hdrs)
+        self.block_list = []
+        self.total_block_num = 0
 
     def test_no_block_state(self):
         # Try listing the blocks. There should be none
@@ -50,97 +53,37 @@ class TestBlocksController(FunctionalTest):
         assert response.status_int == 404
 
     def test_put_and_list(self):
-        num_blocks = 5
-        min_size = 1
-        max_size = 2000
+        # Create 5 blocks
+        block_list = self.helper_create_blocks(num_blocks=5)
+        self.total_block_num = 5
+        self.block_list += block_list
 
-        block_sizes = [randrange(min_size, max_size) for x in
-            range(0, num_blocks)]
+        # List all.
+        next_batch_url = self.helper_get_blocks(self._blocks_path,
+            0, 0, False, 5, False)
 
-        data = [os.urandom(x) for x in block_sizes]
-        hashes = [self._calc_sha1(d) for d in data]
+        # List some blocks
+        next_batch_url = self.helper_get_blocks(self._blocks_path,
+            0, 4, True, 4, False)
 
-        block_data = zip(block_sizes, data, hashes)
+        # List the rest blocks
+        marker = parse_qs(urlparse(next_batch_url).query)['marker']
+        next_batch_url = self.helper_get_blocks(self._blocks_path,
+            marker, 8, False, 1, False)
 
-        # Put each one of the generated blocks on the
-        # size
-        for size, data, sha1 in block_data:
-            path = self._get_block_path(sha1)
-
-            # NOTE: Very important to set the content-type
-            # header. Otherwise pecan tries to do a UTF-8 test.
-            headers = {
-                "Content-Type": "application/binary",
-                "Content-Length": str(size),
-            }
-
-            headers.update(self._hdrs)
-
-            response = self.app.put(path, headers=headers,
-                params=data)
-
-        # Now list the contents
-        response = self.app.get(self._blocks_path, headers=self._hdrs)
-        res = response.json_body
-        next_batch_url = response.headers["X-Next-Batch"]
-        assert not next_batch_url
-
-        assert isinstance(res, list)
-        assert len(res) == len(hashes)
-
-        for h in hashes:
-            assert h in res
-
-        for h in res:
-            assert h in hashes
-
-        # ask for some blocks from the system
-        params = {'marker': 0, 'limit': 4}
-        response = self.app.get(self._blocks_path,
-            params=params, headers=self._hdrs)
-        result = response.json_body
-        next_batch_url = response.headers["X-Next-Batch"]
-        assert next_batch_url
-        assert len(result) == 4
-
-        # ask for the rest blocks from the system
-        params = {'marker': result[-1], 'limit': 8}
-        response = self.app.get(self._blocks_path,
-            params=params, headers=self._hdrs)
-        result = response.json_body
-        next_batch_url = response.headers["X-Next-Batch"]
-        assert not next_batch_url
-        assert len(result) == 1
-
-        # Try again without limit
+        # Create more blocks.
         num_blocks = int(1.5 * conf.api_configuration.max_returned_num)
-        block_sizes = [randrange(min_size, max_size) for x in
-            range(0, num_blocks)]
-        data = [os.urandom(x) for x in block_sizes]
-        hashes = [self._calc_sha1(d) for d in data]
-        block_data = zip(block_sizes, data, hashes)
-        # Put each one of the generated blocks on the
-        # size
-        for size, data, sha1 in block_data:
-            path = self._get_block_path(sha1)
-            # NOTE: Very important to set the content-type
-            # header. Otherwise pecan tries to do a UTF-8 test.
-            headers = {
-                "Content-Type": "application/binary",
-                "Content-Length": str(size),
-            }
-            headers.update(self._hdrs)
-            response = self.app.put(path, headers=headers,
-                params=data)
-        params = {'marker': 0}
-        response = self.app.get(self._blocks_path,
-            params=params, headers=self._hdrs)
-        result = response.json_body
-        next_batch_url = response.headers["X-Next-Batch"]
-        assert next_batch_url
-        assert len(result) == conf.api_configuration.max_returned_num
+        block_list = self.helper_create_blocks(num_blocks=num_blocks)
+        self.block_list += block_list
+        self.total_block_num += num_blocks
 
-        # TODO: blocks of a file
+        # List from 0; use conf limit
+        next_batch_url = self.helper_get_blocks(self._blocks_path,
+            0, 0, True, conf.api_configuration.max_returned_num, False)
+
+        # List from 0; Use conf limit, repeat to the end.
+        next_batch_url = self.helper_get_blocks(self._blocks_path,
+            0, 0, False, self.total_block_num, True)
 
         # Try to get some blocks that don't exist. This should
         # result in 404s
@@ -153,9 +96,78 @@ class TestBlocksController(FunctionalTest):
                 expect_errors=True)
             assert response.status_int == 404
 
+    def helper_create_blocks(self, num_blocks):
+        min_size = 1
+        max_size = 2000
+
+        block_sizes = [randrange(min_size, max_size) for x in
+            range(0, num_blocks)]
+
+        data = [os.urandom(x) for x in block_sizes]
+        block_list = [self._calc_sha1(d) for d in data]
+
+        block_data = zip(block_sizes, data, block_list)
+
+        # Put each one of the generated blocks on the
+        # size
+        for size, data, sha1 in block_data:
+            path = self._get_block_path(sha1)
+
+            # NOTE: Very important to set the content-type
+            # header. Otherwise pecan tries to do a UTF-8 test.
+            headers = {
+                "Content-Type": "application/binary",
+                "Content-Length": str(size),
+            }
+
+            headers.update(self._hdrs)
+
+            response = self.app.put(path, headers=headers,
+                params=data)
+
+        return block_list
+
+    def helper_get_blocks(self, path, marker, limit, assert_ret_url,
+            assert_data_len, repeat=False):
+
+        resp_block_list = []
+        if limit != 0:
+            params = {'marker': marker, 'limit': limit}
+        else:
+            params = {'marker': marker}
+        while True:
+            response = self.app.get(path,
+                params=params, headers=self._hdrs)
+            next_batch_url = response.headers["X-Next-Batch"]
+            resp_block_list += list(response.json_body)
+            assert isinstance(response.json_body, list)
+
+            if not repeat:
+                assert (not next_batch_url) == (not assert_ret_url)
+                assert len(resp_block_list) == assert_data_len
+                for h in resp_block_list:
+                    assert h in self.block_list
+                if assert_data_len == -1 or \
+                        assert_data_len == self.total_block_num:
+                    for h in self.block_list:
+                        assert h in resp_block_list
+                self.helper_check_block_data(resp_block_list)
+                return next_batch_url
+            if not next_batch_url:
+                break
+            params['marker'] = \
+                parse_qs(urlparse(next_batch_url).query)['marker']
+        assert len(resp_block_list) == assert_data_len
+        for h in resp_block_list:
+            assert h in self.block_list
+        for h in self.block_list:
+            assert h in resp_block_list
+        self.helper_check_block_data(resp_block_list)
+
+    def helper_check_block_data(self, block_list):
         # Now try to fetch each block, and compare against
         # the original block data
-        for sha1 in res:
+        for sha1 in block_list:
             path = self._get_block_path(sha1)
             response = self.app.get(path, headers=self._hdrs)
             assert response.status_int == 200
