@@ -60,7 +60,7 @@ class TestBlocksController(FunctionalTest):
 
         # List all.
         next_batch_url = self.helper_get_blocks(self._blocks_path,
-            0, 0, False, 5, False)
+            0, 0, False, 5, repeat=False, exam_block_data=True)
 
         # List some blocks
         next_batch_url = self.helper_get_blocks(self._blocks_path,
@@ -83,7 +83,7 @@ class TestBlocksController(FunctionalTest):
 
         # List from 0; Use conf limit, repeat to the end.
         next_batch_url = self.helper_get_blocks(self._blocks_path,
-            0, 0, False, self.total_block_num, True)
+            0, 0, False, self.total_block_num, repeat=True)
 
         # Try to get some blocks that don't exist. This should
         # result in 404s
@@ -128,7 +128,7 @@ class TestBlocksController(FunctionalTest):
         return block_list
 
     def helper_get_blocks(self, path, marker, limit, assert_ret_url,
-            assert_data_len, repeat=False):
+            assert_data_len, repeat=False, exam_block_data=False):
 
         resp_block_list = []
         if limit != 0:
@@ -151,7 +151,8 @@ class TestBlocksController(FunctionalTest):
                         assert_data_len == self.total_block_num:
                     for h in self.block_list:
                         assert h in resp_block_list
-                self.helper_check_block_data(resp_block_list)
+                if exam_block_data:
+                    self.helper_exam_block_data(resp_block_list)
                 return next_batch_url
             if not next_batch_url:
                 break
@@ -162,9 +163,11 @@ class TestBlocksController(FunctionalTest):
             assert h in self.block_list
         for h in self.block_list:
             assert h in resp_block_list
-        self.helper_check_block_data(resp_block_list)
+        #By default exam blocks if fetching all blocks
+        #if exam_block_data:
+        self.helper_exam_block_data(resp_block_list)
 
-    def helper_check_block_data(self, block_list):
+    def helper_exam_block_data(self, block_list):
         # Now try to fetch each block, and compare against
         # the original block data
         for sha1 in block_list:

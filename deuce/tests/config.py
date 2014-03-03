@@ -67,7 +67,7 @@ metadata_driver = {
 }
 
 api_configuration = {
-    'max_returned_num': 100
+    'max_returned_num': 10
 }
 
 # Always remove the database so that we can start over on
