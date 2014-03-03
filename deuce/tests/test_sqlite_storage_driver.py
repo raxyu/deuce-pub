@@ -124,7 +124,7 @@ class SqliteStorageDriverTest(FunctionalTest):
                     project_id, vault_id, file_id, offset, limit)
             retgen = list(retgen)
             gen.extend(retgen)
-            if len(retgen) < limit:
+            if not offset:
                 break
 
         fetched_blocks = list(gen)
@@ -140,7 +140,7 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         # Now create a generator of the files. The output
         # should be in the same order as block_ids
-        gen = driver.create_block_generator(project_id, vault_id)
+        gen, marker = driver.create_block_generator(project_id, vault_id)
 
         fetched_blocks = list(gen)
 

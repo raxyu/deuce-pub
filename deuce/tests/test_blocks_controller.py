@@ -139,7 +139,7 @@ class TestBlocksController(FunctionalTest):
             response = self.app.get(path,
                 params=params, headers=self._hdrs)
             next_batch_url = response.headers["X-Next-Batch"]
-            resp_block_list += list(response.json_body)
+            resp_block_list += response.json_body
             assert isinstance(response.json_body, list)
 
             if not repeat:

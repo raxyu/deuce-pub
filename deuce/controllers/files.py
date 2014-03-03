@@ -22,32 +22,22 @@ class FilesController(RestController):
         marker = request.params.get('marker', 0)
         limit = int(request.params.get('limit', 0))
 
-        files = vault.get_files(marker, limit)
+        files, marker = vault.get_files(marker, limit)
 
         # List the files to JSON and return.
         resp = list(files)
 
-        returl = ''
-        resplen = int(len(resp))
-        #if resplen != 0 and \
-        #        ((limit != 0 and
-        #        resplen == limit) or
-        #        (limit == 0 and
-        #        resplen == conf.api_configuration.max_returned_num)):
-        if (limit != 0 and resplen == limit) or \
-                (limit == 0 and
-                resplen == conf.api_configuration.max_returned_num):
-
-            # Return a full list.
+        if marker:
             parsedurl = urlparse(request.url)
-            returl = parsedurl.scheme + '://' + \
-                parsedurl.netloc + parsedurl.path
-            returl = returl + '?marker=' + resp[-1].file_id
+            returl = '' + \
+                parsedurl.scheme + '://' + \
+                parsedurl.netloc + parsedurl.path + \
+                '?marker=' + marker
             if limit != 0:
                 returl = returl + '&limit=' + str(limit)
-
-        response.headers["X-Next-Batch"] = returl
-
+            response.headers["X-Next-Batch"] = returl
+        else:
+            response.headers["X-Next-Batch"] = ''
         return resp
 
     @expose()
@@ -71,11 +61,9 @@ class FilesController(RestController):
             retblks, offset = \
                 deuce.metadata_driver.create_file_block_generator(
                     request.project_id, vault_id, file_id, offset, limit)
-            if not retblks:
-                break
             retblks = list(retblks)
             blks.extend(retblks)
-            if len(retblks) < limit:
+            if not offset:
                 break
 
         objs = deuce.storage_driver.create_blocks_generator(request.project_id,

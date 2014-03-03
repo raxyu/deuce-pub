@@ -27,28 +27,23 @@ class BlocksController(RestController):
         marker = request.params.get('marker', 0)
         limit = int(request.params.get('limit', 0))
 
-        blocks = vault.get_blocks(marker, limit)
+        blocks, marker = vault.get_blocks(marker, limit)
 
         # List the blocks into JSON and return.
         # TODO: figure out a way to stream this back(??)
         resp = list(blocks)
 
-        returl = ''
-        resplen = int(len(resp))
-        if resplen != 0 and \
-                ((limit != 0 and
-                resplen == limit) or
-                (limit == 0 and
-                resplen == conf.api_configuration.max_returned_num)):
-            # Return a full list.
+        if marker:
             parsedurl = urlparse(request.url)
-            returl = parsedurl.scheme + '://' + \
-                parsedurl.netloc + parsedurl.path
-            returl = returl + '?marker=' + resp[-1].block_id
+            returl = '' + \
+                parsedurl.scheme + '://' + \
+                parsedurl.netloc + parsedurl.path + \
+                '?marker=' + marker
             if limit != 0:
                 returl = returl + '&limit=' + str(limit)
-
-        response.headers["X-Next-Batch"] = returl
+            response.headers["X-Next-Batch"] = returl
+        else:
+            response.headers["X-Next-Batch"] = ''
         return resp
 
     @expose()

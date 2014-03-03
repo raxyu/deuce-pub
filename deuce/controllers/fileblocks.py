@@ -9,6 +9,7 @@ from six.moves.urllib.parse import urlparse
 
 BLOCK_ID_LENGTH = 40
 
+
 class FileBlocksController(RestController):
 
     """The FileBlocksController is responsible for:
@@ -33,18 +34,15 @@ class FileBlocksController(RestController):
                 request.project_id, vault_id, file_id, marker, limit)
         resp = list(retblks)
 
-        returl = ''
-        resplen = int(len(resp))
-        if (limit != 0 and resplen == limit) or \
-                (limit == 0 and
-                resplen == conf.api_configuration.max_returned_num):
-            # Return a full list.
+        if marker:
             parsedurl = urlparse(request.url)
-            returl = parsedurl.scheme + '://' + \
-                parsedurl.netloc + parsedurl.path
-            returl = returl + '?marker=' + str(marker)
+            returl = '' + \
+                parsedurl.scheme + '://' + \
+                parsedurl.netloc + parsedurl.path + \
+                '?marker=' + str(marker)
             if limit != 0:
                 returl = returl + '&limit=' + str(limit)
-        response.headers["X-Next-Batch"] = returl
-
+            response.headers["X-Next-Batch"] = returl
+        else:
+            response.headers["X-Next-Batch"] = ''
         return resp

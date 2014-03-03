@@ -119,14 +119,8 @@ class TestFilesController(FunctionalTest):
 
         # Get list of all files in the vault, which is exact one load.
         next_batch_url = self.helper_get_files(marker=0, limit=0,
-                assert_return_url=True,
+                assert_return_url=False,
                 assert_data_len=self.total_file_num)
-
-        # Get list of all files in the vault from last run,
-        # and returns nothing.
-        marker = parse_qs(urlparse(next_batch_url).query)['marker']
-        next_batch_url = self.helper_get_files(marker=marker,
-                limit=0, assert_return_url=False, assert_data_len=0)
 
         # Add more files to make the total files more than one load
         file_num = int(0.5 * self.max_ret_num)
@@ -246,12 +240,13 @@ class TestFilesController(FunctionalTest):
 
     def helper_test_file_blocks_controller(self, file_id, hdrs):
         # Get blocks of a file.
-        response = self.app.get(file_id+'/blocks', headers=hdrs)
+        response = self.app.get(file_id + '/blocks', headers=hdrs)
         assert response.status_int == 200
         next_batch_url = response.headers["X-Next-Batch"]
 
         # vault does not exists
-        response = self.app.get(self._NOT_EXIST_files_path + '/notmatter/blocks',
+        response = self.app.get(self._NOT_EXIST_files_path +
+            '/notmatter/blocks',
             headers=self._hdrs, expect_errors=True)
         assert response.status_int == 404  # Not found
 
@@ -262,14 +257,15 @@ class TestFilesController(FunctionalTest):
 
         # Get blocks of a file. with limit not zero
         params = {'limit': 5}
-        response = self.app.get(file_id+'/blocks', params=params, headers=hdrs)
+        response = self.app.get(file_id +
+            '/blocks', params=params, headers=hdrs)
         assert response.status_int == 200
         next_batch_url = response.headers["X-Next-Batch"]
 
         resp_block_list = []
         params = {'marker': 0}
         while True:
-            response = self.app.get(file_id+'/blocks',
+            response = self.app.get(file_id + '/blocks',
                 params=params, headers=self._hdrs)
             next_batch_url = response.headers["X-Next-Batch"]
             resp_block_list += list(response.json_body)
@@ -279,4 +275,5 @@ class TestFilesController(FunctionalTest):
             params['marker'] = \
                 parse_qs(urlparse(next_batch_url).query)['marker']
 
-        assert len(resp_block_list) ==  1.2 * conf.api_configuration.max_returned_num
+        assert len(resp_block_list) == 1.2 * \
+            conf.api_configuration.max_returned_num
