@@ -164,7 +164,6 @@ class TestBlocksController(FunctionalTest):
         for h in self.block_list:
             assert h in resp_block_list
         #By default exam blocks if fetching all blocks
-        #if exam_block_data:
         self.helper_exam_block_data(resp_block_list)
 
     def helper_exam_block_data(self, block_list):
