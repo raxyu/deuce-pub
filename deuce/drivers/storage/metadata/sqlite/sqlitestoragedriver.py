@@ -29,7 +29,8 @@ schemas.append([
         vaultid TEXT NOT NULL,
         fileid TEXT NOT NULL,
         blockid TEXT NOT NULL,
-        offset INTEGER NOT NULL
+        offset INTEGER NOT NULL,
+        UNIQUE (projectid, vaultid, fileid, blockid, offset)
     )
     """,
     """
@@ -65,19 +66,35 @@ SQL_DELETE_FILE = '''
 '''
 
 SQL_GET_FILE_BLOCKS = '''
-    SELECT blockid
+    SELECT blockid, offset
     FROM fileblocks
     WHERE projectid=:projectid
     AND vaultid=:vaultid
     AND fileid=:fileid
+    AND offset>=:offset
     ORDER BY offset
+    LIMIT :limit
 '''
 
 SQL_GET_ALL_BLOCKS = '''
     SELECT blockid
     FROM blocks
     WHERE projectid=:projectid
+    AND vaultid=:vaultid
+    AND blockid>=:marker
     order by blockid
+    LIMIT :limit
+'''
+
+SQL_GET_ALL_FILES = '''
+    SELECT fileid
+    FROM files
+    WHERE projectid=:projectid
+    AND vaultid=:vaultid
+    AND fileid>=:marker
+    AND finalized=:finalized
+    order by fileid
+    LIMIT :limit
 '''
 
 SQL_FINALIZE_FILE = '''
@@ -89,7 +106,7 @@ SQL_FINALIZE_FILE = '''
 '''
 
 SQL_ASSIGN_BLOCK_TO_FILE = '''
-    INSERT INTO fileblocks
+    INSERT OR REPLACE INTO fileblocks
     (projectid, vaultid, fileid, blockid, offset)
     VALUES (:projectid, :vaultid, :fileid, :blockid, :offset)
 '''
@@ -246,18 +263,70 @@ class SqliteStorageDriver(MetadataStorageDriver):
         cnt = next(res)
         return cnt[0] > 0
 
-    def create_block_generator(self, project_id, vault_id, file_id=None):
+    def create_block_generator(self, project_id, vault_id, marker=0, limit=0):
+        args = {'projectid': project_id, 'vaultid': vault_id}
+        args['limit'] = limit + 1 \
+            if limit != 0 \
+            and (int(limit) <= conf.api_configuration.max_returned_num) \
+            else conf.api_configuration.max_returned_num + 1
+        args['marker'] = marker
+
+        query = SQL_GET_ALL_BLOCKS
+        res = self._conn.execute(query, args)
+        res = list(row[0] for row in res)
+
+        if len(res) == args['limit']:
+            #Full length.
+            rets = res[:-1]
+            return rets, res[len(res) - 1]
+        else:
+            #End of the records.
+            return res, None
+
+    def create_file_generator(self, project_id, vault_id,
+            marker=0, limit=0, finalized=True):
+        args = {'projectid': project_id, 'vaultid': vault_id}
+        args['limit'] = limit + 1 \
+            if limit != 0 \
+            and (int(limit) <= conf.api_configuration.max_returned_num) \
+            else conf.api_configuration.max_returned_num + 1
+        args['marker'] = marker
+        args['finalized'] = finalized
+
+        query = SQL_GET_ALL_FILES
+        res = self._conn.execute(query, args)
+        res = list(row[0] for row in res)
+
+        if len(res) == args['limit']:
+            #Full length.
+            rets = res[:-1]
+            return rets, res[len(res) - 1]
+        else:
+            #End of the records.
+            return res, None
+
+    def create_file_block_generator(self, project_id, vault_id, file_id,
+            offset=0, limit=0):
 
         args = {'projectid': project_id, 'vaultid': vault_id}
+        args['limit'] = limit + 1 \
+            if limit != 0 \
+            and (int(limit) <= conf.api_configuration.max_returned_num) \
+            else conf.api_configuration.max_returned_num + 1
+        args['fileid'] = file_id
+        args['offset'] = offset
 
-        if file_id:
-            args['fileid'] = file_id
-            query = SQL_GET_FILE_BLOCKS
+        query = SQL_GET_FILE_BLOCKS
+        query_res = self._conn.execute(query, args)
+        res = list((row[0], row[1]) for row in query_res)
+
+        if len(res) == args['limit']:
+            #Full length.
+            rets = res[:-1]
+            return (row[0] for row in rets), res[len(res) - 1][1]
         else:
-            query = SQL_GET_ALL_BLOCKS
-
-        res = self._conn.execute(query, args)
-        return (row[0] for row in res)
+            #End of the records.
+            return (row[0] for row in res), None
 
     def assign_block(self, project_id, vault_id, file_id, block_id, offset):
         # TODO(jdp): tweak this to support multiple assignments

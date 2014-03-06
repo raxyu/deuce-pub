@@ -32,6 +32,9 @@ class TestFileCat(TestCase):
         # Pass None to FileCat
         fc = FileCat(None)
 
+        # Pass empty list to FileCat
+        fc = FileCat((f for f in range(1, 0)))
+
         # FileCat only takes generators
         fc = FileCat((f for f in files))
 

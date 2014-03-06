@@ -22,3 +22,7 @@ class File(object):
     @property
     def finalized(self):
         return self._finalized
+
+    #callback, for serializing to json
+    def __json__(self):
+        return self._file_id

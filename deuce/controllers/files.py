@@ -1,14 +1,44 @@
-
-from pecan import expose, request, response
+from pecan import conf, expose, request, response
 from pecan.core import abort
 from pecan.rest import RestController
 
 import deuce
+from deuce.controllers.fileblocks import FileBlocksController
 from deuce.model import Vault, Block, File
 from deuce.util import FileCat
+from six.moves.urllib.parse import urlparse
 
 
 class FilesController(RestController):
+
+    blocks = FileBlocksController()
+
+    @expose('json')
+    def get_all(self, vault_id):
+        vault = Vault.get(request.project_id, vault_id)
+        if not vault:
+            abort(404)
+
+        marker = request.params.get('marker', 0)
+        limit = int(request.params.get('limit', 0))
+
+        files, marker = vault.get_files(marker, limit)
+
+        # List the files to JSON and return.
+        resp = list(files)
+
+        if marker:
+            parsedurl = urlparse(request.url)
+            returl = '' + \
+                parsedurl.scheme + '://' + \
+                parsedurl.netloc + parsedurl.path + \
+                '?marker=' + marker
+            if limit != 0:
+                returl = returl + '&limit=' + str(limit)
+            response.headers["X-Next-Batch"] = returl
+        else:
+            response.headers["X-Next-Batch"] = ''
+        return resp
 
     @expose()
     def get_one(self, vault_id, file_id):
@@ -16,18 +46,25 @@ class FilesController(RestController):
         file out of Deuce"""
 
         vault = Vault.get(request.project_id, vault_id)
-
         if not vault:
             abort(404)
 
         f = vault.get_file(file_id)
-
         if not f:
             abort(404)
 
         # Get the block generator from the metadata driver
-        blks = deuce.metadata_driver.create_block_generator(request.project_id,
-            vault_id, file_id)
+        blks = []
+        offset = 0
+        limit = conf.api_configuration.max_returned_num
+        while True:
+            retblks, offset = \
+                deuce.metadata_driver.create_file_block_generator(
+                    request.project_id, vault_id, file_id, offset, limit)
+            retblks = list(retblks)
+            blks.extend(retblks)
+            if not offset:
+                break
 
         objs = deuce.storage_driver.create_blocks_generator(request.project_id,
             vault_id, blks)

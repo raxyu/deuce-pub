@@ -1,7 +1,8 @@
 
-from pecan import expose, request, response
+from pecan import conf, expose, request, response
 from pecan.rest import RestController
 from deuce.model import Vault, Block
+from six.moves.urllib.parse import urlparse
 
 BLOCK_ID_LENGTH = 40
 
@@ -23,12 +24,26 @@ class BlocksController(RestController):
             response.status_code = 404
             return
 
-        blocks = vault.get_blocks()
+        marker = request.params.get('marker', 0)
+        limit = int(request.params.get('limit', 0))
 
-        # Convert the block object to JSON and return.
-        # TODO: figure out a way to stream this back
+        blocks, marker = vault.get_blocks(marker, limit)
+
+        # List the blocks into JSON and return.
+        # TODO: figure out a way to stream this back(??)
         resp = list(blocks)
 
+        if marker:
+            parsedurl = urlparse(request.url)
+            returl = '' + \
+                parsedurl.scheme + '://' + \
+                parsedurl.netloc + parsedurl.path + \
+                '?marker=' + marker
+            if limit != 0:
+                returl = returl + '&limit=' + str(limit)
+            response.headers["X-Next-Batch"] = returl
+        else:
+            response.headers["X-Next-Batch"] = ''
         return resp
 
     @expose()

@@ -37,12 +37,12 @@ class Vault(object):
 
         return retval
 
-    def get_blocks(self):
-        #TODO: pagination, ranges, etc.
-        gen = deuce.metadata_driver.create_block_generator(self.project_id,
-            self.id)
+    def get_blocks(self, marker, limit):
+        gen, marker = deuce.metadata_driver.create_block_generator(
+            self.project_id,
+            self.id, marker=marker, limit=limit)
 
-        return (Block(self.project_id, self.id, bid) for bid in gen)
+        return (Block(self.project_id, self.id, bid) for bid in gen), marker
 
     def get_block(self, block_id):
         obj = deuce.storage_driver.get_block_obj(self.project_id, self.id,
@@ -56,6 +56,14 @@ class Vault(object):
             self.id, file_id)
 
         return File(self.project_id, self.id, file_id)
+
+    def get_files(self, marker, limit):
+        gen, marker = deuce.metadata_driver.create_file_generator(
+            self.project_id,
+            self.id, marker=marker, limit=limit, finalized=True)
+
+        return (File(self.project_id, self.id, bid, finalized=True)
+            for bid in gen), marker
 
     def get_file(self, file_id):
         try:

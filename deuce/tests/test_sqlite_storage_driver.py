@@ -1,3 +1,4 @@
+from pecan import conf
 
 from deuce.tests import FunctionalTest
 from deuce.drivers.storage.metadata import MetadataStorageDriver
@@ -95,7 +96,8 @@ class SqliteStorageDriverTest(FunctionalTest):
         vault_id = 'vault_id'
         file_id = 'file_id'
 
-        block_ids = ['block_{0}'.format(id) for id in range(0, 10)]
+        num_blocks = int(0.5 * conf.api_configuration.max_returned_num)
+        block_ids = ['block_{0}'.format(id) for id in range(0, num_blocks)]
         offsets = [x * 333 for x in range(0, len(block_ids))]
 
         pairs = dict(zip(block_ids, offsets))
@@ -116,7 +118,17 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         # Now create a generator of the files. The output
         # should be in the same order as block_ids
-        gen = driver.create_block_generator(project_id, vault_id, file_id)
+        gen = []
+        offset = 0
+        limit = 4
+        while True:
+            retgen, offset = \
+                driver.create_file_block_generator(
+                    project_id, vault_id, file_id, offset, limit)
+            retgen = list(retgen)
+            gen.extend(retgen)
+            if not offset:
+                break
 
         fetched_blocks = list(gen)
 
@@ -129,10 +141,12 @@ class SqliteStorageDriverTest(FunctionalTest):
         driver.register_block(project_id, vault_id, 'unassigned_1', 1024)
         driver.register_block(project_id, vault_id, 'unassigned_2', 1024)
 
+        num_blocks += 2
+
         # Now create a generator of the files. The output
         # should be in the same order as block_ids
-        gen = driver.create_block_generator(project_id, vault_id)
+        gen, marker = driver.create_block_generator(project_id, vault_id)
 
         fetched_blocks = list(gen)
 
-        assert len(fetched_blocks) == 12
+        assert len(fetched_blocks) == num_blocks
