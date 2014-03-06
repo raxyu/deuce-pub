@@ -30,7 +30,7 @@ schemas.append([
         fileid TEXT NOT NULL,
         blockid TEXT NOT NULL,
         offset INTEGER NOT NULL,
-        UNIQUE (vaultid, fileid, blockid, offset)
+        UNIQUE (projectid, vaultid, fileid, blockid, offset)
     )
     """,
     """
