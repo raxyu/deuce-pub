@@ -61,6 +61,11 @@ block_storage_driver = {
 
 metadata_driver = {
     'driver': 'deuce.metadata.driver.SqliteStorageDriver',
+    'path': 'deuce.drivers.storage.metadata.sqlite.sqlitestoragedriver',
+    'module': 'SqliteStorageDriver',
+    #'driver': 'deuce.metadata.driver.MongoDbStorageDriver',
+    #'path': 'deuce.drivers.storage.metadata.mongodb.mongodbstoragedriver',
+    #'module': 'MongoDbStorageDriver',
     'options': {
         'path': '/tmp/vaultmeta.db'
     }
