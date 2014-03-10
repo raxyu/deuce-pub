@@ -2,6 +2,7 @@
 from pecan import conf, expose, request, response
 from pecan.rest import RestController
 from deuce.model import Vault, Block
+from deuce.util import set_qs
 from six.moves.urllib.parse import urlparse
 
 BLOCK_ID_LENGTH = 40
@@ -24,26 +25,34 @@ class BlocksController(RestController):
             response.status_code = 404
             return
 
-        marker = request.params.get('marker', 0)
-        limit = int(request.params.get('limit', 0))
+        inmarker = request.params.get('marker')
 
-        blocks, marker = vault.get_blocks(marker, limit)
+        limit = int(request.params.get('limit',
+           conf.api_configuration.max_returned_num))
+
+        # We actually fetch the user's requested
+        # limit +1 to detect if the list is being
+        # truncated or not.
+        blocks = vault.get_blocks(inmarker, limit + 1)
 
         # List the blocks into JSON and return.
         # TODO: figure out a way to stream this back(??)
         resp = list(blocks)
 
-        if marker:
-            parsedurl = urlparse(request.url)
-            returl = '' + \
-                parsedurl.scheme + '://' + \
-                parsedurl.netloc + parsedurl.path + \
-                '?marker=' + marker
-            if limit != 0:
-                returl = returl + '&limit=' + str(limit)
+        # Was the list truncated? See note above about +1
+        truncated = len(resp) > 0 and len(resp) == limit + 1
+
+        outmarker = resp.pop().block_id if truncated else None
+
+        if outmarker:
+            query_args = {'marker': outmarker}
+
+            query_args['limit'] = limit
+
+            returl = set_qs(request.url, query_args)
+
             response.headers["X-Next-Batch"] = returl
-        else:
-            response.headers["X-Next-Batch"] = ''
+
         return resp
 
     @expose()

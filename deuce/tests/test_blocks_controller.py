@@ -138,13 +138,15 @@ class TestBlocksController(FunctionalTest):
         while True:
             response = self.app.get(path,
                 params=params, headers=self._hdrs)
-            next_batch_url = response.headers["X-Next-Batch"]
+
+            next_batch_url = response.headers.get("X-Next-Batch")
+
             resp_block_list += response.json_body
             assert isinstance(response.json_body, list)
 
             if not repeat:
-                assert (not next_batch_url) == (not assert_ret_url)
-                assert len(resp_block_list) == assert_data_len
+                self.assertEqual(not next_batch_url, not assert_ret_url)
+                self.assertEqual(len(resp_block_list), assert_data_len)
                 for h in resp_block_list:
                     assert h in self.block_list
                 if assert_data_len == -1 or \

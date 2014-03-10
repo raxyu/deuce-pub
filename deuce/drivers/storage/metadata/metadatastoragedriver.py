@@ -59,7 +59,7 @@ class MetadataStorageDriver(object):
 
     @abstractmethod
     def create_file_block_generator(self, project_id, vault_id, file_id,
-            offset=0, limit=0):
+            offset=None, limit=None):
         """Creates and returns a generator that will return
         the ID of each block contained in the specified
         file. The file must previously have been finalized."""

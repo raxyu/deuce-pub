@@ -1,9 +1,14 @@
 from unittest import TestCase
-from deuce.util import FileCat
+from deuce.util import FileCat, set_qs
 from deuce.tests.util import MockFile
 import os
 from random import randrange
 from hashlib import md5
+
+try:  # pragma: no cover
+    import six.moves.urllib.parse as parse
+except ImportError:  # pragma: no cover
+    import urllib.parse as parse
 
 # TODO: We probably want to move this to a
 # test helpers library
@@ -85,3 +90,23 @@ class TestFileCat(TestCase):
 
         assert bytes_read == sum(file_sizes)
         assert computed_md5 == expected_md5
+
+    def test_set_qs(self):
+        url = 'http://whatever:8080/hello/world?param1=value1&param2=value2'
+
+        # Empty case
+        testurl = set_qs(url)
+        self.assertEqual(testurl, 'http://whatever:8080/hello/world')
+
+        positive_cases = [
+            {'whatever': '3'},
+            {'hello': 'whatever'},
+            {'yes': u'whatever'}
+        ]
+
+        for args in positive_cases:
+            output = set_qs(url, args)
+            parts = parse.urlparse(output)
+
+            qs = parts.query
+            output = parse.parse_qs(qs)

@@ -55,7 +55,9 @@ SQL_CREATE_FILE = '''
 SQL_GET_FILE = '''
     SELECT finalized
     FROM files
-    WHERE projectid=:projectid AND vaultid=:vaultid AND fileid=:fileid
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+    AND fileid = :fileid
 '''
 
 SQL_DELETE_FILE = '''
@@ -65,13 +67,22 @@ SQL_DELETE_FILE = '''
     AND fileid=:fileid
 '''
 
+SQL_GET_ALL_FILE_BLOCKS = '''
+    SELECT blockid, offset
+    FROM fileblocks
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+    AND fileid = :fileid
+    ORDER BY offset
+'''
+
 SQL_GET_FILE_BLOCKS = '''
     SELECT blockid, offset
     FROM fileblocks
-    WHERE projectid=:projectid
-    AND vaultid=:vaultid
-    AND fileid=:fileid
-    AND offset>=:offset
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+    AND fileid = :fileid
+    AND offset >= :offset
     ORDER BY offset
     LIMIT :limit
 '''
@@ -79,9 +90,9 @@ SQL_GET_FILE_BLOCKS = '''
 SQL_GET_ALL_BLOCKS = '''
     SELECT blockid
     FROM blocks
-    WHERE projectid=:projectid
-    AND vaultid=:vaultid
-    AND blockid>=:marker
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+    AND blockid >= :marker
     order by blockid
     LIMIT :limit
 '''
@@ -90,9 +101,9 @@ SQL_GET_ALL_FILES = '''
     SELECT fileid
     FROM files
     WHERE projectid=:projectid
-    AND vaultid=:vaultid
-    AND fileid>=:marker
-    AND finalized=:finalized
+    AND vaultid = :vaultid
+    AND fileid >= :marker
+    AND finalized = :finalized
     order by fileid
     LIMIT :limit
 '''
@@ -162,6 +173,19 @@ class SqliteStorageDriver(MetadataStorageDriver):
 
             db_ver = db_ver + 1
             self._set_user_version(db_ver)
+
+    def _determine_limit(self, limit):
+        """ Determines the limit based on user input """
+
+        # Note: +1 is allowed here because it allows
+        # the user to fetch one beyond to see if they
+        # are at the end of the list
+        if not limit:
+            res = conf.api_configuration.max_returned_num + 1
+        else:
+            res = min(conf.api_configuration.max_returned_num + 1, limit)
+
+        return res
 
     def create_file(self, project_id, vault_id, file_id):
         """Creates a new file with no blocks and no files"""
@@ -264,69 +288,55 @@ class SqliteStorageDriver(MetadataStorageDriver):
         return cnt[0] > 0
 
     def create_block_generator(self, project_id, vault_id, marker=0, limit=0):
-        args = {'projectid': project_id, 'vaultid': vault_id}
-        args['limit'] = limit + 1 \
-            if limit != 0 \
-            and (int(limit) <= conf.api_configuration.max_returned_num) \
-            else conf.api_configuration.max_returned_num + 1
-        args['marker'] = marker
 
-        query = SQL_GET_ALL_BLOCKS
-        res = self._conn.execute(query, args)
-        res = list(row[0] for row in res)
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id,
+            'limit': self._determine_limit(limit),
+            'marker': marker
+        }
 
-        if len(res) == args['limit']:
-            #Full length.
-            rets = res[:-1]
-            return rets, res[len(res) - 1]
-        else:
-            #End of the records.
-            return res, None
+        res = self._conn.execute(SQL_GET_ALL_BLOCKS, args)
+
+        return [row[0] for row in res]
 
     def create_file_generator(self, project_id, vault_id,
-            marker=0, limit=0, finalized=True):
-        args = {'projectid': project_id, 'vaultid': vault_id}
-        args['limit'] = limit + 1 \
-            if limit != 0 \
-            and (int(limit) <= conf.api_configuration.max_returned_num) \
-            else conf.api_configuration.max_returned_num + 1
-        args['marker'] = marker
-        args['finalized'] = finalized
+                              marker=0, limit=0, finalized=True):
 
-        query = SQL_GET_ALL_FILES
-        res = self._conn.execute(query, args)
-        res = list(row[0] for row in res)
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id,
+            'limit': self._determine_limit(limit),
+            'marker': marker,
+            'finalized': finalized
+        }
 
-        if len(res) == args['limit']:
-            #Full length.
-            rets = res[:-1]
-            return rets, res[len(res) - 1]
-        else:
-            #End of the records.
-            return res, None
+        res = self._conn.execute(SQL_GET_ALL_FILES, args)
+        return [row[0] for row in res]
 
     def create_file_block_generator(self, project_id, vault_id, file_id,
-            offset=0, limit=0):
+                                    offset=None, limit=None):
 
-        args = {'projectid': project_id, 'vaultid': vault_id}
-        args['limit'] = limit + 1 \
-            if limit != 0 \
-            and (int(limit) <= conf.api_configuration.max_returned_num) \
-            else conf.api_configuration.max_returned_num + 1
-        args['fileid'] = file_id
-        args['offset'] = offset
+        args = {
+            'fileid': file_id,
+            'projectid': project_id,
+            'vaultid': vault_id,
+        }
 
-        query = SQL_GET_FILE_BLOCKS
-        query_res = self._conn.execute(query, args)
-        res = list((row[0], row[1]) for row in query_res)
+        if limit is None:
+            query = SQL_GET_ALL_FILE_BLOCKS
 
-        if len(res) == args['limit']:
-            #Full length.
-            rets = res[:-1]
-            return (row[0] for row in rets), res[len(res) - 1][1]
         else:
-            #End of the records.
-            return (row[0] for row in res), None
+            query = SQL_GET_FILE_BLOCKS
+
+            args.update({
+                'limit': self._determine_limit(limit),
+                'offset': offset or 0
+            })
+
+        query_res = self._conn.execute(query, args)
+
+        return [(row[0], row[1]) for row in query_res]
 
     def assign_block(self, project_id, vault_id, file_id, block_id, offset):
         # TODO(jdp): tweak this to support multiple assignments

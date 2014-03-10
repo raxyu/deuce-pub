@@ -6,7 +6,7 @@ import deuce
 from deuce.controllers.fileblocks import FileBlocksController
 from deuce.model import Vault, Block, File
 from deuce.util import FileCat
-from six.moves.urllib.parse import urlparse
+from deuce.util import set_qs
 
 
 class FilesController(RestController):
@@ -15,29 +15,37 @@ class FilesController(RestController):
 
     @expose('json')
     def get_all(self, vault_id):
+
         vault = Vault.get(request.project_id, vault_id)
+
         if not vault:
             abort(404)
 
-        marker = request.params.get('marker', 0)
-        limit = int(request.params.get('limit', 0))
+        inmarker = request.params.get('marker')
 
-        files, marker = vault.get_files(marker, limit)
+        limit = int(request.params.get('limit',
+           conf.api_configuration.max_returned_num))
 
-        # List the files to JSON and return.
+        # The +1 is to fetch one past the user's
+        # requested limit so that we can determine
+        # if the list was truncated or not
+        files = vault.get_files(inmarker, limit + 1)
+
         resp = list(files)
 
-        if marker:
-            parsedurl = urlparse(request.url)
-            returl = '' + \
-                parsedurl.scheme + '://' + \
-                parsedurl.netloc + parsedurl.path + \
-                '?marker=' + marker
-            if limit != 0:
-                returl = returl + '&limit=' + str(limit)
+        # Note: the list may not actually be truncated
+        truncated = len(resp) == limit + 1
+
+        outmarker = resp.pop().file_id if truncated else None
+
+        if outmarker:
+            query_args = {'marker': outmarker}
+            query_args['limit'] = limit
+
+            returl = set_qs(request.url, query_args)
+
             response.headers["X-Next-Batch"] = returl
-        else:
-            response.headers["X-Next-Batch"] = ''
+
         return resp
 
     @expose()
@@ -50,24 +58,15 @@ class FilesController(RestController):
             abort(404)
 
         f = vault.get_file(file_id)
+
         if not f:
             abort(404)
 
-        # Get the block generator from the metadata driver
-        blks = []
-        offset = 0
-        limit = conf.api_configuration.max_returned_num
-        while True:
-            retblks, offset = \
-                deuce.metadata_driver.create_file_block_generator(
-                    request.project_id, vault_id, file_id, offset, limit)
-            retblks = list(retblks)
-            blks.extend(retblks)
-            if not offset:
-                break
+        block_gen = deuce.metadata_driver.create_file_block_generator(
+            request.project_id, vault_id, file_id)
 
-        objs = deuce.storage_driver.create_blocks_generator(request.project_id,
-            vault_id, blks)
+        objs = deuce.storage_driver.create_blocks_generator(
+            request.project_id, vault_id, block_gen)
 
         response.body_file = FileCat(objs)
         response.status_code = 200
@@ -103,8 +102,8 @@ class FilesController(RestController):
 
         # Fileid with an empty body will finalize the file.
         if not request.body:
-            deuce.metadata_driver.finalize_file(request.project_id, vault_id,
-                file_id)
+            deuce.metadata_driver.finalize_file(request.project_id,
+                vault_id, file_id)
 
             return
 
@@ -130,6 +129,6 @@ class FilesController(RestController):
                 missing_blocks.append(block_id)
 
             deuce.metadata_driver.assign_block(request.project_id, vault_id,
-               file_id, mapping['id'], mapping['offset'])
+                file_id, mapping['id'], mapping['offset'])
 
         return missing_blocks
