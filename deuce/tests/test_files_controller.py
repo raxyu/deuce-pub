@@ -2,7 +2,6 @@ from pecan import conf
 import os
 import hashlib
 import string
-from random import randrange
 import six
 from six.moves.urllib.parse import urlparse, parse_qs
 from unittest import TestCase
@@ -40,12 +39,12 @@ class TestFilesController(FunctionalTest):
         # vault does not exists
         # If we pass in no headers, we should get a 400 back
         response = self.app.get(self._NOT_EXIST_files_path,
-            expect_errors=True)
+                                expect_errors=True)
         assert response.status_int == 400
 
         # vault does not exists
         response = self.app.get(self._NOT_EXIST_files_path,
-            headers=self._hdrs, expect_errors=True)
+                                headers=self._hdrs, expect_errors=True)
         assert response.status_int == 404  # Not found
 
     def helper_create_files(self, num):
@@ -54,22 +53,26 @@ class TestFilesController(FunctionalTest):
             response = self.app.post(self._files_path, headers=self._hdrs)
             file_id = response.headers["Location"]
             response = self.app.post(file_id,
-                params=params, headers=self._hdrs)
+                                     params=params, headers=self._hdrs)
             file_id = urlparse(file_id).path.split('/')[-1]
             self.file_list.append(file_id)
         return num
 
     def helper_get_files(self, marker, limit, assert_return_url,
-            assert_data_len, repeat=False):
+                         assert_data_len, repeat=False):
+
         resp_file_list = []
+
         if limit != 0:
             params = {'marker': marker, 'limit': limit}
         else:
             params = {'marker': marker}
         while True:
             response = self.app.get(self._files_path,
-                params=params, headers=self._hdrs)
-            next_batch_url = response.headers["X-Next-Batch"]
+                                    params=params, headers=self._hdrs)
+
+            next_batch_url = response.headers.get("X-Next-Batch", '')
+
             resp_file_list += list(response.json_body)
             assert isinstance(response.json_body, list)
 
@@ -85,9 +88,12 @@ class TestFilesController(FunctionalTest):
                 return next_batch_url
             if not next_batch_url:
                 break
+
             params['marker'] = \
                 parse_qs(urlparse(next_batch_url).query)['marker']
-        assert len(resp_file_list) == assert_data_len
+
+        self.assertEqual(len(resp_file_list), assert_data_len)
+
         for h in resp_file_list:
             assert h in self.file_list
         for h in self.file_list:
@@ -100,11 +106,11 @@ class TestFilesController(FunctionalTest):
 
         # Get list of files in the vault with a given limit.
         next_batch_url = self.helper_get_files(marker=0, limit=4,
-                assert_return_url=True, assert_data_len=4)
+           assert_return_url=True, assert_data_len=4)
 
         # Get list of all files in the vault with the default limit.
         self.helper_get_files(marker=0, limit=0, assert_return_url=False,
-                assert_data_len=self.total_file_num)
+                              assert_data_len=self.total_file_num)
 
         # Add more (< max_returned_num) files in the vault
         file_num = int(0.5 * self.max_ret_num) - 1
@@ -112,15 +118,15 @@ class TestFilesController(FunctionalTest):
 
         # Get list of all files in the vault.
         self.helper_get_files(marker=0, limit=0, assert_return_url=False,
-                assert_data_len=self.total_file_num)
+                              assert_data_len=self.total_file_num)
 
         # Add one more file
         self.total_file_num += self.helper_create_files(1)
 
         # Get list of all files in the vault, which is exact one load.
         next_batch_url = self.helper_get_files(marker=0, limit=0,
-                assert_return_url=False,
-                assert_data_len=self.total_file_num)
+           assert_return_url=False,
+           assert_data_len=self.total_file_num)
 
         # Add more files to make the total files more than one load
         file_num = int(0.5 * self.max_ret_num)
@@ -128,54 +134,55 @@ class TestFilesController(FunctionalTest):
 
         # Get list of all files in the vault, need multiple runs,
         self.helper_get_files(marker=0, limit=0, assert_return_url=False,
-                assert_data_len=self.total_file_num, repeat=True)
+            assert_data_len=self.total_file_num, repeat=True)
 
     def test_get_one(self):
         # vault does not exists
         response = self.app.get(self._NOT_EXIST_files_path,
-            headers=self._hdrs, expect_errors=True)
+                                headers=self._hdrs, expect_errors=True)
         assert response.status_int == 404
 
         response = self.app.get(self._NOT_EXIST_files_path + '/',
-            headers=self._hdrs, expect_errors=True)
+                                headers=self._hdrs, expect_errors=True)
         assert response.status_int == 404
 
         response = self.app.get(self._NOT_EXIST_files_path + '/not_matter',
-            headers=self._hdrs, expect_errors=True)
+                                headers=self._hdrs, expect_errors=True)
+
         assert response.status_int == 404
 
         # fileid is not privded
         response = self.app.get(self._files_path + '/', headers=self._hdrs,
-            expect_errors=True)
+                                expect_errors=True)
         assert response.status_int == 404
 
         # fileid does not exists
         response = self.app.get(self._files_path + '/not_exists',
-            headers=self._hdrs, expect_errors=True)
+                                headers=self._hdrs, expect_errors=True)
         assert response.status_int == 404
 
     def test_post_and_check_one_file(self):
         # vault does not exists
         response = self.app.post(self._NOT_EXIST_files_path,
-            headers=self._hdrs, expect_errors=True)
+                                 headers=self._hdrs, expect_errors=True)
         assert response.status_int == 404
 
         response = self.app.post(self._NOT_EXIST_files_path + '/',
-            headers=self._hdrs, expect_errors=True)
+                                 headers=self._hdrs, expect_errors=True)
         assert response.status_int == 404
 
         response = self.app.post(self._NOT_EXIST_files_path + '/not_matter',
-            headers=self._hdrs, expect_errors=True)
+                                 headers=self._hdrs, expect_errors=True)
         assert response.status_int == 404
 
         # fileid is not provided
         response = self.app.post(self._files_path + '/',
-            headers=self._hdrs, expect_errors=True)
+                                 headers=self._hdrs, expect_errors=True)
         assert response.status_int == 404
 
         # fileid does not exists
         response = self.app.post(self._files_path + '/not_exists',
-            headers=self._hdrs, expect_errors=True)
+                                 headers=self._hdrs, expect_errors=True)
         assert response.status_int == 404
 
         hdrs = {'content-type': 'application/x-deuce-block-list'}
@@ -193,11 +200,13 @@ class TestFilesController(FunctionalTest):
         assert len(response.body) > 2
 
         driver = SqliteStorageDriver()
+
         # Register 100 blocks into system.
         for cnt in range(0, enough_num):
             driver.register_block(self.project_id, self.vault_id, cnt, 100)
         # Then add blocks to files again. resp is empty.
         response = self.app.post(self._file_id, params=data, headers=hdrs)
+
         assert len(response.body) == 2
 
         # Get unfinalized file.
@@ -213,6 +222,7 @@ class TestFilesController(FunctionalTest):
             if cnt < enough_num - 1:
                 data = data + ','
             driver.register_block(self.project_id, self.vault_id, cnt, 100)
+
         data = data + ']}'
         # Then add blocks to files again. resp is empty.
         response = self.app.post(self._file_id, params=data, headers=hdrs)
@@ -246,19 +256,19 @@ class TestFilesController(FunctionalTest):
 
         # vault does not exists
         response = self.app.get(self._NOT_EXIST_files_path +
-            '/notmatter/blocks',
-            headers=self._hdrs, expect_errors=True)
+                                '/notmatter/blocks',
+                                headers=self._hdrs, expect_errors=True)
         assert response.status_int == 404  # Not found
 
         # fileid does not exists
         response = self.app.get(self._files_path + '/not_exists/blocks',
-            headers=self._hdrs, expect_errors=True)
+                                headers=self._hdrs, expect_errors=True)
         assert response.status_int == 404
 
         # Get blocks of a file. with limit not zero
         params = {'limit': 5}
         response = self.app.get(file_id +
-            '/blocks', params=params, headers=hdrs)
+                                '/blocks', params=params, headers=hdrs)
         assert response.status_int == 200
         next_batch_url = response.headers["X-Next-Batch"]
 
@@ -266,8 +276,9 @@ class TestFilesController(FunctionalTest):
         params = {'marker': 0}
         while True:
             response = self.app.get(file_id + '/blocks',
-                params=params, headers=self._hdrs)
-            next_batch_url = response.headers["X-Next-Batch"]
+                                    params=params, headers=self._hdrs)
+
+            next_batch_url = response.headers.get("X-Next-Batch", '')
             resp_block_list += list(response.json_body)
             assert isinstance(response.json_body, list)
             if not next_batch_url:
@@ -275,5 +286,5 @@ class TestFilesController(FunctionalTest):
             params['marker'] = \
                 parse_qs(urlparse(next_batch_url).query)['marker']
 
-        assert len(resp_block_list) == 1.2 * \
-            conf.api_configuration.max_returned_num
+        self.assertEqual(len(resp_block_list), 1.2 *
+             conf.api_configuration.max_returned_num)

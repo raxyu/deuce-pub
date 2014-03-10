@@ -4,8 +4,8 @@ from pecan.rest import RestController
 from pecan.core import abort
 
 import deuce
+from deuce.util import set_qs
 from deuce.model import Vault, File, Block
-from six.moves.urllib.parse import urlparse
 
 BLOCK_ID_LENGTH = 40
 
@@ -17,32 +17,38 @@ class FileBlocksController(RestController):
     """
     @expose('json')
     def get_all(self, vault_id, file_id):
+
         vault = Vault.get(request.project_id, vault_id)
+
         if not vault:
             abort(404)
+
         f = vault.get_file(file_id)
+
         if not f:
             abort(404)
 
-        marker = int(request.params.get('marker', 0))
-        limit = int(request.params.get('limit', 0))
+        inmarker = int(request.params.get('marker', 0))
+        limit = int(request.params.get('limit',
+           conf.api_configuration.max_returned_num))
 
-        resp = []
-        # Get the block generator from the metadata driver
-        retblks, marker = \
-            deuce.metadata_driver.create_file_block_generator(
-                request.project_id, vault_id, file_id, marker, limit)
+        # Get the block generator from the metadata driver.
+        # Note: +1 on limit is to fetch one past the limt
+        # for the purpose of determining if the
+        # list was truncated
+        retblks = deuce.metadata_driver.create_file_block_generator(
+            request.project_id, vault_id, file_id, inmarker, limit + 1)
+
         resp = list(retblks)
 
-        if marker:
-            parsedurl = urlparse(request.url)
-            returl = '' + \
-                parsedurl.scheme + '://' + \
-                parsedurl.netloc + parsedurl.path + \
-                '?marker=' + str(marker)
-            if limit != 0:
-                returl = returl + '&limit=' + str(limit)
+        truncated = len(resp) > 0 and len(resp) == limit + 1
+        outmarker = resp.pop()[1] if truncated else None
+
+        if outmarker:
+            query_args = {'marker': outmarker}
+            query_args['limit'] = limit
+
+            returl = set_qs(request.url, query_args)
             response.headers["X-Next-Batch"] = returl
-        else:
-            response.headers["X-Next-Batch"] = ''
+
         return resp

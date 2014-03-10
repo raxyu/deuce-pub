@@ -118,24 +118,22 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         # Now create a generator of the files. The output
         # should be in the same order as block_ids
-        gen = []
         offset = 0
         limit = 4
-        while True:
-            retgen, offset = \
-                driver.create_file_block_generator(
-                    project_id, vault_id, file_id, offset, limit)
-            retgen = list(retgen)
-            gen.extend(retgen)
-            if not offset:
-                break
 
-        fetched_blocks = list(gen)
+        retgen = \
+            driver.create_file_block_generator(
+                project_id, vault_id, file_id, offset, limit)
 
-        assert len(fetched_blocks) == len(block_ids)
+        fetched_blocks = list(retgen)
 
-        for x in range(0, len(fetched_blocks)):
-            assert fetched_blocks[x] == block_ids[x]
+        # The driver actually returns limit+1 so that any
+        # caller knows that the list is truncated.
+        self.assertEqual(len(fetched_blocks) + 1, len(block_ids))
+
+        # -1 to exclude the trailer
+        for x in range(0, len(fetched_blocks) - 1):
+            self.assertEqual(fetched_blocks[x][0], block_ids[x])
 
         # Add 2 more blocks that aren't assigned.
         driver.register_block(project_id, vault_id, 'unassigned_1', 1024)
@@ -145,7 +143,7 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         # Now create a generator of the files. The output
         # should be in the same order as block_ids
-        gen, marker = driver.create_block_generator(project_id, vault_id)
+        gen = driver.create_block_generator(project_id, vault_id)
 
         fetched_blocks = list(gen)
 

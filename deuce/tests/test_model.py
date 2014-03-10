@@ -61,7 +61,7 @@ class TestModel(FunctionalTest):
         v = Vault.create(self.project_id, vault_id)
 
         # Check for blocks, should be none
-        blocks_gen, marker = v.get_blocks(0, 0)
+        blocks_gen = v.get_blocks(0, 0)
         blocks_list = list(blocks_gen)
 
         assert len(blocks_list) == 0
