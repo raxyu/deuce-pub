@@ -53,11 +53,18 @@ block_storage_driver = {
 }
 
 metadata_driver = {
-    'driver': 'deuce.metadata.driver.SqliteStorageDriver',
-    'path': 'deuce.drivers.storage.metadata.sqlite.sqlitestoragedriver',
-    'module': 'SqliteStorageDriver',
+    #'driver': 'deuce.metadata.driver.SqliteStorageDriver',
+    #'path': 'deuce.drivers.storage.metadata.sqlite.sqlitestoragedriver',
+    #'module': 'SqliteStorageDriver',
+    #'options': {
+    #    'path': '/tmp/vaultmeta.db'
+    #}
+    'driver': 'deuce.metadata.driver.MongodbStorageDriver',
+    'path': 'deuce.drivers.storage.metadata.sqlite.mongodbstoragedriver',
+    'module': 'MongoDbStorageDriver',
     'options': {
-        'path': '/tmp/vaultmeta.db'
+        'path': 'vaultmeta',
+        'url': 'mongodb://127.0.0.1'
     }
 }
 

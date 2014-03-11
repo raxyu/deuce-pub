@@ -60,14 +60,15 @@ block_storage_driver = {
 }
 
 metadata_driver = {
-    'driver': 'deuce.metadata.driver.SqliteStorageDriver',
-    'path': 'deuce.drivers.storage.metadata.sqlite.sqlitestoragedriver',
-    'module': 'SqliteStorageDriver',
-    #'driver': 'deuce.metadata.driver.MongoDbStorageDriver',
-    #'path': 'deuce.drivers.storage.metadata.mongodb.mongodbstoragedriver',
-    #'module': 'MongoDbStorageDriver',
+    #'driver': 'deuce.metadata.driver.SqliteStorageDriver',
+    #'path': 'deuce.drivers.storage.metadata.sqlite.sqlitestoragedriver',
+    #'module': 'SqliteStorageDriver',
+    'driver': 'deuce.metadata.driver.MongoDbStorageDriver',
+    'path': 'deuce.drivers.storage.metadata.mongodb.mongodbstoragedriver',
+    'module': 'MongoDbStorageDriver',
     'options': {
-        'path': '/tmp/vaultmeta.db'
+        'path': 'vaultmeta',
+        'url': 'mongodb://127.0.0.1'
     }
 }
 
@@ -77,5 +78,18 @@ api_configuration = {
 
 # Always remove the database so that we can start over on
 # test execution
-if os.path.exists('/tmp/vaultmeta.db'):
-    os.remove('/tmp/vaultmeta.db')
+
+##Drop sqlite DB
+##if os.path.exists('/tmp/vaultmeta.db'):
+##    os.remove('/tmp/vaultmeta.db')
+
+##Drop Mongo DB
+import pymongo
+from pymongo import MongoClient
+client = MongoClient('mongodb://127.0.0.1')
+_conn = client['vaultmeta']
+#_conn.drop_collection('blocks')
+#_conn.drop_collection('fileblocks')
+#_conn.drop_collection('files')
+
+

@@ -15,6 +15,7 @@ class MongoDbStorageDriverTest(FunctionalTest):
         assert isinstance(driver, MetadataStorageDriver)
         assert isinstance(driver, object)
 
+    '''
     # YUDEBUG: CHEATING HERE.......
     # YUDEBUG: SHOULD BE EMPTY EVENTUALLY.
     def test_funcs_debts(self):
@@ -33,6 +34,7 @@ class MongoDbStorageDriverTest(FunctionalTest):
         driver.assign_block(1, 2, 3, 4, 5)
         driver.register_block(1, 2, 3, 4)
         driver.unregister_block(1, 2, 3)
+    '''
 
     '''
     def test_file_crud(self):
