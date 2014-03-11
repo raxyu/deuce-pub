@@ -6,7 +6,7 @@ import six
 from six.moves.urllib.parse import urlparse, parse_qs
 from unittest import TestCase
 from deuce.tests import FunctionalTest
-from deuce.drivers.storage.metadata.sqlite import SqliteStorageDriver
+from random import randrange
 
 
 class TestFilesController(FunctionalTest):
@@ -24,6 +24,7 @@ class TestFilesController(FunctionalTest):
         self.vault_id = 'files_vault_test'
         self._vault_path = '/v1.0/' + self.vault_id
         self._files_path = self._vault_path + '/files'
+        self._blocks_path = self._vault_path + '/blocks'
 
         # Create Vault
         response = self.app.post(self._vault_path, headers=self._hdrs)
@@ -105,8 +106,8 @@ class TestFilesController(FunctionalTest):
         self.total_file_num = self.helper_create_files(file_num)
 
         # Get list of files in the vault with a given limit.
-        next_batch_url = self.helper_get_files(marker=0, limit=(file_num-1),
-           assert_return_url=True, assert_data_len=(file_num-1))
+        next_batch_url = self.helper_get_files(marker=0, limit=(file_num - 1),
+           assert_return_url=True, assert_data_len=(file_num - 1))
 
         # Get list of all files in the vault with the default limit.
         self.helper_get_files(marker=0, limit=0, assert_return_url=False,
@@ -199,14 +200,10 @@ class TestFilesController(FunctionalTest):
         response = self.app.post(self._file_id, params=data, headers=hdrs)
         assert len(response.body) > 2
 
-        driver = SqliteStorageDriver()
-
         # Register 100 blocks into system.
-        for cnt in range(0, enough_num):
-            driver.register_block(self.project_id, self.vault_id, cnt, 100)
+        self.helper_create_blocks(num_blocks=enough_num)
         # Then add blocks to files again. resp is empty.
         response = self.app.post(self._file_id, params=data, headers=hdrs)
-
         assert len(response.body) > 0
 
         # Get unfinalized file.
@@ -215,18 +212,21 @@ class TestFilesController(FunctionalTest):
 
         # Register 120 blocks into system.
         data = "{\"blocks\":["
-        enough_num = int(1.2 * conf.api_configuration.max_returned_num)
-        for cnt in range(conf.api_configuration.max_returned_num, enough_num):
+        enough_num2 = int(1.2 * conf.api_configuration.max_returned_num)
+        for cnt in range(enough_num, enough_num2):
             data = data + '{' + '\"id\": {0}, \"size\": 100, \
                 \"offset\": {1}'.format(cnt, cnt * 100) + '}'
-            if cnt < enough_num - 1:
+            if cnt < enough_num2 - 1:
                 data = data + ','
-            driver.register_block(self.project_id, self.vault_id, cnt, 100)
-
         data = data + ']}'
-        # Then add blocks to files again. resp is empty.
+
         response = self.app.post(self._file_id, params=data, headers=hdrs)
-        assert len(response.body) > 0
+        assert len(response.body) > 2
+
+        # Add blocks. resp will be empty.
+        block_list = self.helper_create_blocks(num_blocks=enough_num2)
+        response = self.app.post(self._file_id, params=data, headers=hdrs)
+        assert len(response.body) == 2
 
         # Get the file.
         response = self.app.get(self._file_id, headers=hdrs)
@@ -288,3 +288,44 @@ class TestFilesController(FunctionalTest):
 
         self.assertEqual(len(resp_block_list), 1.2 *
              conf.api_configuration.max_returned_num)
+
+    def helper_create_blocks(self, num_blocks):
+        min_size = 1
+        max_size = 2000
+
+        block_sizes = [randrange(min_size, max_size) for x in
+            range(0, num_blocks)]
+
+        data = [os.urandom(x) for x in block_sizes]
+        block_list = [self._calc_sha1(d) for d in data]
+
+        block_data = zip(block_sizes, data, block_list)
+
+        # Put each one of the generated blocks on the
+        # size
+        cnt = 0
+        for size, data, sha1 in block_data:
+            path = self._get_block_path(str(cnt))
+
+            # NOTE: Very important to set the content-type
+            # header. Otherwise pecan tries to do a UTF-8 test.
+            headers = {
+                "Content-Type": "application/binary",
+                "Content-Length": str(size),
+            }
+
+            headers.update(self._hdrs)
+
+            response = self.app.put(path, headers=headers,
+                params=data)
+            cnt += 1
+
+        return block_list
+
+    def _calc_sha1(self, data):
+        sha1 = hashlib.sha1()
+        sha1.update(data)
+        return sha1.hexdigest()
+
+    def _get_block_path(self, blockid):
+        return '{0}/{1}'.format(self._blocks_path, blockid)
