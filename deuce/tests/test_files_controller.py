@@ -105,8 +105,8 @@ class TestFilesController(FunctionalTest):
         self.total_file_num = self.helper_create_files(file_num)
 
         # Get list of files in the vault with a given limit.
-        next_batch_url = self.helper_get_files(marker=0, limit=4,
-           assert_return_url=True, assert_data_len=4)
+        next_batch_url = self.helper_get_files(marker=0, limit=(file_num-1),
+           assert_return_url=True, assert_data_len=(file_num-1))
 
         # Get list of all files in the vault with the default limit.
         self.helper_get_files(marker=0, limit=0, assert_return_url=False,
