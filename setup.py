@@ -6,7 +6,7 @@ except ImportError:
     use_setuptools()
     from setuptools import setup, find_packages
 
-REQUIRES = ['six', 'pecan']
+REQUIRES = ['pymongo', 'six', 'pecan']
 
 setup(
     name='deuce',

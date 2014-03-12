@@ -145,7 +145,7 @@ SQL_HAS_BLOCK = '''
 class SqliteStorageDriver(MetadataStorageDriver):
 
     def __init__(self):
-        self._dbfile = conf.metadata_driver.options.path
+        self._dbfile = conf.metadata_driver.sqlite.path
         self._conn = Connection(self._dbfile)
 
         self._do_migrate()

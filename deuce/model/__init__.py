@@ -19,10 +19,8 @@ deuce.metadata_driver = None
 def init_model():
     # Load metadata driver
     db_class = conf.metadata_driver.module
-    db_path = conf.metadata_driver.path
-    db_driver = conf.metadata_driver.driver
+    db_path = conf.metadata_driver.driver_path
     assert db_class
-    assert db_driver
     assert db_path
 
     mod = importlib.import_module(db_path)

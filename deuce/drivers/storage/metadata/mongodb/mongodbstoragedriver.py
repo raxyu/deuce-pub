@@ -6,7 +6,6 @@ from pymongo import MongoClient
 from deuce.drivers.storage.metadata import MetadataStorageDriver
 
 
-
 # SQL schemas. Note: the schema is versions
 # in such a way that new instances always start
 # with user version 1, then proceeed to upgrade
@@ -15,12 +14,11 @@ from deuce.drivers.storage.metadata import MetadataStorageDriver
 #schemas.append()  # Version 1
 #CURRENT_DB_VERSION = len(schemas)
 
-
 class MongoDbStorageDriver(MetadataStorageDriver):
 
     def __init__(self):
-        self._dbfile = conf.metadata_driver.options.path
-        self.client = MongoClient(conf.metadata_driver.options.url)
+        self._dbfile = conf.metadata_driver.mongodb.path
+        self.client = MongoClient(conf.metadata_driver.mongodb.url)
         self._conn = self.client[self._dbfile]
         self._blocks = self._conn.blocks
         self._files = self._conn.files
@@ -64,7 +62,6 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         #self._conn.execute('pragma user_version=%d' % version)
 
         self._sys.insert({'userversion': version})
-        
 
     def _do_migrate(self):
         db_ver = self._get_user_version()
@@ -104,7 +101,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         res = self._files.find_one(args)
 
         if res is None:
-            return Flase
+            return False
         return True
 
     def is_finalized(self, project_id, vault_id, file_id):
@@ -116,7 +113,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         res = self._files.find_one(args)
 
         if res is not None:
-            return res.get("finalized") != False
+            return res.get("finalized")
         return False
 
     def delete_file(self, project_id, vault_id, file_id):
@@ -125,7 +122,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             'vaultid': vault_id,
             'fileid': file_id
         }
-        
+
         self._files.remove(args)
 
     def finalize_file(self, project_id, vault_id, file_id):
@@ -158,7 +155,6 @@ class MongoDbStorageDriver(MetadataStorageDriver):
 
         return [res.get("finalized")]
 
-
     def has_block(self, project_id, vault_id, block_id):
         # Query the blocks table
         retval = False
@@ -172,27 +168,33 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         return self._blocks.find_one(args) is not None
 
     def create_block_generator(self, project_id, vault_id, marker=0, limit=0):
-        args = {"projectid": project_id, "vaultid": vault_id, "blockid": {"$gte": marker}}
+        args = {"projectid": project_id, "vaultid": vault_id,
+            "blockid": {"$gte": marker}}
 
         limit = self._determine_limit(limit)
 
-        return list(block['blockid'] for block in self._blocks.find(args).sort("blockid", 1).limit(limit))
+        return list(block['blockid'] for block in
+            self._blocks.find(args).sort("blockid", 1).limit(limit))
 
     def create_file_generator(self, project_id, vault_id,
             marker=0, limit=0, finalized=True):
         limit = self._determine_limit(limit)
 
-        args = {'projectid': project_id, 'vaultid': vault_id, 'fileid': {"$gte": marker}, 'finalized': finalized}
+        args = {'projectid': project_id, 'vaultid': vault_id,
+            'fileid': {"$gte": marker}, 'finalized': finalized}
 
-        return list(retfile['fileid'] for retfile in self._files.find(args).sort("fileid", 1).limit(limit))
+        return list(retfile['fileid'] for retfile in
+            self._files.find(args).sort("fileid", 1).limit(limit))
 
     def create_file_block_generator(self, project_id, vault_id, file_id,
             offset=0, limit=0):
         limit = self._determine_limit(limit)
 
-        args = {'projectid': project_id, 'vaultid': vault_id, 'fileid': file_id, 'offset': {"$gte": offset}}
+        args = {'projectid': project_id, 'vaultid': vault_id,
+            'fileid': file_id, 'offset': {"$gte": offset}}
 
-        return [(retfile['blockid'], retfile['offset']) for retfile in self._fileblocks.find(args).sort("offset", 1).limit(limit)]
+        return [(retfile['blockid'], retfile['offset']) for retfile in
+            self._fileblocks.find(args).sort("offset", 1).limit(limit)]
 
     def assign_block(self, project_id, vault_id, file_id, block_id, offset):
         # TODO(jdp): tweak this to support multiple assignments
@@ -218,13 +220,9 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             self._blocks.update(args, args, upsert=True)
 
     def unregister_block(self, project_id, vault_id, block_id):
-        # YUDEBUG: TODO: HERE HERE HERE............
-        #args = {
-        #    'projectid': project_id,
-        #    'vaultid': vault_id,
-        #    'blockid': block_id
-        #}
-
-        #res = self._conn.execute(SQL_UNREGISTER_BLOCK, args)
-        #self._conn.commit()
-        pass
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id,
+            'blockid': block_id
+        }
+        self._blocks.remove(args)

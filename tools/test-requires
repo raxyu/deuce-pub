@@ -1,6 +1,4 @@
-pecan
 coverage
-six
 nose
 testtools
 pep8

@@ -15,28 +15,6 @@ class MongoDbStorageDriverTest(FunctionalTest):
         assert isinstance(driver, MetadataStorageDriver)
         assert isinstance(driver, object)
 
-    '''
-    # YUDEBUG: CHEATING HERE.......
-    # YUDEBUG: SHOULD BE EMPTY EVENTUALLY.
-    def test_funcs_debts(self):
-        driver = MongoDbStorageDriver()
-        driver._set_user_version(12.0)
-        driver.create_file(1, 2, 3)
-        driver.has_file(1, 2, 3)
-        driver.is_finalized(1, 2, 3)
-        driver.delete_file(1, 2, 3)
-        driver.finalize_file(1, 2, 3)
-        driver.get_file_data(1, 2, 3)
-        driver.has_block(1, 2, 3)
-        driver.create_block_generator(1, 2, 3, 4)
-        driver.create_file_generator(1, 2, 3, 4, 5)
-        driver.create_file_block_generator(1, 2, 3, 4, 5)
-        driver.assign_block(1, 2, 3, 4, 5)
-        driver.register_block(1, 2, 3, 4)
-        driver.unregister_block(1, 2, 3)
-    '''
-
-    '''
     def test_file_crud(self):
         driver = MongoDbStorageDriver()
 
@@ -56,12 +34,16 @@ class MongoDbStorageDriverTest(FunctionalTest):
 
         assert not driver.has_file(project_id, vault_id, file_id)
 
+        files = driver.create_file_generator(project_id, vault_id)
+
     def test_finalize_empty_file(self):
         driver = MongoDbStorageDriver()
 
         project_id = 'project_id'
         vault_id = 'vault_id'
         file_id = 'whatever'
+
+        #assert not driver.is_finalized(project_id, vault_id, file_id)
 
         driver.create_file(project_id, vault_id, file_id)
 
@@ -140,24 +122,22 @@ class MongoDbStorageDriverTest(FunctionalTest):
 
         # Now create a generator of the files. The output
         # should be in the same order as block_ids
-        gen = []
         offset = 0
         limit = 4
-        while True:
-            retgen, offset = \
-                driver.create_file_block_generator(
-                    project_id, vault_id, file_id, offset, limit)
-            retgen = list(retgen)
-            gen.extend(retgen)
-            if not offset:
-                break
 
-        fetched_blocks = list(gen)
+        retgen = \
+            driver.create_file_block_generator(
+                project_id, vault_id, file_id, offset, limit)
 
-        assert len(fetched_blocks) == len(block_ids)
+        fetched_blocks = list(retgen)
 
-        for x in range(0, len(fetched_blocks)):
-            assert fetched_blocks[x] == block_ids[x]
+        # The driver actually returns limit+1 so that any
+        # caller knows that the list is truncated.
+        self.assertEqual(len(fetched_blocks) + 1, len(block_ids))
+
+        # -1 to exclude the trailer
+        for x in range(0, len(fetched_blocks) - 1):
+            self.assertEqual(fetched_blocks[x][0], block_ids[x])
 
         # Add 2 more blocks that aren't assigned.
         driver.register_block(project_id, vault_id, 'unassigned_1', 1024)
@@ -167,9 +147,6 @@ class MongoDbStorageDriverTest(FunctionalTest):
 
         # Now create a generator of the files. The output
         # should be in the same order as block_ids
-        gen, marker = driver.create_block_generator(project_id, vault_id)
+        gen = driver.create_block_generator(project_id, vault_id)
 
         fetched_blocks = list(gen)
-
-        assert len(fetched_blocks) == num_blocks
-    '''
