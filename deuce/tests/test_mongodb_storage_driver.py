@@ -99,10 +99,11 @@ class MongoDbStorageDriverTest(FunctionalTest):
         project_id = 'project_id'
         vault_id = 'vault_id'
         file_id = 'file_id'
+        block_size = 333
 
         num_blocks = int(0.5 * conf.api_configuration.max_returned_num)
         block_ids = ['block_{0}'.format(id) for id in range(0, num_blocks)]
-        offsets = [x * 333 for x in range(0, len(block_ids))]
+        offsets = [x * block_size for x in range(0, len(block_ids))]
 
         pairs = dict(zip(block_ids, offsets))
 
@@ -111,7 +112,7 @@ class MongoDbStorageDriverTest(FunctionalTest):
 
         # Assign each block
         for bid, offset in pairs.items():
-            driver.register_block(project_id, vault_id, bid, 1024)
+            driver.register_block(project_id, vault_id, bid, block_size)
             driver.assign_block(project_id, vault_id, file_id, bid, offset)
 
         assert not driver.is_finalized(project_id, vault_id, file_id)
@@ -122,22 +123,36 @@ class MongoDbStorageDriverTest(FunctionalTest):
 
         # Now create a generator of the files. The output
         # should be in the same order as block_ids
+
+        cnt = 0
+        limit = 6
         offset = 0
-        limit = 4
+        # for an extra missing round
+        while True:  # pragma: no cover
+            retgen = \
+                driver.create_file_block_generator(
+                    project_id, vault_id, file_id, offset, limit)
 
-        retgen = \
-            driver.create_file_block_generator(
-                project_id, vault_id, file_id, offset, limit)
+            fetched_blocks = list(retgen)
+            if not fetched_blocks:
+                break
+            blockid = fetched_blocks[-1][0]
+            block_offset = fetched_blocks[-1][1]
+            block_size = driver.get_block_data(project_id,
+                vault_id, blockid)['blocksize']
+            offset = block_offset + block_size
 
-        fetched_blocks = list(retgen)
+            # The driver actually returns limit+1 so that any
+            # caller knows that the list is truncated.
 
-        # The driver actually returns limit+1 so that any
-        # caller knows that the list is truncated.
-        self.assertEqual(len(fetched_blocks) + 1, len(block_ids))
-
-        # -1 to exclude the trailer
-        for x in range(0, len(fetched_blocks) - 1):
-            self.assertEqual(fetched_blocks[x][0], block_ids[x])
+            # -1 to exclude the trailer
+            if len(fetched_blocks) == limit:
+                for x in range(0, len(fetched_blocks) - 1):
+                    self.assertEqual(fetched_blocks[x][0], block_ids[cnt + x])
+                cnt += limit
+            else:
+                self.assertEqual(len(fetched_blocks), len(block_ids) - cnt)
+                cnt += len(fetched_blocks)
 
         # Add 2 more blocks that aren't assigned.
         driver.register_block(project_id, vault_id, 'unassigned_1', 1024)
