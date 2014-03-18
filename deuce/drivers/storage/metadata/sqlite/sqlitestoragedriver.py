@@ -52,6 +52,14 @@ SQL_CREATE_FILE = '''
     VALUES (:projectid, :vaultid, :fileid)
 '''
 
+SQL_GET_BLOCK = '''
+    SELECT size
+    FROM blocks
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+    AND blockid = :blockid
+'''
+
 SQL_GET_FILE = '''
     SELECT finalized
     FROM files
@@ -254,6 +262,25 @@ class SqliteStorageDriver(MetadataStorageDriver):
 
         res = self._conn.execute(SQL_FINALIZE_FILE, args)
         self._conn.commit()
+
+    def get_block_data(self, project_id, vault_id, block_id):
+        """Returns a tuple representing data for this block"""
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id,
+            'blockid': block_id
+        }
+
+        res = self._conn.execute(SQL_GET_BLOCK, args)
+
+        try:
+            row = next(res)
+        except StopIteration:
+            raise Exception("No such block: {0}".format(block_id))
+
+        retval = {}
+        retval['blocksize'] = list(row)[0]
+        return retval
 
     def get_file_data(self, project_id, vault_id, file_id):
         """Returns a tuple representing data for this file"""
