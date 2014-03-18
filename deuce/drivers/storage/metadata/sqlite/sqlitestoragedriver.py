@@ -264,7 +264,7 @@ class SqliteStorageDriver(MetadataStorageDriver):
         self._conn.commit()
 
     def get_block_data(self, project_id, vault_id, block_id):
-        """Returns a tuple representing data for this block"""
+        """Returns the blocksize for this block"""
         args = {
             'projectid': project_id,
             'vaultid': vault_id,

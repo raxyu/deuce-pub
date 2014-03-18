@@ -70,10 +70,10 @@ metadata_driver = {
         'path': 'vaultmeta',
         'url': 'mongodb://127.0.0.1',
 
-        # An arbitary number for blocks fetching and transferring
-        # from fileblocks collection to file collection
-        #    'FileBlockReadChunkNum': 1000
-        'FileBlockReadChunkNum': 10,
+        # An arbitary segment number for blocks fetching and
+        # transferring from fileblocks collection to file collection
+        #    'FileBlockReadSegNum': 1000
+        'FileBlockReadSegNum': 10,
 
         #pymongo document size limit
         #'maxBsonObjectSize': 16777216
