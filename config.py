@@ -61,9 +61,17 @@ metadata_driver = {
     'mongodb': {
         'path': 'vaultmeta',
         'url': 'mongodb://127.0.0.1'
+
+        # An arbitary number for blocks fetching and transferring
+        # from fileblocks collection to file collection
+        'FileBlockReadChunkNum': 1000
+
+        #pymongo document size limit
+        'maxBsonObjectSize': 16777216
     }
 }
 
 api_configuration = {
+    # Define system limitation on page size
     'max_returned_num': 100
 }

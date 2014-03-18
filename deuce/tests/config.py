@@ -68,12 +68,22 @@ metadata_driver = {
     },
     'mongodb': {
         'path': 'vaultmeta',
-        'url': 'mongodb://127.0.0.1'
+        'url': 'mongodb://127.0.0.1',
+
+        # An arbitary number for blocks fetching and transferring
+        # from fileblocks collection to file collection
+        #    'FileBlockReadChunkNum': 1000
+        'FileBlockReadChunkNum': 10,
+
+        #pymongo document size limit
+        #'maxBsonObjectSize': 16777216
+        'maxBsonObjectSize': 420
     }
 }
 
 api_configuration = {
-    'max_returned_num': 10
+    # Define system limitation on page size
+    'max_returned_num': 80,
 }
 
 # Always remove the database so that we can start over on
