@@ -96,9 +96,13 @@ class SqliteStorageDriverTest(FunctionalTest):
         vault_id = 'vault_id'
         file_id = 'file_id'
 
+        block_size = 333
+        gap_block_size = 222
+        overlap_block_size = 444
+
         num_blocks = int(0.5 * conf.api_configuration.max_returned_num)
         block_ids = ['block_{0}'.format(id) for id in range(0, num_blocks)]
-        offsets = [x * 333 for x in range(0, len(block_ids))]
+        offsets = [x * block_size for x in range(0, len(block_ids))]
 
         pairs = dict(zip(block_ids, offsets))
 
@@ -107,13 +111,25 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         # Assign each block
         for bid, offset in pairs.items():
-            driver.register_block(project_id, vault_id, bid, 1024)
             driver.assign_block(project_id, vault_id, file_id, bid, offset)
-
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
-        driver.finalize_file(project_id, vault_id, file_id)
+        # GAPs
+        for bid, offset in pairs.items():
+            driver.register_block(project_id, vault_id, bid, gap_block_size)
+        res = driver.finalize_file(project_id, vault_id, file_id)
+        assert not driver.is_finalized(project_id, vault_id, file_id)
 
+        # OVERLAPs
+        for bid, offset in pairs.items():
+            driver.register_block(project_id, vault_id,
+            bid, overlap_block_size)
+        res = driver.finalize_file(project_id, vault_id, file_id)
+        assert not driver.is_finalized(project_id, vault_id, file_id)
+
+        for bid, offset in pairs.items():
+            driver.register_block(project_id, vault_id, bid, block_size)
+        res = driver.finalize_file(project_id, vault_id, file_id)
         assert driver.is_finalized(project_id, vault_id, file_id)
 
         # Now create a generator of the files. The output
@@ -132,7 +148,8 @@ class SqliteStorageDriverTest(FunctionalTest):
         self.assertEqual(len(fetched_blocks) + 1, len(block_ids))
 
         # -1 to exclude the trailer
-        for x in range(0, len(fetched_blocks) - 1):
+        #for x in range(0, len(fetched_blocks) - 1):
+        for x in range(0, len(block_ids) - 2):
             self.assertEqual(fetched_blocks[x][0], block_ids[x])
 
         # Add 2 more blocks that aren't assigned.

@@ -108,10 +108,28 @@ SQL_GET_ALL_FILES = '''
     LIMIT :limit
 '''
 
+SQL_CREATE_FILEBLOCK_LIST = '''
+    CREATE TEMP TABLE fileblock_list
+    AS SELECT blocks.blockid, fileblocks.offset, blocks.size
+    FROM blocks, fileblocks
+    WHERE fileblocks.blockid = blocks.blockid
+    AND fileblocks.projectid = :projectid
+    AND fileblocks.vaultid = :vaultid
+    AND fileblocks.fileid = :fileid
+    ORDER by offset
+'''
+
+SQL_FILEBLOCK_LIST_VALIDATE = '''
+    SELECT l1.blockid, l1.offset, l2.blockid, l2.offset
+    FROM fileblock_list l1
+    JOIN fileblock_list l2
+    ON l1.rowid+1 = l2.rowid and l1.offset + l1.size != l2.offset
+'''
+
 SQL_FINALIZE_FILE = '''
-    update files
-    set finalized=1
-    where projectid=:projectid
+    UPDATE files
+    SET finalized=1
+    WHERE projectid=:projectid
     AND fileid=:fileid
     AND vaultid=:vaultid
 '''
@@ -123,14 +141,14 @@ SQL_ASSIGN_BLOCK_TO_FILE = '''
 '''
 
 SQL_REGISTER_BLOCK = '''
-    INSERT INTO blocks
+    INSERT OR REPLACE INTO blocks
     (projectid, vaultid, blockid, size)
-    values (:projectid, :vaultid, :blockid, :blocksize)
+    VALUES (:projectid, :vaultid, :blockid, :blocksize)
 '''
 
 SQL_UNREGISTER_BLOCK = '''
     DELETE FROM blocks
-    where projectid=:projectid AND blockid=:blockid
+    WHERE projectid=:projectid AND blockid=:blockid
 '''
 
 SQL_HAS_BLOCK = '''
@@ -245,15 +263,23 @@ class SqliteStorageDriver(MetadataStorageDriver):
         """Updates the files table to set a file to finalized. This function
         makes no assumptions about whether or not the file record actually
         exists"""
-
         args = {
             'projectid': project_id,
             'vaultid': vault_id,
             'fileid': file_id
         }
 
+        # Check for gaps and overlaps.
+        res = self._conn.execute(SQL_CREATE_FILEBLOCK_LIST, args)
+
+        res = list(self._conn.execute(SQL_FILEBLOCK_LIST_VALIDATE))
+        self._conn.execute('DROP TABLE IF EXISTS fileblock_list')
+        if res:
+            return res
+
         res = self._conn.execute(SQL_FINALIZE_FILE, args)
         self._conn.commit()
+        return None
 
     def get_file_data(self, project_id, vault_id, file_id):
         """Returns a tuple representing data for this file"""
@@ -340,7 +366,6 @@ class SqliteStorageDriver(MetadataStorageDriver):
 
     def assign_block(self, project_id, vault_id, file_id, block_id, offset):
         # TODO(jdp): tweak this to support multiple assignments
-        # TODO(jdp): check for overlaps in metadata
         args = {
             'projectid': project_id,
             'vaultid': vault_id,
@@ -353,16 +378,15 @@ class SqliteStorageDriver(MetadataStorageDriver):
         self._conn.commit()
 
     def register_block(self, project_id, vault_id, block_id, blocksize):
-        if not self.has_block(project_id, vault_id, block_id):
-            args = {
-                'projectid': project_id,
-                'vaultid': vault_id,
-                'blockid': block_id,
-                'blocksize': blocksize
-            }
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id,
+            'blockid': block_id,
+            'blocksize': blocksize
+        }
 
-            res = self._conn.execute(SQL_REGISTER_BLOCK, args)
-            self._conn.commit()
+        res = self._conn.execute(SQL_REGISTER_BLOCK, args)
+        self._conn.commit()
 
     def unregister_block(self, project_id, vault_id, block_id):
         args = {

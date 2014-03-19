@@ -102,10 +102,12 @@ class FilesController(RestController):
 
         # Fileid with an empty body will finalize the file.
         if not request.body:
-            deuce.metadata_driver.finalize_file(request.project_id,
+            res = deuce.metadata_driver.finalize_file(request.project_id,
                 vault_id, file_id)
-
-            return
+            # There are gaps or overlaps in blocks of the file
+            # The list of errors returns
+            # TODO: NEED RETURN 413
+            return res
 
         if f.finalized:
             # A finalized file cannot be
