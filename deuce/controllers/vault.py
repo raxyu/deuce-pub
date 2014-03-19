@@ -3,6 +3,7 @@ from pecan import expose, response, request
 from pecan.rest import RestController
 from deuce.controllers.blocks import BlocksController
 from deuce.controllers.files import FilesController
+from deuce.controllers.validation import *
 from deuce.model import Vault
 
 
@@ -16,11 +17,13 @@ class VaultController(RestController):
         response.status_code = 404
 
     @expose()
+    @validate(vault_name=VaultPutRule)
     def post(self, vault_name):
         vault = Vault.create(request.project_id, vault_name)
         response.status_code = 201 if vault else 500
 
     @expose()
+    @validate(vault_id=VaultGetRule)
     def get_one(self, vault_id):
         """Returns the vault controller object"""
 
@@ -32,6 +35,7 @@ class VaultController(RestController):
         return None
 
     @expose()
+    @validate(vault_id=VaultPutRule)
     def delete(self, vault_id):
 
         vault = Vault.get(request.project_id, vault_id)
