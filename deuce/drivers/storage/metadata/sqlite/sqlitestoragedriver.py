@@ -120,7 +120,8 @@ SQL_CREATE_FILEBLOCK_LIST = '''
 '''
 
 SQL_FILEBLOCK_LIST_VALIDATE = '''
-    SELECT l1.blockid, l1.offset, l2.blockid, l2.offset
+    SELECT l1.offset + l1.size - l2.offset,
+        l1.blockid, l1.offset, l2.blockid, l2.offset
     FROM fileblock_list l1
     JOIN fileblock_list l2
     ON l1.rowid+1 = l2.rowid and l1.offset + l1.size != l2.offset
@@ -275,6 +276,9 @@ class SqliteStorageDriver(MetadataStorageDriver):
         res = list(self._conn.execute(SQL_FILEBLOCK_LIST_VALIDATE))
         self._conn.execute('DROP TABLE IF EXISTS fileblock_list')
         if res:
+            res = [{"Gap" if inv[0] < 0 else "Overlap":
+                {"after": [inv[1], inv[2]], "before": [inv[3], inv[4]]}}
+                for inv in res]
             return res
 
         res = self._conn.execute(SQL_FINALIZE_FILE, args)
