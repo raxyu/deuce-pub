@@ -64,10 +64,10 @@ metadata_driver = {
     'driver_path': 'deuce.drivers.storage.metadata.sqlite.sqlitestoragedriver',
     'module': 'SqliteStorageDriver',
     'sqlite': {
-        'path': '/tmp/vaultmeta.db'
+        'path': '/tmp/deuce_sqlite_unittest_vaultmeta.db'
     },
     'mongodb': {
-        'path': 'vaultmeta',
+        'path': 'deuce_mongo_unittest_vaultmeta',
         'url': 'mongodb://127.0.0.1',
 
         # An arbitary segment number for blocks fetching and
@@ -90,5 +90,5 @@ api_configuration = {
 # test execution
 
 ##Drop sqlite DB
-if os.path.exists('/tmp/vaultmeta.db'):
-    os.remove('/tmp/vaultmeta.db')
+if os.path.exists('/tmp/deuce_sqlite_unittest_vaultmeta.db'):
+    os.remove('/tmp/deuce_sqlite_unittest_vaultmeta.db')
