@@ -119,12 +119,26 @@ SQL_CREATE_FILEBLOCK_LIST = '''
     ORDER by offset
 '''
 
+SQL_FILEBLOCK_LIST_VALIDATE_FRONT = '''
+    SELECT blockid, offset
+    FROM fileblock_list
+    WHERE rowid = 1
+    AND offset != 0
+'''
+
 SQL_FILEBLOCK_LIST_VALIDATE = '''
     SELECT l1.offset + l1.size - l2.offset,
         l1.blockid, l1.offset, l2.blockid, l2.offset
     FROM fileblock_list l1
     JOIN fileblock_list l2
     ON l1.rowid+1 = l2.rowid and l1.offset + l1.size != l2.offset
+'''
+
+SQL_FILEBLOCK_LIST_LAST_ROW = '''
+    SELECT blockid, offset, size
+    FROM fileblock_list
+    ORDER BY rowid DESC
+    LIMIT 1
 '''
 
 SQL_FINALIZE_FILE = '''
@@ -260,7 +274,7 @@ class SqliteStorageDriver(MetadataStorageDriver):
         res = self._conn.execute(SQL_DELETE_FILE, args)
         self._conn.commit()
 
-    def finalize_file(self, project_id, vault_id, file_id):
+    def finalize_file(self, project_id, vault_id, file_id, file_size=None):
         """Updates the files table to set a file to finalized. This function
         makes no assumptions about whether or not the file record actually
         exists"""
@@ -271,15 +285,33 @@ class SqliteStorageDriver(MetadataStorageDriver):
         }
 
         # Check for gaps and overlaps.
+        retlist = []
         res = self._conn.execute(SQL_CREATE_FILEBLOCK_LIST, args)
 
+        res = self._conn.execute(SQL_FILEBLOCK_LIST_VALIDATE_FRONT)
+        if list(res):
+            retlist.extend([{"Gap" if inv[0] > 0 else "Overlap":
+                {"after": [None, None], "before": [inv[0], inv[1]]}}
+                for inv in res])
+
         res = list(self._conn.execute(SQL_FILEBLOCK_LIST_VALIDATE))
-        self._conn.execute('DROP TABLE IF EXISTS fileblock_list')
         if res:
-            res = [{"Gap" if inv[0] < 0 else "Overlap":
+            retlist.extend([{"Gap" if inv[0] < 0 else "Overlap":
                 {"after": [inv[1], inv[2]], "before": [inv[3], inv[4]]}}
-                for inv in res]
-            return res
+                for inv in res])
+
+        if file_size and file_size != 0:
+            res = list(self._conn.execute(SQL_FILEBLOCK_LIST_LAST_ROW))
+            if res and res[0][1] + res[0][2] != file_size:
+                retlist.extend([{"Gap" if res[0][1] + res[0][2]
+                    - file_size < 0 else "Overlap":
+                    {"after": [inv[0], inv[1]]}}
+                    for inv in res])
+
+        self._conn.execute('DROP TABLE IF EXISTS fileblock_list')
+
+        if retlist:
+            return retlist
 
         res = self._conn.execute(SQL_FINALIZE_FILE, args)
         self._conn.commit()

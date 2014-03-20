@@ -96,13 +96,14 @@ class SqliteStorageDriverTest(FunctionalTest):
         vault_id = 'vault_id'
         file_id = 'file_id'
 
-        block_size = 333
+        normal_block_size = 333
         gap_block_size = 222
         overlap_block_size = 444
 
+        # GAP at front (miss the 1st block)
         num_blocks = int(0.5 * conf.api_configuration.max_returned_num)
-        block_ids = ['block_{0}'.format(id) for id in range(0, num_blocks)]
-        offsets = [x * block_size for x in range(0, len(block_ids))]
+        block_ids = ['block_{0}'.format(id) for id in range(1, num_blocks)]
+        offsets = [x * normal_block_size for x in range(1, len(block_ids))]
 
         pairs = dict(zip(block_ids, offsets))
 
@@ -112,24 +113,42 @@ class SqliteStorageDriverTest(FunctionalTest):
         # Assign each block
         for bid, offset in pairs.items():
             driver.assign_block(project_id, vault_id, file_id, bid, offset)
+
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
-        # GAPs
+        # GAPs (gap at front)
         for bid, offset in pairs.items():
             driver.register_block(project_id, vault_id, bid, gap_block_size)
         res = driver.finalize_file(project_id, vault_id, file_id)
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
-        # OVERLAPs
+        # OVERLAPs (gap at front)
         for bid, offset in pairs.items():
             driver.register_block(project_id, vault_id,
             bid, overlap_block_size)
         res = driver.finalize_file(project_id, vault_id, file_id)
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
+        # put back the missed block at the front
+        block_ids.insert(0, 'block_0')
+        pairs['block_0'] = 0
+        driver.assign_block(project_id, vault_id, file_id, 'block_0', 0)
         for bid, offset in pairs.items():
-            driver.register_block(project_id, vault_id, bid, block_size)
-        res = driver.finalize_file(project_id, vault_id, file_id)
+            driver.register_block(project_id, vault_id, bid, normal_block_size)
+
+        # GAP at the eof.
+        res = driver.finalize_file(project_id, vault_id,
+            file_id, file_size=2000)
+        assert not driver.is_finalized(project_id, vault_id, file_id)
+
+        # OVERLAP at the eof.
+        res = driver.finalize_file(project_id, vault_id,
+            file_id, file_size=1000)
+        assert not driver.is_finalized(project_id, vault_id, file_id)
+
+        # Just perfect.
+        res = driver.finalize_file(project_id, vault_id,
+            file_id, file_size=1332)
         assert driver.is_finalized(project_id, vault_id, file_id)
 
         # Now create a generator of the files. The output
@@ -164,4 +183,4 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         fetched_blocks = list(gen)
 
-        assert len(fetched_blocks) == num_blocks
+        assert len(fetched_blocks) == num_blocks - 1
