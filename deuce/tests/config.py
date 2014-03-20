@@ -92,12 +92,3 @@ api_configuration = {
 ##Drop sqlite DB
 if os.path.exists('/tmp/vaultmeta.db'):
     os.remove('/tmp/vaultmeta.db')
-
-##Drop Mongo DB
-import pymongo
-from pymongo import MongoClient
-client = MongoClient('mongodb://127.0.0.1')
-_conn = client['vaultmeta']
-_conn.drop_collection('blocks')
-_conn.drop_collection('fileblocks')
-_conn.drop_collection('files')
