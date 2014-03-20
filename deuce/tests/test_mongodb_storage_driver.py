@@ -264,7 +264,7 @@ class MongoTemporaryInstance(object):  # pragma: no cover
 
 
 '''
-KEEP as usage reference... 
+KEEP as usage reference...
 
 http://blogs.skicelab.com/maurizio/python-unit-testing-and-mongodb.html
 Author/Credit: Posted by Maurizio Sambati Wed 03 October 2012
