@@ -11,9 +11,15 @@ from deuce.drivers.storage.metadata import MetadataStorageDriver
 
 class MongoDbStorageDriver(MetadataStorageDriver):
 
-    def __init__(self):
+    def __init__(self, conn=None):
+
         self._dbfile = conf.metadata_driver.mongodb.path
-        self.client = MongoClient(conf.metadata_driver.mongodb.url)
+
+        if not conn:
+            self.client = MongoClient(conf.metadata_driver.mongodb.url)
+        else:
+            self.client = conn
+
         self._db = self.client[self._dbfile]
         self._blocks = self._db.blocks
         self._files = self._db.files
