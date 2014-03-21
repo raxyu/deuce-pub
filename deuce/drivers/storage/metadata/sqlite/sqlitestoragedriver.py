@@ -156,7 +156,7 @@ SQL_ASSIGN_BLOCK_TO_FILE = '''
 '''
 
 SQL_REGISTER_BLOCK = '''
-    INSERT OR REPLACE INTO blocks
+    INSERT INTO blocks
     (projectid, vaultid, blockid, size)
     VALUES (:projectid, :vaultid, :blockid, :blocksize)
 '''
