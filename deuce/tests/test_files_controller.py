@@ -35,6 +35,11 @@ class TestFilesController(FunctionalTest):
         self._file_id = urlparse(self._file_id).path
         # Now, _file_id is '/v1.0/files_vault_test/files/SOME_FILE_ID'
 
+        # Create distractor File
+        response = self.app.post(self._files_path, headers=self._hdrs)
+        self._distractor_file_id = response.headers["Location"]
+        self._distractor_file_id = urlparse(self._distractor_file_id).path
+
         self._NOT_EXIST_files_path = '/v1.0/not_exists/files'
 
     def _create_file_id(self):
@@ -228,32 +233,41 @@ class TestFilesController(FunctionalTest):
         hdrs.update(self._hdrs)
         data = "{\"blocks\":["
         enough_num = int(conf.api_configuration.max_returned_num)
+
+        # Register enough_num of blocks into system.
+        block_list, blocks_data = self.helper_create_blocks(num_blocks=enough_num)
         for cnt in range(0, enough_num):
-            data = data + '{' + '\"id\": {0}, \"size\": 100, \
-                \"offset\": {1}'.format(cnt, cnt * 100) + '}'
+            data = data + '{' + '\"id\": \"{0}\", \"size\": \"100\", \
+                \"offset\": \"{1}\"'.format(str(block_list[cnt]), str(cnt * 100)) + '}'
             if cnt < enough_num - 1:
                 data = data + ','
         data = data + ']}'
-        # Add blocks to files, resp has a list of missing blocks.
+
+        response = self.app.post(self._distractor_file_id, params=data, headers=hdrs)
+
+        # Add blocks to FILES, resp has a list of missing blocks.
         response = self.app.post(self._file_id, params=data, headers=hdrs)
         assert len(response.body) > 2
 
-        # Register 100 blocks into system.
-        self.helper_create_blocks(num_blocks=enough_num)
-        # Then add blocks to files again. resp is empty.
+        # Put the blocks to storage.
+        self.helper_store_blocks(blocks_data)
+
+        # Add the same blocks to FILES again, resp is empty.
         response = self.app.post(self._file_id, params=data, headers=hdrs)
-        assert len(response.body) > 0
+        assert len(response.body) == 2
 
         # Get unfinalized file.
         response = self.app.get(self._file_id, headers=hdrs)
         assert len(response.body) == 0
 
-        # Register 120 blocks into system.
+        # Register 1.20 times of blocks into system.
         data = "{\"blocks\":["
         enough_num2 = int(1.2 * conf.api_configuration.max_returned_num)
+
+        block_list2, blocks_data2 = self.helper_create_blocks(num_blocks=(enough_num2-enough_num))
         for cnt in range(enough_num, enough_num2):
-            data = data + '{' + '\"id\": {0}, \"size\": 100, \
-                \"offset\": {1}'.format(cnt, cnt * 100) + '}'
+            data = data + '{' + '\"id\": \"{0}\", \"size\": \"100\", \
+                \"offset\": \"{1}\"'.format(str(block_list2[cnt-enough_num]), str(cnt * 100)) + '}'
             if cnt < enough_num2 - 1:
                 data = data + ','
         data = data + ']}'
@@ -261,10 +275,14 @@ class TestFilesController(FunctionalTest):
         response = self.app.post(self._file_id, params=data, headers=hdrs)
         assert len(response.body) > 2
 
+        # Put the blocks to storage.
+        self.helper_store_blocks(blocks_data2)
+
         # Add blocks. resp will be empty.
-        block_list = self.helper_create_blocks(num_blocks=enough_num2)
+        #block_list = self.helper_create_blocks(num_blocks=enough_num2)
         response = self.app.post(self._file_id, params=data, headers=hdrs)
         assert len(response.body) == 2
+
 
         # Get the file.
         response = self.app.get(self._file_id, headers=hdrs)
@@ -373,11 +391,15 @@ class TestFilesController(FunctionalTest):
 
         block_data = zip(block_sizes, data, block_list)
 
+        return block_list, block_data
+
+    def helper_store_blocks(self, block_data):
+
         # Put each one of the generated blocks on the
         # size
         cnt = 0
         for size, data, sha1 in block_data:
-            path = self._get_block_path(str(cnt))
+            path = self._get_block_path(sha1)
 
             # NOTE: Very important to set the content-type
             # header. Otherwise pecan tries to do a UTF-8 test.
@@ -389,10 +411,8 @@ class TestFilesController(FunctionalTest):
             headers.update(self._hdrs)
 
             response = self.app.put(path, headers=headers,
-                params=data, expect_errors=True)
+                params=data)
             cnt += 1
-
-        return block_list
 
     def _calc_sha1(self, data):
         sha1 = hashlib.sha1()

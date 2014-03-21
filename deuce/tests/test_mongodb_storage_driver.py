@@ -24,9 +24,9 @@ class MongoDbStorageDriverTest(FunctionalTest):
 
     def shutdown(self):
         if os.path.exists('/tmp/deuce_mongo_unittest_vaultmeta.db'):\
-                #pragma no cover
+                #pragma: no cover
             os.remove('/tmp/deuce_mongo_unittest_vaultmeta.db')\
-                #pragma no cover
+                #pragma: no cover
 
     def setUp(self):
         super(MongoDbStorageDriverTest, self).setUp()
@@ -38,7 +38,7 @@ class MongoDbStorageDriverTest(FunctionalTest):
         try:
             # Try system existed mongod
             driver = MongoDbStorageDriver()
-        except:  # pragma no cover
+        except:  # pragma: no cover
             assert True
 
     def test_geneology(self):
