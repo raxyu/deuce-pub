@@ -124,6 +124,7 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         # OVERLAPs (gap at front)
         for bid, offset in pairs.items():
+            driver.unregister_block(project_id, vault_id, bid)
             driver.register_block(project_id, vault_id,
             bid, overlap_block_size)
         res = driver.finalize_file(project_id, vault_id, file_id)
@@ -134,6 +135,7 @@ class SqliteStorageDriverTest(FunctionalTest):
         pairs['block_0'] = 0
         driver.assign_block(project_id, vault_id, file_id, 'block_0', 0)
         for bid, offset in pairs.items():
+            driver.unregister_block(project_id, vault_id, bid)
             driver.register_block(project_id, vault_id, bid, normal_block_size)
 
         # GAP at the eof.
