@@ -21,7 +21,8 @@ class TestBlocksController(FunctionalTest):
         self._hdrs = {"X-Project-ID": "sample_project_id"}
 
         response = self.app.post(self._vault_path,
-            headers=self._hdrs)
+                                 headers=self._hdrs)
+
         self.block_list = []
         self.total_block_num = 0
 
@@ -29,6 +30,12 @@ class TestBlocksController(FunctionalTest):
         # Try listing the blocks. There should be none
         response = self.app.get(self._blocks_path, headers=self._hdrs)
         assert response.json_body == []
+
+    def _create_block_id(data=None):
+        """Creates a block ID for testing purpose"""
+        sha1 = hashlib.sha1()
+        sha1.update(data if data is None else os.urandom(2048))
+        return sha1.hexdigest()
 
     def _calc_sha1(self, data):
         sha1 = hashlib.sha1()
@@ -42,15 +49,65 @@ class TestBlocksController(FunctionalTest):
         path = self._get_block_path('')
 
         response = self.app.get(path, headers=self._hdrs,
-            expect_errors=True)
+                                expect_errors=True)
 
         assert response.status_int == 404
 
     def test_get_all_invalid_vault_id(self):
         path = '/v1.0/{0}/blocks'.format('bad_vault_id')
         response = self.app.get(path, headers=self._hdrs,
-            expect_errors=True)
-        assert response.status_int == 404
+                                expect_errors=True)
+
+        self.assertEqual(response.status_int, 404)
+
+    def test_invalid_block_id(self):
+        path = self._blocks_path + '/invalid_block_id'
+
+        response = self.app.put(path, headers=self._hdrs,
+                                expect_errors=True)
+
+        self.assertEqual(response.status_int, 400)
+
+    def test_with_bad_marker_and_limit(self):
+        block_list = self.helper_create_blocks(num_blocks=5)
+
+        # Now try to get a list of blocks to ensure that they'e
+        # there.
+        resp = self.app.get(self._blocks_path, headers=self._hdrs)
+        all_blocks = resp.json_body
+        self.assertEqual(len(all_blocks), 5)
+        self.assertEqual(resp.status_code, 200)
+
+        # Now check the first one. We're going to send the marker
+        # and limit and we should get just one
+
+        args = dict(limit=1)
+
+        resp = self.app.get(self._blocks_path, params=args,
+                            headers=self._hdrs)
+
+        self.assertEqual(len(resp.json_body), 1)
+        self.assertEqual(resp.status_code, 200)
+
+        # The block here should match the first block
+        # in the list.
+
+        self.assertEqual(all_blocks[0], resp.json_body[0])
+
+        # Now try with a bad limit
+        args = dict(limit='blah')
+
+        resp = self.app.get(self._blocks_path, params=args,
+                            headers=self._hdrs, expect_errors=True)
+
+        self.assertEqual(resp.status_code, 404)
+
+        # Now try a bad marker
+        args = dict(marker='blah')
+        resp = self.app.get(self._blocks_path, params=args,
+                            headers=self._hdrs, expect_errors=True)
+
+        self.assertEqual(resp.status_code, 404)
 
     def test_put_and_list(self):
         # Create 5 blocks
@@ -64,12 +121,12 @@ class TestBlocksController(FunctionalTest):
 
         # List some blocks
         next_batch_url = self.helper_get_blocks(self._blocks_path,
-            0, 4, True, 4, False)
+                                                0, 4, True, 4, False)
 
         # List the rest blocks
         marker = parse_qs(urlparse(next_batch_url).query)['marker']
         next_batch_url = self.helper_get_blocks(self._blocks_path,
-            marker, 8, False, 1, False)
+                                                marker, 8, False, 1, False)
 
         # Create more blocks.
         num_blocks = int(1.5 * conf.api_configuration.max_returned_num)
@@ -87,21 +144,22 @@ class TestBlocksController(FunctionalTest):
 
         # Try to get some blocks that don't exist. This should
         # result in 404s
-        bad_block_ids = ['ajeoijwoefij23oj', '234234234223', '2342234']
+        bad_block_ids = [self._create_block_id() for _ in range(0, 5)]
 
         for bad_id in bad_block_ids:
             path = self._get_block_path(bad_id)
 
             response = self.app.get(path, headers=self._hdrs,
-                expect_errors=True)
-            assert response.status_int == 404
+                                    expect_errors=True)
+
+            self.assertEqual(response.status_int, 404)
 
     def helper_create_blocks(self, num_blocks):
         min_size = 1
         max_size = 2000
 
         block_sizes = [randrange(min_size, max_size) for x in
-            range(0, num_blocks)]
+                       range(0, num_blocks)]
 
         data = [os.urandom(x) for x in block_sizes]
         block_list = [self._calc_sha1(d) for d in data]
@@ -123,21 +181,26 @@ class TestBlocksController(FunctionalTest):
             headers.update(self._hdrs)
 
             response = self.app.put(path, headers=headers,
-                params=data)
+                                    params=data)
 
         return block_list
 
     def helper_get_blocks(self, path, marker, limit, assert_ret_url,
-            assert_data_len, repeat=False, exam_block_data=False):
+              assert_data_len, repeat=False, exam_block_data=False):
 
         resp_block_list = []
+
+        params = dict()
+
         if limit != 0:
-            params = {'marker': marker, 'limit': limit}
-        else:
-            params = {'marker': marker}
+            params['limit'] = limit
+
+        if marker != 0:
+            params['marker'] = marker
+
         while True:
             response = self.app.get(path,
-                params=params, headers=self._hdrs)
+                                    params=params, headers=self._hdrs)
 
             next_batch_url = response.headers.get("X-Next-Batch")
 
@@ -165,7 +228,7 @@ class TestBlocksController(FunctionalTest):
             assert h in self.block_list
         for h in self.block_list:
             assert h in resp_block_list
-        #By default exam blocks if fetching all blocks
+        # By default exam blocks if fetching all blocks
         self.helper_exam_block_data(resp_block_list)
 
     def helper_exam_block_data(self, block_list):

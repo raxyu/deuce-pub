@@ -16,6 +16,18 @@ class TestVaultController(FunctionalTest):
 
         assert response.status_int == 404
 
+    def test_invalid_vault_id(self):
+        vault_name = '@#$@#$@$'
+        vault_path = '/v1.0/{0}'.format(vault_name)
+
+        response = self.app.post(vault_path, headers=self._hdrs,
+                expect_errors=True)
+        self.assertEqual(response.status_int, 400)
+
+        response = self.app.get(vault_path, headers=self._hdrs,
+                expect_errors=True)
+        self.assertEqual(response.status_int, 404)
+
     def test_vault_crud(self):
         vault_name = 'my_new_vault'
         vault_path = '/v1.0/{0}'.format(vault_name)

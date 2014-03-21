@@ -349,13 +349,14 @@ class SqliteStorageDriver(MetadataStorageDriver):
         cnt = next(res)
         return cnt[0] > 0
 
-    def create_block_generator(self, project_id, vault_id, marker=0, limit=0):
+    def create_block_generator(self, project_id, vault_id, marker=None,
+            limit=None):
 
         args = {
             'projectid': project_id,
             'vaultid': vault_id,
             'limit': self._determine_limit(limit),
-            'marker': marker
+            'marker': marker or '0'
         }
 
         res = self._conn.execute(SQL_GET_ALL_BLOCKS, args)
@@ -363,7 +364,10 @@ class SqliteStorageDriver(MetadataStorageDriver):
         return [row[0] for row in res]
 
     def create_file_generator(self, project_id, vault_id,
-                              marker=0, limit=0, finalized=True):
+                              marker, limit, finalized=True):
+
+        if marker is None:
+            marker = '0'  # Every UUID is greater than 0
 
         args = {
             'projectid': project_id,

@@ -7,6 +7,8 @@ import deuce
 from deuce.util import set_qs
 from deuce.model import Vault, File, Block
 
+from deuce.controllers.validation import *
+
 BLOCK_ID_LENGTH = 40
 
 
@@ -16,12 +18,13 @@ class FileBlocksController(RestController):
     Listing blocks belong to a particular file
     """
     @expose('json')
+    @validate(vault_id=VaultGetRule, file_id=FileGetRule,
+        marker=OffsetMarkerRule, limit=LimitRule)
     def get_all(self, vault_id, file_id):
 
         vault = Vault.get(request.project_id, vault_id)
 
-        if not vault:
-            abort(404)
+        assert vault is not None
 
         f = vault.get_file(file_id)
 
