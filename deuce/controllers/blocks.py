@@ -1,9 +1,10 @@
 
-from pecan import conf, expose, request, response
+from pecan import conf, expose, request, response, abort
 from pecan.rest import RestController
 from deuce.model import Vault, Block
 from deuce.util import set_qs
 from six.moves.urllib.parse import urlparse
+from deuce.controllers.validation import *
 
 BLOCK_ID_LENGTH = 40
 
@@ -18,7 +19,10 @@ class BlocksController(RestController):
     d) Deleting blocks
     """
     @expose('json')
+    @validate(vault_id=VaultGetRule, marker=BlockMarkerRule,
+              limit=LimitRule)
     def get_all(self, vault_id):
+
         vault = Vault.get(request.project_id, vault_id)
 
         if not vault:
@@ -46,43 +50,35 @@ class BlocksController(RestController):
 
         if outmarker:
             query_args = {'marker': outmarker}
-
             query_args['limit'] = limit
-
             returl = set_qs(request.url, query_args)
-
             response.headers["X-Next-Batch"] = returl
 
         return resp
 
     @expose()
+    @validate(vault_id=VaultGetRule, block_id=BlockGetRule)
     def get_one(self, vault_id, block_id):
         """Returns a specific block"""
 
-        if not block_id:
-            response.status_code = 404
-            return
-
         # Step 1: Is the block in our vault store?  If not, return 404
         # Step 2: Stream the block back to the user
-
         vault = Vault.get(request.project_id, vault_id)
 
-        # Note: vault_id should have been validated in the
-        # vault controller so we can assume that it's OK
-        # here. If vault is None, it's going to throw and
-        # cause a 500 error which is what should happen
-        # in this scenario.
+        # Existence of the vault should have been confirmeds
+        # in the vault controller
+        assert vault is not None
+
         block = vault.get_block(block_id)
 
-        if not block:
-            response.status_code = 404
-            return
+        if block is None:
+            abort(404)
 
         response.body_file = block.get_obj()
         response.status_code = 200
 
     @expose()
+    @validate(vault_id=VaultPutRule, block_id=BlockPutRuleNoneOk)
     def put(self, vault_id, block_id=None):
         """Uploads a block into Deuce. The URL of the block
         is returned in the Location header
