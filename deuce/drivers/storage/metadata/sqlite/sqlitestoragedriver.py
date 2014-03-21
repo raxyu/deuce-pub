@@ -418,15 +418,16 @@ class SqliteStorageDriver(MetadataStorageDriver):
         self._conn.commit()
 
     def register_block(self, project_id, vault_id, block_id, blocksize):
-        args = {
-            'projectid': project_id,
-            'vaultid': vault_id,
-            'blockid': block_id,
-            'blocksize': blocksize
-        }
+        if not self.has_block(project_id, vault_id, block_id):
+            args = {
+                'projectid': project_id,
+                'vaultid': vault_id,
+                'blockid': block_id,
+                'blocksize': blocksize
+            }
 
-        res = self._conn.execute(SQL_REGISTER_BLOCK, args)
-        self._conn.commit()
+            res = self._conn.execute(SQL_REGISTER_BLOCK, args)
+            self._conn.commit()
 
     def unregister_block(self, project_id, vault_id, block_id):
         args = {
