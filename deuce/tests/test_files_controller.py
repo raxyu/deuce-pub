@@ -117,8 +117,9 @@ class TestFilesController(FunctionalTest):
         self.total_file_num = self.helper_create_files(file_num)
 
         # Get list of files in the vault with a given limit.
-        next_batch_url = self.helper_get_files(marker=None, limit=(file_num - 1),
-           assert_return_url=True, assert_data_len=(file_num - 1))
+        next_batch_url = self.helper_get_files(marker=None,
+            limit=(file_num - 1),
+            assert_return_url=True, assert_data_len=(file_num - 1))
 
         # Get list of all files in the vault with the default limit.
         self.helper_get_files(marker=None, limit=None,
@@ -235,15 +236,18 @@ class TestFilesController(FunctionalTest):
         enough_num = int(conf.api_configuration.max_returned_num)
 
         # Register enough_num of blocks into system.
-        block_list, blocks_data = self.helper_create_blocks(num_blocks=enough_num)
+        block_list, blocks_data = self.helper_create_blocks(
+            num_blocks=enough_num)
         for cnt in range(0, enough_num):
             data = data + '{' + '\"id\": \"{0}\", \"size\": \"100\", \
-                \"offset\": \"{1}\"'.format(str(block_list[cnt]), str(cnt * 100)) + '}'
+                \"offset\": \"{1}\"'.format(
+                str(block_list[cnt]), str(cnt * 100)) + '}'
             if cnt < enough_num - 1:
                 data = data + ','
         data = data + ']}'
 
-        response = self.app.post(self._distractor_file_id, params=data, headers=hdrs)
+        response = self.app.post(self._distractor_file_id,
+            params=data, headers=hdrs)
 
         # Add blocks to FILES, resp has a list of missing blocks.
         response = self.app.post(self._file_id, params=data, headers=hdrs)
@@ -264,10 +268,12 @@ class TestFilesController(FunctionalTest):
         data = "{\"blocks\":["
         enough_num2 = int(1.2 * conf.api_configuration.max_returned_num)
 
-        block_list2, blocks_data2 = self.helper_create_blocks(num_blocks=(enough_num2-enough_num))
+        block_list2, blocks_data2 = self.helper_create_blocks(num_blocks=
+            (enough_num2 - enough_num))
         for cnt in range(enough_num, enough_num2):
             data = data + '{' + '\"id\": \"{0}\", \"size\": \"100\", \
-                \"offset\": \"{1}\"'.format(str(block_list2[cnt-enough_num]), str(cnt * 100)) + '}'
+                \"offset\": \"{1}\"'.format(str(block_list2[cnt - enough_num]),
+                str(cnt * 100)) + '}'
             if cnt < enough_num2 - 1:
                 data = data + ','
         data = data + ']}'
@@ -282,7 +288,6 @@ class TestFilesController(FunctionalTest):
         #block_list = self.helper_create_blocks(num_blocks=enough_num2)
         response = self.app.post(self._file_id, params=data, headers=hdrs)
         assert len(response.body) == 2
-
 
         # Get the file.
         response = self.app.get(self._file_id, headers=hdrs)
