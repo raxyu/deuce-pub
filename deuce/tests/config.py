@@ -64,11 +64,21 @@ metadata_driver = {
     'driver_path': 'deuce.drivers.storage.metadata.sqlite.sqlitestoragedriver',
     'module': 'SqliteStorageDriver',
     'sqlite': {
-        'path': '/tmp/deuce_sqlite_unittest_vaultmeta.db'
+        'path': '/tmp/deuce_sqlite_unittest_vaultmeta.db',
+        # Production DB module.
+        # 'db_module': 'sqlite3'
+        # Mocking DB module.
+        'db_module': 'deuce.tests.db_mocking.sqlite_mocking'
     },
     'mongodb': {
         'path': 'deuce_mongo_unittest_vaultmeta',
         'url': 'mongodb://127.0.0.1',
+        # Production DB module.
+        #'db_module': 'pymongo',
+        # Mocking DB module.
+        'db_module': 'deuce.tests.db_mocking.mongodb_mocking',
+
+        'db_file': '/tmp/deuce_mongo_unittest_vaultmeta.db',
 
         # An arbitary segment number for blocks fetching and
         # transferring from fileblocks collection to file collection
@@ -88,7 +98,6 @@ api_configuration = {
 
 # Always remove the database so that we can start over on
 # test execution
-
-##Drop sqlite DB
+#Drop sqlite DB
 if os.path.exists('/tmp/deuce_sqlite_unittest_vaultmeta.db'):
     os.remove('/tmp/deuce_sqlite_unittest_vaultmeta.db')

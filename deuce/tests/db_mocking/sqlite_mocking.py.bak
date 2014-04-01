@@ -1,207 +1,14 @@
+class SqliteStorageDriver():
 
-from pecan import conf
-import deuce
-import importlib
-
-from deuce.drivers.storage.metadata import MetadataStorageDriver
-
-# SQL schemas. Note: the schema is versions
-# in such a way that new instances always start
-# with user version 1, then proceeed to upgrade
-# through each version until we get to the latest.
-
-schemas = list()
-
-schemas.append([
-    """
-    CREATE TABLE files
-    (
-        projectid TEXT NOT NULL,
-        vaultid TEXT NOT NULL,
-        fileid TEXT NOT NULL,
-        finalized INTEGER NOT NULL DEFAULT 0,
-        PRIMARY KEY(projectid, vaultid, fileid)
-    )
-    """,
-    """
-    CREATE TABLE fileblocks
-    (
-        projectid TEXT NOT NULL,
-        vaultid TEXT NOT NULL,
-        fileid TEXT NOT NULL,
-        blockid TEXT NOT NULL,
-        offset INTEGER NOT NULL,
-        UNIQUE (projectid, vaultid, fileid, blockid, offset)
-    )
-    """,
-    """
-    CREATE TABLE blocks
-    (
-        projectid TEXT NOT NULL,
-        vaultid TEXT NOT NULL,
-        blockid TEXT NOT NULL,
-        size INTEGER NOT NULL,
-        PRIMARY KEY(projectid, vaultid, blockid)
-    )
-    """
-])  # Version 1
-
-CURRENT_DB_VERSION = len(schemas)
-
-SQL_CREATE_FILE = '''
-    INSERT INTO files (projectid, vaultid, fileid)
-    VALUES (:projectid, :vaultid, :fileid)
-'''
-
-SQL_GET_BLOCK = '''
-    SELECT size
-    FROM blocks
-    WHERE projectid = :projectid
-    AND vaultid = :vaultid
-    AND blockid = :blockid
-'''
-
-SQL_GET_FILE = '''
-    SELECT finalized
-    FROM files
-    WHERE projectid = :projectid
-    AND vaultid = :vaultid
-    AND fileid = :fileid
-'''
-
-SQL_DELETE_FILE = '''
-    DELETE FROM files
-    where projectid=:projectid
-    AND vaultid=:vaultid
-    AND fileid=:fileid
-'''
-
-SQL_GET_ALL_FILE_BLOCKS = '''
-    SELECT blockid, offset
-    FROM fileblocks
-    WHERE projectid = :projectid
-    AND vaultid = :vaultid
-    AND fileid = :fileid
-    ORDER BY offset
-'''
-
-SQL_GET_FILE_BLOCKS = '''
-    SELECT blockid, offset
-    FROM fileblocks
-    WHERE projectid = :projectid
-    AND vaultid = :vaultid
-    AND fileid = :fileid
-    AND offset >= :offset
-    ORDER BY offset
-    LIMIT :limit
-'''
-
-SQL_GET_ALL_BLOCKS = '''
-    SELECT blockid
-    FROM blocks
-    WHERE projectid = :projectid
-    AND vaultid = :vaultid
-    AND blockid >= :marker
-    order by blockid
-    LIMIT :limit
-'''
-
-SQL_GET_ALL_FILES = '''
-    SELECT fileid
-    FROM files
-    WHERE projectid=:projectid
-    AND vaultid = :vaultid
-    AND fileid >= :marker
-    AND finalized = :finalized
-    order by fileid
-    LIMIT :limit
-'''
-
-SQL_FINALIZE_FILE = '''
-    update files
-    set finalized=1
-    where projectid=:projectid
-    AND fileid=:fileid
-    AND vaultid=:vaultid
-'''
-
-SQL_ASSIGN_BLOCK_TO_FILE = '''
-    INSERT OR REPLACE INTO fileblocks
-    (projectid, vaultid, fileid, blockid, offset)
-    VALUES (:projectid, :vaultid, :fileid, :blockid, :offset)
-'''
-
-SQL_REGISTER_BLOCK = '''
-    INSERT INTO blocks
-    (projectid, vaultid, blockid, size)
-    values (:projectid, :vaultid, :blockid, :blocksize)
-'''
-
-SQL_UNREGISTER_BLOCK = '''
-    DELETE FROM blocks
-    where projectid=:projectid AND blockid=:blockid
-'''
-
-SQL_HAS_BLOCK = '''
-    SELECT count(*)
-    FROM blocks
-    WHERE projectid=:projectid
-    AND blockid = :blockid
-    AND vaultid = :vaultid
-'''
-
-
-class SqliteStorageDriver(MetadataStorageDriver):
-
-    def __init__(self):
-        self._dbfile = conf.metadata_driver.sqlite.path
-
-        #Load the driver module according to the configuration
-        deuce.db_pack = importlib.import_module(
-            conf.metadata_driver.sqlite.db_module)
-        self._conn = getattr(deuce.db_pack, 'Connection')(self._dbfile)
-
-        self._do_migrate()
-
-    def _get_user_version(self):
-        res = self._conn.execute('pragma user_version')
-        row = next(res)
-        return row[0]
-
-    def _set_user_version(self, version):
-        # NOTE: for whatever reason, pragma's don't seem to
-        # work with the built-in query formatter so
-        # we just use string formatting here. This should be
-        # OK since version is internally generated.
-        self._conn.execute('pragma user_version=%d' % version)
-
-    def _do_migrate(self):
-        db_ver = self._get_user_version()
-
-        for ver in range(db_ver, CURRENT_DB_VERSION):
-            schema = schemas[db_ver]
-
-            for query in schema:
-                res = self._conn.execute(query)
-
-            db_ver = db_ver + 1
-            self._set_user_version(db_ver)
-
-    def _determine_limit(self, limit):
-        """ Determines the limit based on user input """
-
-        # Note: +1 is allowed here because it allows
-        # the user to fetch one beyond to see if they
-        # are at the end of the list
-        if not limit:
-            res = conf.api_configuration.max_returned_num + 1
-        else:
-            res = min(conf.api_configuration.max_returned_num + 1, limit)
-
-        return res
+    def __init__(self, db_path):
+        self._dbfile = db_path
+        self._conn = 
 
     def create_file(self, project_id, vault_id, file_id):
         """Creates a new file with no blocks and no files"""
+    
+        print 
+        '''
         args = {
             'projectid': project_id,
             'vaultid': vault_id,
@@ -212,6 +19,7 @@ class SqliteStorageDriver(MetadataStorageDriver):
         self._conn.commit()
 
         # TODO: check that one row was inserted
+        '''
         return file_id
 
     def has_file(self, project_id, vault_id, file_id):

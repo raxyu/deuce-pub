@@ -1,24 +1,28 @@
 
 from pecan import conf
 
-import sys
+import deuce
 
-import pymongo
+import sys
+import importlib
+import atexit
+
+
 import itertools
-from pymongo import MongoClient
 from deuce.drivers.storage.metadata import MetadataStorageDriver
 
 
 class MongoDbStorageDriver(MetadataStorageDriver):
 
-    def __init__(self, conn=None):
+    def __init__(self):
 
         self._dbfile = conf.metadata_driver.mongodb.path
 
-        if not conn:
-            self.client = MongoClient(conf.metadata_driver.mongodb.url)
-        else:
-            self.client = conn
+        self.mongo_pack = importlib.import_module(
+            conf.metadata_driver.mongodb.db_module)
+
+        self.client = getattr(self.mongo_pack, 'MongoClient')(
+            conf.metadata_driver.mongodb.url)
 
         self._db = self.client[self._dbfile]
         self._blocks = self._db.blocks
@@ -26,6 +30,11 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         self._fileblocks = self._db.fileblocks
         # Maintain the document size of only half of the system maximun.
         self._docsize = int(conf.metadata_driver.mongodb.maxBsonObjectSize / 2)
+
+    def __del__(self):
+        self._blocks.drop()
+        self._files.drop()
+        self._fileblocks.drop()
 
     def _determine_limit(self, limit):
         """ Determines the limit based on user input """

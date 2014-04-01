@@ -56,15 +56,16 @@ metadata_driver = {
     'driver-path': 'deuce.drivers.storage.metadata.sqlite.sqlitestoragedriver',
     'module': 'SqliteStorageDriver',
     'sqlite': {
-        'path': '/tmp/vaultmeta.db'
+        'db_file': '/tmp/vaultmeta.db',
+        'db_module': 'sqlite3'
     },
     'mongodb': {
-        'path': 'vaultmeta',
-        'url': 'mongodb://127.0.0.1'
-
+        'db_file': 'vaultmeta',
+        'url': 'mongodb://127.0.0.1',
+        'db_module': 'pymongo',
         # An arbitary segment number for blocks fetching and
         # transferring from fileblocks collection to file collection
-        'FileBlockReadSegNum': 1000
+        'FileBlockReadSegNum': 1000,
 
         #pymongo document size limit
         'maxBsonObjectSize': 16777216
