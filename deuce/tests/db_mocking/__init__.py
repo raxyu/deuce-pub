@@ -8,4 +8,4 @@ import shutil
 
 from deuce.tests.db_mocking.sqlite_mocking import Connection
 
-from deuce.tests.db_mocking.mongodb_mocking import pymongo
+import deuce.tests.db_mocking.mongodb_mocking
