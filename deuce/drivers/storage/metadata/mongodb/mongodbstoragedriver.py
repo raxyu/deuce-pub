@@ -28,8 +28,8 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         self._blocks = self._db.blocks
         self._files = self._db.files
         self._fileblocks = self._db.fileblocks
-        # Maintain the document size of only half of the system maximun.
-        self._docsize = int(conf.metadata_driver.mongodb.maxBsonObjectSize / 2)
+        # Maintain the document size less than the system maximun.
+        self._docnum = int(conf.metadata_driver.mongodb.maxFileBlockSegNum)
 
     def __del__(self):
         self._blocks.drop()
@@ -56,6 +56,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             'vaultid': vault_id,
             'fileid': file_id,
             'finalized': False,
+            'seq': 0,
             'blocks': []
         }
 
@@ -119,13 +120,14 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         # There could be multiple document for the same file.
         # Need work on one single document a time.
         resfile = self._files.find(find_args)
-        if resfile.count(True) < 1:
+        if resfile.count() < 1:
             return
         filerec_id = list(resfile)[0].get('_id')
 
         # Chop up FILEBLOCKS list, and save to block chunks
         # in FILES.
         starts = 0
+        pageseq = 0
         Finished = False
         self._files.update({'_id': filerec_id},
             {"$set": {"finalized": True}},
@@ -174,19 +176,21 @@ class MongoDbStorageDriver(MetadataStorageDriver):
                     upsert=False)
 
                 # Monitor the size of the document.
-                docsize += sys.getsizeof(blocks)
-                if docsize > self._docsize or Finished:
+                docsize += blocks_len
+                if docsize > self._docnum or Finished:
                     break
 
             if Finished:
                 break
 
             # Add another document for more blocks.
+            pageseq += 1
             ins_args = {
                 "projectid": project_id,
                 "vaultid": vault_id,
                 "fileid": file_id,
                 "finalized": True,
+                "seq": pageseq,
                 "blocks": [],
             }
             filerec_id = self._files.insert(ins_args)
@@ -239,14 +243,16 @@ class MongoDbStorageDriver(MetadataStorageDriver):
 
         return self._blocks.find_one(args)
 
-    def create_block_generator(self, project_id, vault_id, marker=0, limit=0):
+    def create_block_generator(self, project_id,
+            vault_id, marker=None, limit=0):
         self._blocks.ensure_index([('projectid', 1),
             ('vaultid', 1), ('blockid', 1)])
         args = {
             "projectid": project_id,
-            "vaultid": vault_id,
-            "blockid": {"$gte": marker}
+            "vaultid": vault_id
         }
+        if marker is not None:
+            args["blockid"] = {"$gte": marker}
 
         limit = self._determine_limit(limit)
 
@@ -268,7 +274,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
     def create_file_block_generator(self, project_id, vault_id, file_id,
             offset=0, limit=0):
         self._files.ensure_index([('projectid', 1),
-            ('vaultid', 1), ('fileid', 1)])
+            ('vaultid', 1), ('fileid', 1), ('seq', 1)])
         limit = self._determine_limit(limit)
         blocks = []
         blockset = []
@@ -282,8 +288,10 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         # from the given start point,
         # for the limit number,
         # and sorted by the block offset.
+
         resblocks = self._files.aggregate(
             [{'$match': args},
+            {'$sort': {"seq": 1}},
             {'$unwind': '$blocks'},
             {'$match': {'blocks.offset': {"$gte": search_offset}}},
             {'$limit': limit},

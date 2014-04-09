@@ -156,7 +156,7 @@ class SqliteStorageDriver(MetadataStorageDriver):
     def __init__(self):
         self._dbfile = conf.metadata_driver.sqlite.path
 
-        #Load the driver module according to the configuration
+        # Load the driver module according to the configuration
         deuce.db_pack = importlib.import_module(
             conf.metadata_driver.sqlite.db_module)
         self._conn = getattr(deuce.db_pack, 'Connection')(self._dbfile)

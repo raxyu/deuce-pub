@@ -268,8 +268,8 @@ class TestFilesController(FunctionalTest):
         data = "{\"blocks\":["
         enough_num2 = int(1.2 * conf.api_configuration.max_returned_num)
 
-        block_list2, blocks_data2 = self.helper_create_blocks(num_blocks=
-            (enough_num2 - enough_num))
+        block_list2, blocks_data2 = self.helper_create_blocks(num_blocks=(
+            enough_num2 - enough_num))
         for cnt in range(enough_num, enough_num2):
             data = data + '{' + '\"id\": \"{0}\", \"size\": \"100\", \
                 \"offset\": \"{1}\"'.format(str(block_list2[cnt - enough_num]),
@@ -285,7 +285,6 @@ class TestFilesController(FunctionalTest):
         self.helper_store_blocks(blocks_data2)
 
         # Add blocks. resp will be empty.
-        #block_list = self.helper_create_blocks(num_blocks=enough_num2)
         response = self.app.post(self._file_id, params=data, headers=hdrs)
         assert len(response.body) == 2
 

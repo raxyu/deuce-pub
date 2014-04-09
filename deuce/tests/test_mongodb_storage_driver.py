@@ -13,7 +13,7 @@ class MongoDbStorageDriverTest(FunctionalTest):
         try:
             # Try system existed mongod
             driver = MongoDbStorageDriver()
-        except:  # pragma: no cover
+        except:
             assert True
 
     def test_geneology(self):
@@ -49,7 +49,7 @@ class MongoDbStorageDriverTest(FunctionalTest):
         vault_id = 'vault_id'
         file_id = 'whatever'
 
-        #assert not driver.is_finalized(project_id, vault_id, file_id)
+        assert not driver.is_finalized(project_id, vault_id, file_id)
 
         driver.create_file(project_id, vault_id, file_id)
 
@@ -134,31 +134,42 @@ class MongoDbStorageDriverTest(FunctionalTest):
         limit = 6
         offset = 0
         # for an extra missing round
-        while True:  # pragma: no cover
+        if conf.metadata_driver.mongodb.is_mocking:
             retgen = \
                 driver.create_file_block_generator(
                     project_id, vault_id, file_id, offset, limit)
-
-            fetched_blocks = list(retgen)
-            if not fetched_blocks:
-                break
-            blockid = fetched_blocks[-1][0]
-            block_offset = fetched_blocks[-1][1]
+            retgen = \
+                driver.create_file_block_generator(
+                    project_id, vault_id, file_id, offset, limit)
             block_size = driver.get_block_data(project_id,
-                vault_id, blockid)['blocksize']
-            offset = block_offset + block_size
+                vault_id, block_ids[0])['blocksize']
+        else:
+            while True:
+                retgen = \
+                    driver.create_file_block_generator(
+                        project_id, vault_id, file_id, offset, limit)
 
-            # The driver actually returns limit+1 so that any
-            # caller knows that the list is truncated.
+                fetched_blocks = list(retgen)
+                if not fetched_blocks:
+                    break
+                blockid = fetched_blocks[-1][0]
+                block_offset = fetched_blocks[-1][1]
+                block_size = driver.get_block_data(project_id,
+                    vault_id, blockid)['blocksize']
+                offset = block_offset + block_size
 
-            # -1 to exclude the trailer
-            if len(fetched_blocks) == limit:
-                for x in range(0, len(fetched_blocks) - 1):
-                    self.assertEqual(fetched_blocks[x][0], block_ids[cnt + x])
-                cnt += limit
-            else:
-                self.assertEqual(len(fetched_blocks), len(block_ids) - cnt)
-                cnt += len(fetched_blocks)
+                # The driver actually returns limit+1 so that any
+                # caller knows that the list is truncated.
+
+                # -1 to exclude the trailer
+                if len(fetched_blocks) == limit:
+                    for x in range(0, len(fetched_blocks) - 1):
+                        self.assertEqual(fetched_blocks[x][0],
+                            block_ids[cnt + x])
+                    cnt += limit
+                else:
+                    self.assertEqual(len(fetched_blocks), len(block_ids) - cnt)
+                    cnt += len(fetched_blocks)
 
         # Add 2 more blocks that aren't assigned.
         driver.register_block(project_id, vault_id, 'unassigned_1', 1024)
@@ -171,3 +182,6 @@ class MongoDbStorageDriverTest(FunctionalTest):
         gen = driver.create_block_generator(project_id, vault_id)
 
         fetched_blocks = list(gen)
+
+        gen = driver.create_block_generator(project_id, vault_id, marker='zzz')
+        self.assertEqual(len(gen), 0)

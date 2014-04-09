@@ -67,8 +67,8 @@ metadata_driver = {
         # transferring from fileblocks collection to file collection
         'FileBlockReadSegNum': 1000,
 
-        #pymongo document size limit
-        'maxBsonObjectSize': 16777216
+        # pymongo block number in each File document
+        'maxFileBlockSegNum': 100000
     }
 }
 
