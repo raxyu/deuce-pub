@@ -1,0 +1,5 @@
+pecan
+pymongo
+six
+python-swiftclient
+python-keystoneclient

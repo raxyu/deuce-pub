@@ -56,6 +56,12 @@ block_storage_driver = {
     'driver': 'deuce.drivers.storage.blocks.disk.DiskStorageDriver',
     'options': {
         'path': '/tmp/block_storage'
+    },
+    'swift': {
+        'driver': 'deuce.drivers.storage.blocks.swift.SwiftStorageDriver',
+        'options': {
+            'path': 'https://7e6d7e4d70c10a31e44b-90f26d50ccc0ff928c04d0272e791eff.ssl.cf2.rackcdn.com'
+        }
     }
 }
 
