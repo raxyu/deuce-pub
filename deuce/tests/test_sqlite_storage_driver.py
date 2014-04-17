@@ -131,9 +131,25 @@ class SqliteStorageDriverTest(FunctionalTest):
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # put back the missed block at the front
+        # Create a gap in the middle
         block_ids.insert(0, 'block_0')
         pairs['block_0'] = 0
         driver.assign_block(project_id, vault_id, file_id, 'block_0', 0)
+        for bid, offset in pairs.items():
+            driver.unregister_block(project_id, vault_id, bid)
+            driver.register_block(project_id, vault_id, bid, gap_block_size)
+        res = driver.finalize_file(project_id, vault_id, file_id)
+        assert not driver.is_finalized(project_id, vault_id, file_id)
+
+        # Create a overlap in the middle
+        for bid, offset in pairs.items():
+            driver.unregister_block(project_id, vault_id, bid)
+            driver.register_block(project_id, vault_id,
+                bid, overlap_block_size)
+        res = driver.finalize_file(project_id, vault_id, file_id)
+        assert not driver.is_finalized(project_id, vault_id, file_id)
+
+        # Fix and back to normal
         for bid, offset in pairs.items():
             driver.unregister_block(project_id, vault_id, bid)
             driver.register_block(project_id, vault_id, bid, normal_block_size)
@@ -169,7 +185,6 @@ class SqliteStorageDriverTest(FunctionalTest):
         self.assertEqual(len(fetched_blocks) + 1, len(block_ids))
 
         # -1 to exclude the trailer
-        #for x in range(0, len(fetched_blocks) - 1):
         for x in range(0, len(block_ids) - 2):
             self.assertEqual(fetched_blocks[x][0], block_ids[x])
 
