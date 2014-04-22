@@ -10,7 +10,6 @@ from hashlib import md5
 # have the token ready for each query.
 from swiftclient import client as Conn
 from swiftclient.exceptions import ClientException, InvalidHeadersException
-#import keystoneclient
 
 from pecan import conf
 
@@ -24,7 +23,7 @@ import traceback
 
 class SwiftStorageDriverTest(FunctionalTest):
 
-    def setUp(self):
+    def setUp(self):  # pragma: no cover
         super(SwiftStorageDriverTest, self).setUp()
 
         auth_url = conf.block_storage_driver.swift.auth_url
@@ -39,7 +38,7 @@ class SwiftStorageDriverTest(FunctionalTest):
                     user=username,
                     key=password,
                     os_options=os_options)
-        except ClientException, e:
+        except ClientException as e:
             sys.exit(str(e))
 
         self.project_id = self.storage_url[self.storage_url.rfind("/") + 1:]
@@ -91,7 +90,7 @@ class SwiftStorageDriverTest(FunctionalTest):
         block_id = 'blah'
         projectid = 'test_project_id'
 
-        if not d.vault_exists(projectid, vault_id):
+        if not d.vault_exists(projectid, vault_id):  # pragma: no cover
             d.create_vault(projectid, vault_id)
 
         # Create a file-like object

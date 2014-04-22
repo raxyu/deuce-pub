@@ -4,3 +4,5 @@ six
 nose
 testtools
 pep8
+python-keystoneclient
+python-swiftclient
