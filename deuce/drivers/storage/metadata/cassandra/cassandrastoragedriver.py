@@ -186,6 +186,16 @@ class CassandraStorageDriver(MetadataStorageDriver):
 
         # else: do nothing
 
+    def get_block_data(self, project_id, vault_id, block_id):
+        args = (project_id, vault_id, block_id)
+
+        res = self._session.execute(CQL_GET_BLOCK_SIZE, args)
+
+        try:
+            return dict(blocksize=res[0][0])
+        except IndexError:
+            raise Exception("No such block: {0}".format(block_id))
+
     def get_file_data(self, project_id, vault_id, file_id):
         """Returns a tuple representing data for this file"""
         args = (project_id, vault_id, uuid.UUID(file_id))
