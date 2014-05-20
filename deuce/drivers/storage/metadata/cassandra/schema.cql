@@ -1,27 +1,30 @@
 
-CREATE COLUMNFAMILY BLOCKS
-(
-  project_id TEXT,
-  block_id TEXT,
-  block_size int,
-  PRIMARY KEY(project_id, block_id) 
+CREATE COLUMNFAMILY blocks (
+  projectid TEXT,
+  vaultid TEXT,
+  blockid TEXT,
+  blocksize INT,
+  PRIMARY KEY((projectid, vaultid), blockid) 
 );
 
-CREATE TABLE files
-(
-  project_id TEXT,
-  file_id uuid,
-  size bigint,
-  finalized boolean,
-  PRIMARY KEY(project_id, file_id)
+CREATE TABLE files (
+  projectid TEXT,
+  vaultid TEXT,
+  fileid UUID,
+  size BIGINT,
+  finalized BOOLEAN,
+  PRIMARY KEY((projectid, vaultid), fileid)
 );
 
-CREATE TABLE fileblocks
-(
-  project_id TEXT,
-  file_id text,
-  block_id text,
-  block_size int,
-  offset bigint,
-  PRIMARY KEY(project_id, file_id, offset)
+CREATE INDEX finalized_index
+    on files (finalized);
+
+CREATE TABLE fileblocks (
+  projectid TEXT,
+  vaultid TEXT, 
+  fileid UUID,
+  blockid TEXT,
+  blocksize INT,
+  offset BIGINT,
+  PRIMARY KEY((projectid, vaultid, fileid), offset)
 );

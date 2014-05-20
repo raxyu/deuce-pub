@@ -1,13 +1,14 @@
 from pecan import conf
-import os
 import hashlib
-import string
+import os
 import six
+import string
+import uuid
+
 from six.moves.urllib.parse import urlparse, parse_qs
 from unittest import TestCase
 from deuce.tests import FunctionalTest
 from deuce.drivers.storage.metadata.sqlite import SqliteStorageDriver
-import uuid
 
 
 class TestFilesController(FunctionalTest):
