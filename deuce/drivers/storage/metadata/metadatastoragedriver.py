@@ -89,6 +89,11 @@ class MetadataStorageDriver(object):
         raise NotImplementedError
 
     @abstractmethod
+    def get_block_data(self, project_id, vault_id, block_id):  # TODO: rename
+        """Returns the size of the block"""
+        raise NotImplementedError
+
+    @abstractmethod
     def unregister_block(self, project_id, vault_id, block_id):
         """Unregisters (removes) the block from the metadata
         store"""
