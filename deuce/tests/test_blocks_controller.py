@@ -117,7 +117,8 @@ class TestBlocksController(FunctionalTest):
 
         # List all.
         next_batch_url = self.helper_get_blocks(self._blocks_path,
-            0, 0, False, 5, repeat=False, exam_block_data=True)
+            0, 0, assert_ret_url=False, assert_data_len=5,
+            repeat=False, exam_block_data=True)
 
         # List some blocks
         next_batch_url = self.helper_get_blocks(self._blocks_path,
@@ -136,11 +137,14 @@ class TestBlocksController(FunctionalTest):
 
         # List from 0; use conf limit
         next_batch_url = self.helper_get_blocks(self._blocks_path,
-            0, 0, True, conf.api_configuration.max_returned_num, False)
+            0, 0, assert_ret_url=True,
+            assert_data_len=conf.api_configuration.max_returned_num,
+            repeat=False)
 
         # List from 0; Use conf limit, repeat to the end.
         next_batch_url = self.helper_get_blocks(self._blocks_path,
-            0, 0, False, self.total_block_num, repeat=True)
+            0, 0, assert_ret_url=False,
+            assert_data_len=self.total_block_num, repeat=True)
 
         # Try to get some blocks that don't exist. This should
         # result in 404s

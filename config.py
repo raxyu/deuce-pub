@@ -53,12 +53,26 @@ block_storage_driver = {
 }
 
 metadata_driver = {
-    'driver': 'deuce.metadata.driver.SqliteStorageDriver',
-    'options': {
-        'path': '/tmp/vaultmeta.db'
+    'driver-path': 'deuce.drivers.storage.metadata.sqlite.sqlitestoragedriver',
+    'module': 'SqliteStorageDriver',
+    'sqlite': {
+        'db_file': '/tmp/vaultmeta.db',
+        'db_module': 'sqlite3'
+    },
+    'mongodb': {
+        'db_file': 'vaultmeta',
+        'url': 'mongodb://127.0.0.1',
+        'db_module': 'pymongo',
+        # An arbitary segment number for blocks fetching and
+        # transferring from fileblocks collection to file collection
+        'FileBlockReadSegNum': 1000,
+
+        # pymongo block number in each File document
+        'maxFileBlockSegNum': 100000
     }
 }
 
 api_configuration = {
+    # Define system limitation on page size
     'max_returned_num': 100
 }

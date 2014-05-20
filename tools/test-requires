@@ -1,8 +1,7 @@
-pecan
 coverage
-six
 nose
 testtools
-pep8
 setuptools>=1.1.6
-# cassandra-driver
+pep8
+sentinels
+mongomock
