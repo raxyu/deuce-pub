@@ -1,7 +1,8 @@
 
 from pecan import conf
+import deuce
+import importlib
 
-from sqlite3 import Connection
 from deuce.drivers.storage.metadata import MetadataStorageDriver
 
 # SQL schemas. Note: the schema is versions
@@ -50,6 +51,14 @@ CURRENT_DB_VERSION = len(schemas)
 SQL_CREATE_FILE = '''
     INSERT INTO files (projectid, vaultid, fileid)
     VALUES (:projectid, :vaultid, :fileid)
+'''
+
+SQL_GET_BLOCK = '''
+    SELECT size
+    FROM blocks
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+    AND blockid = :blockid
 '''
 
 SQL_GET_FILE = '''
@@ -145,8 +154,12 @@ SQL_HAS_BLOCK = '''
 class SqliteStorageDriver(MetadataStorageDriver):
 
     def __init__(self):
-        self._dbfile = conf.metadata_driver.options.path
-        self._conn = Connection(self._dbfile)
+        self._dbfile = conf.metadata_driver.sqlite.path
+
+        # Load the driver module according to the configuration
+        deuce.db_pack = importlib.import_module(
+            conf.metadata_driver.sqlite.db_module)
+        self._conn = getattr(deuce.db_pack, 'Connection')(self._dbfile)
 
         self._do_migrate()
 
@@ -260,6 +273,25 @@ class SqliteStorageDriver(MetadataStorageDriver):
 
         self._conn.execute(SQL_FINALIZE_FILE, args)
         self._conn.commit()
+
+    def get_block_data(self, project_id, vault_id, block_id):
+        """Returns the blocksize for this block"""
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id,
+            'blockid': block_id
+        }
+
+        res = self._conn.execute(SQL_GET_BLOCK, args)
+
+        try:
+            row = next(res)
+        except StopIteration:
+            raise Exception("No such block: {0}".format(block_id))
+
+        retval = {}
+        retval['blocksize'] = list(row)[0]
+        return retval
 
     def get_file_data(self, project_id, vault_id, file_id):
         """Returns a tuple representing data for this file"""

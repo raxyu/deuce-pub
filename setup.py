@@ -6,7 +6,8 @@ except ImportError:
     use_setuptools()
     from setuptools import setup, find_packages
 
-REQUIRES = ['six', 'pecan', 'setuptools >= 1.1.6', 'cassandra-driver']
+REQUIRES = ['six', 'pecan', 'setuptools >= 1.1.6',
+    'cassandra-driver', 'pymongo']
 
 setup(
     name='deuce',

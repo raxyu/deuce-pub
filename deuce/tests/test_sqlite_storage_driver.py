@@ -96,9 +96,17 @@ class SqliteStorageDriverTest(FunctionalTest):
         size = 4096
 
         assert not driver.has_block(project_id, vault_id, block_id)
+        try:
+            size = driver.get_block_data(project_id,
+                vault_id, block_id)['blocksize']
+        except:
+            assert True
         driver.register_block(project_id, vault_id, block_id, size)
 
         assert driver.has_block(project_id, vault_id, block_id)
+
+        self.assertEqual(driver.get_block_data(project_id,
+            vault_id, block_id)['blocksize'], size)
 
         # Call again, shouldn't throw
         driver.register_block(project_id, vault_id, block_id, size)
@@ -149,7 +157,7 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         # The driver actually returns limit+1 so that any
         # caller knows that the list is truncated.
-        self.assertEqual(len(fetched_blocks) + 1, len(block_ids))
+        self.assertEqual(len(fetched_blocks), limit)
 
         # -1 to exclude the trailer
         for x in range(0, len(fetched_blocks) - 1):
