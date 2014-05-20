@@ -31,13 +31,6 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         # Maintain the document size less than the system maximun.
         self._docnum = int(conf.metadata_driver.mongodb.maxFileBlockSegNum)
 
-    """
-    def __del__(self):
-        self._blocks.drop()
-        self._files.drop()
-        self._fileblocks.drop()
-    """
-
     def _determine_limit(self, limit):
         """ Determines the limit based on user input """
 
