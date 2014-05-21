@@ -268,6 +268,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
 
     def create_file_block_generator(self, project_id, vault_id, file_id,
             offset=0, limit=0):
+
         self._files.ensure_index([('projectid', 1),
             ('vaultid', 1), ('fileid', 1), ('seq', 1)])
         limit = self._determine_limit(limit)
@@ -296,6 +297,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
                         "blockid": "$blocks.blockid",
                         "offset": "$blocks.offset"}}}},
             {'$sort': {"blocks.offset": 1}}])
+
         resblocks = resblocks.get('result')
 
         # The resblocks is a list of lists; Flat it.
