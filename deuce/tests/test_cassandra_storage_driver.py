@@ -1,19 +1,7 @@
 from pecan import conf
-
-# Monkey-patch the storage driver
-
-import deuce.tests.mock_cassandra as cassandra
-
-from deuce.tests import FunctionalTest
 from deuce.drivers.storage.metadata import MetadataStorageDriver
 from deuce.drivers.storage.metadata.cassandra import CassandraStorageDriver
 from deuce.tests.test_sqlite_storage_driver import SqliteStorageDriverTest
-
-import hashlib
-import os
-import six
-import testtools
-import uuid
 
 
 # Explanation:
