@@ -152,7 +152,6 @@ class SqliteStorageDriverTest(FunctionalTest):
         retgen = \
             driver.create_file_block_generator(
                 project_id, vault_id, file_id, offset, limit)
-
         fetched_blocks = list(retgen)
 
         # The driver actually returns limit+1 so that any
@@ -171,20 +170,26 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         # Now create a generator of the files. The output
         # should be in the same order as block_ids
+        # With default marker
         gen = driver.create_block_generator(project_id, vault_id)
-
         fetched_blocks = list(gen)
-
+        assert len(fetched_blocks) == num_blocks
+        # With given marker
+        gen = driver.create_block_generator(project_id, vault_id, marker=0)
+        fetched_blocks = list(gen)
         assert len(fetched_blocks) == num_blocks
 
         # Now try file_block_generator with no limit
         retgen = \
             driver.create_file_block_generator(
                 project_id, vault_id, file_id, offset=None, limit=None)
-
         output = list(retgen)
-
         self.assertEqual(output, list(zip(block_ids, offsets)))
+
+        # With a wrong limit
+        retgen = \
+            driver.create_file_block_generator(
+                project_id, vault_id, file_id, offset=None, limit=-1)
 
     def test_file_generator(self):
 
