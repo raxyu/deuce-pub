@@ -6,17 +6,18 @@ except ImportError:
     use_setuptools()
     from setuptools import setup, find_packages
 
-REQUIRES = ['six', 'pecan']
+REQUIRES = ['six', 'pecan', 'setuptools >= 1.1.6',
+    'cassandra-driver', 'pymongo']
 
 setup(
     name='deuce',
     version='0.1',
-    description='',
-    author='',
+    description='Deuce - Block-level de-duplication as-a-service',
+    author='Rackspace',
     author_email='',
     install_requires=REQUIRES,
     test_suite='deuce',
     zip_safe=False,
     include_package_data=True,
-    packages=find_packages(exclude=['ez_setup'])
+    packages=find_packages(exclude=['tests'])
 )

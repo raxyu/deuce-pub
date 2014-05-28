@@ -69,18 +69,46 @@ block_storage_driver = {
     }
 }
 
+
 metadata_driver = {
-    'driver': 'deuce.metadata.driver.SqliteStorageDriver',
-    'options': {
-        'path': '/tmp/vaultmeta.db'
+    'driver_path': 'deuce.drivers.storage.metadata.sqlite.sqlitestoragedriver',
+    'module': 'SqliteStorageDriver',
+    'sqlite': {
+        'path': '/tmp/deuce_sqlite_unittest_vaultmeta.db',
+        'db_module': 'sqlite3'
+    },
+    'mongodb': {
+        'path': 'deuce_mongo_unittest_vaultmeta',
+        'url': 'mongodb://127.0.0.1',
+        'db_file': '/tmp/deuce_mongo_unittest_vaultmeta.db',
+
+        # Production DB module or unittest
+        # With real mongodb daemon.
+        # 'is_mocking': False,
+        # 'db_module': 'pymongo',
+        #
+        # Mocking DB module.
+        'is_mocking': True,
+        'db_module': 'deuce.tests.db_mocking.mongodb_mocking',
+
+        # An arbitary segment number for blocks fetching and
+        # transferring from fileblocks collection to file collection
+        #    'FileBlockReadSegNum': 1000
+        'FileBlockReadSegNum': 10,
+
+        # pymongo block number in each File document
+        # 'maxFileBlockSegNum': 100000
+        'maxFileBlockSegNum': 30
     }
 }
 
 api_configuration = {
-    'max_returned_num': 10
+    # Define system limitation on page size
+    'max_returned_num': 80,
 }
 
 # Always remove the database so that we can start over on
 # test execution
-if os.path.exists('/tmp/vaultmeta.db'):
-    os.remove('/tmp/vaultmeta.db')
+# Drop sqlite DB
+if os.path.exists('/tmp/deuce_sqlite_unittest_vaultmeta.db'):
+    os.remove('/tmp/deuce_sqlite_unittest_vaultmeta.db')

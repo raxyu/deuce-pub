@@ -43,7 +43,7 @@ class MetadataStorageDriver(object):
 
     @abstractmethod
     def create_block_generator(self, project_id, vault_id,
-            marker=0, limit=0):
+            marker=None, limit=None):
         """Creates and returns a generator that will return
         the ID of each block file. The file must previously
         have been finalized."""
@@ -51,7 +51,7 @@ class MetadataStorageDriver(object):
 
     @abstractmethod
     def create_file_generator(self, project_id, vault_id,
-            marker=0, limit=0, finalized=True):
+            marker=None, limit=None, finalized=True):
         """Creates and returns a generator that will return
         the ID of each block file. The file must previously
         have been finalized."""
@@ -86,6 +86,11 @@ class MetadataStorageDriver(object):
     @abstractmethod
     def register_block(self, project_id, vault_id, block_id, size):
         """Registers a block in the metadata driver."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_block_data(self, project_id, vault_id, block_id):  # TODO: rename
+        """Returns the size of the block"""
         raise NotImplementedError
 
     @abstractmethod
