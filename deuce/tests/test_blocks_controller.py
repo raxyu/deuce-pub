@@ -110,6 +110,19 @@ class TestBlocksController(FunctionalTest):
         self.assertEqual(resp.status_code, 404)
 
     def test_put_and_list(self):
+
+        # Test None block_id
+        path = '{0}/'.format(self._blocks_path)
+        data = os.urandom(100)
+        headers = {
+            "Content-Type": "application/binary",
+            "Content-Length": "100"
+        }
+        response = self.app.put(path, headers=headers,
+            params=data, expect_errors=True)
+        # Returns from BlockPutRuleNoneOk validation.
+        self.assertEqual(response.status_code, 400)
+
         # Create 5 blocks
         block_list = self.helper_create_blocks(num_blocks=5)
         self.total_block_num = 5
