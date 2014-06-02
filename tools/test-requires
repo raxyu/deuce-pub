@@ -3,6 +3,5 @@ nose
 testtools
 setuptools>=1.1.6
 pep8
-python-swiftclient
 sentinels
 mongomock
