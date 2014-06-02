@@ -60,7 +60,7 @@ block_storage_driver = {
     'swift': {
         'driver': 'deuce.drivers.storage.blocks.swift.SwiftStorageDriver',
 
-        # For example, 
+        # For example,
         # 'auth_url': 'https://identity.api.rackspacecloud.com/v2.0/',
         'auth_url': 'YOUR AUTH URL',
 
