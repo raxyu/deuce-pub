@@ -9,7 +9,7 @@ from hashlib import md5
 # Users need take care of authenticate themselves and
 # have the token ready for each query.
 from swiftclient import client as Conn
-from swiftclient.exceptions import ClientException, InvalidHeadersException
+from swiftclient.exceptions import ClientException
 
 from pecan import conf
 

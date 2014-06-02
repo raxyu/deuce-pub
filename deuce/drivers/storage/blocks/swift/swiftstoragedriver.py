@@ -5,7 +5,7 @@ import io
 import shutil
 
 from swiftclient import client as Conn
-from swiftclient.exceptions import ClientException, InvalidHeadersException
+from swiftclient.exceptions import ClientException
 
 import StringIO
 
