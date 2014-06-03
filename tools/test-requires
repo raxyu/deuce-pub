@@ -1,6 +1,7 @@
-pecan
 coverage
-six
 nose
 testtools
+setuptools>=1.1.6
 pep8
+sentinels
+mongomock

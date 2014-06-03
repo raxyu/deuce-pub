@@ -1,7 +1,8 @@
 
 from pecan import conf
+import deuce
+import importlib
 
-from sqlite3 import Connection
 from deuce.drivers.storage.metadata import MetadataStorageDriver
 
 # SQL schemas. Note: the schema is versions
@@ -50,6 +51,14 @@ CURRENT_DB_VERSION = len(schemas)
 SQL_CREATE_FILE = '''
     INSERT INTO files (projectid, vaultid, fileid)
     VALUES (:projectid, :vaultid, :fileid)
+'''
+
+SQL_GET_BLOCK = '''
+    SELECT size
+    FROM blocks
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+    AND blockid = :blockid
 '''
 
 SQL_GET_FILE = '''
@@ -155,8 +164,12 @@ SQL_HAS_BLOCK = '''
 class SqliteStorageDriver(MetadataStorageDriver):
 
     def __init__(self):
-        self._dbfile = conf.metadata_driver.options.path
-        self._conn = Connection(self._dbfile)
+        self._dbfile = conf.metadata_driver.sqlite.path
+
+        # Load the driver module according to the configuration
+        deuce.db_pack = importlib.import_module(
+            conf.metadata_driver.sqlite.db_module)
+        self._conn = getattr(deuce.db_pack, 'Connection')(self._dbfile)
 
         self._do_migrate()
 
@@ -179,7 +192,7 @@ class SqliteStorageDriver(MetadataStorageDriver):
             schema = schemas[db_ver]
 
             for query in schema:
-                res = self._conn.execute(query)
+                self._conn.execute(query)
 
             db_ver = db_ver + 1
             self._set_user_version(db_ver)
@@ -197,6 +210,12 @@ class SqliteStorageDriver(MetadataStorageDriver):
 
         return res
 
+    def _determine_marker(self, marker):
+        """Determines the default marker to use if
+        the passed marker is None, empty string, etc
+        """
+        return marker or ''
+
     def create_file(self, project_id, vault_id, file_id):
         """Creates a new file with no blocks and no files"""
         args = {
@@ -205,7 +224,7 @@ class SqliteStorageDriver(MetadataStorageDriver):
             'fileid': file_id
         }
 
-        res = self._conn.execute(SQL_CREATE_FILE, args)
+        self._conn.execute(SQL_CREATE_FILE, args)
         self._conn.commit()
 
         # TODO: check that one row was inserted
@@ -312,6 +331,25 @@ class SqliteStorageDriver(MetadataStorageDriver):
         self._conn.commit()
         return None
 
+    def get_block_data(self, project_id, vault_id, block_id):
+        """Returns the blocksize for this block"""
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id,
+            'blockid': block_id
+        }
+
+        res = self._conn.execute(SQL_GET_BLOCK, args)
+
+        try:
+            row = next(res)
+        except StopIteration:
+            raise Exception("No such block: {0}".format(block_id))
+
+        retval = {}
+        retval['blocksize'] = list(row)[0]
+        return retval
+
     def get_file_data(self, project_id, vault_id, file_id):
         """Returns a tuple representing data for this file"""
         args = {
@@ -351,7 +389,7 @@ class SqliteStorageDriver(MetadataStorageDriver):
             'projectid': project_id,
             'vaultid': vault_id,
             'limit': self._determine_limit(limit),
-            'marker': marker or '0'
+            'marker': self._determine_marker(marker)
         }
 
         res = self._conn.execute(SQL_GET_ALL_BLOCKS, args)
@@ -359,16 +397,13 @@ class SqliteStorageDriver(MetadataStorageDriver):
         return [row[0] for row in res]
 
     def create_file_generator(self, project_id, vault_id,
-                              marker, limit, finalized=True):
-
-        if marker is None:
-            marker = '0'  # Every UUID is greater than 0
+                              marker=None, limit=None, finalized=True):
 
         args = {
             'projectid': project_id,
             'vaultid': vault_id,
             'limit': self._determine_limit(limit),
-            'marker': marker,
+            'marker': self._determine_marker(marker),
             'finalized': finalized
         }
 
@@ -409,7 +444,7 @@ class SqliteStorageDriver(MetadataStorageDriver):
             'offset': offset
         }
 
-        res = self._conn.execute(SQL_ASSIGN_BLOCK_TO_FILE, args)
+        self._conn.execute(SQL_ASSIGN_BLOCK_TO_FILE, args)
         self._conn.commit()
 
     def register_block(self, project_id, vault_id, block_id, blocksize):
@@ -418,10 +453,10 @@ class SqliteStorageDriver(MetadataStorageDriver):
                 'projectid': project_id,
                 'vaultid': vault_id,
                 'blockid': block_id,
-                'blocksize': blocksize
+                'blocksize': int(blocksize)
             }
 
-            res = self._conn.execute(SQL_REGISTER_BLOCK, args)
+            self._conn.execute(SQL_REGISTER_BLOCK, args)
             self._conn.commit()
 
     def unregister_block(self, project_id, vault_id, block_id):
@@ -431,5 +466,5 @@ class SqliteStorageDriver(MetadataStorageDriver):
             'blockid': block_id
         }
 
-        res = self._conn.execute(SQL_UNREGISTER_BLOCK, args)
+        self._conn.execute(SQL_UNREGISTER_BLOCK, args)
         self._conn.commit()

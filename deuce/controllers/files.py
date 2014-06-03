@@ -132,7 +132,7 @@ class FilesController(RestController):
         for mapping in blocks:
 
             block_id = mapping['id']
-            offset = mapping['offset']
+            offset = int(mapping['offset'])
 
             if not deuce.metadata_driver.has_block(request.project_id,
                     vault_id, block_id):
