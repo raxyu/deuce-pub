@@ -6,7 +6,10 @@ import uuid
 from deuce.tests import FunctionalTest
 from deuce.drivers.storage.metadata import MetadataStorageDriver
 from deuce.drivers.storage.metadata.sqlite import SqliteStorageDriver
-import simplejson as json
+try:
+    import simplejson as json
+except:
+    import json
 
 
 def list_comp(list1, list2):
