@@ -59,11 +59,14 @@ block_storage_driver = {
     },
     'swift': {
         'driver': 'deuce.drivers.storage.blocks.swift.SwiftStorageDriver',
+        'is_mocking': True,
+        # 'is_mocking': False,
+        'swift_module': 'deuce.tests.db_mocking.swift_mocking',
+        # 'swift_module': 'swiftclient',
 
+        'auth_url': 'YOUR AUTH URL',
         # For example,
         # 'auth_url': 'https://identity.api.rackspacecloud.com/v2.0/',
-        'auth_url': 'YOUR AUTH URL',
-
         'username': 'YOUR USER NAME',
         'password': 'YOUR PASSWORD',
     }

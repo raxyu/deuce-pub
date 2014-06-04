@@ -8,6 +8,7 @@ from hashlib import md5
 
 # Users need take care of authenticate themselves and
 # have the token ready for each query.
+
 from swiftclient import client as Conn
 from swiftclient.exceptions import ClientException
 
@@ -31,16 +32,28 @@ class SwiftStorageDriverTest(FunctionalTest):
         password = conf.block_storage_driver.swift.password
 
         os_options = dict()
-        try:
-            self.storage_url, self.token = \
-                Conn.get_keystoneclient_2_0(
-                    auth_url=auth_url,
-                    user=username,
-                    key=password,
-                    os_options=os_options)
-        except ClientException as e:
-            sys.exit(str(e))
 
+        self.mocking = False
+        try:
+            if conf.block_storage_driver.swift.is_mocking:
+                self.mocking = True
+        except:
+            self.mocking = False
+
+        if not self.mocking:
+            try:
+                self.storage_url, self.token = \
+                    Conn.get_keystoneclient_2_0(
+                        auth_url=auth_url,
+                        user=username,
+                        key=password,
+                        os_options=os_options)
+            except ClientException as e:
+                sys.exit(str(e))
+
+        else:
+            self.storage_url = 'mocking_url'
+            self.token = 'mocking_token'
         self.project_id = self.storage_url[self.storage_url.rfind("/") + 1:]
 
     def test_ancestry(self):
@@ -54,15 +67,16 @@ class SwiftStorageDriverTest(FunctionalTest):
             self.storage_url,
             self.token + '1',
             self.project_id)
+        projectid = 'notmatter'
         vaultid = 'notmatter'
         blockid = 'notmatter'
-        d.create_vault(self.project_id, vaultid)
-        d.vault_exists(self.project_id, vaultid)
-        d.delete_vault(self.project_id, vaultid)
-        d.store_block(self.project_id, vaultid, blockid, '')
-        d.block_exists(self.project_id, vaultid, blockid)
-        d.delete_block(self.project_id, vaultid, blockid)
-        d.get_block_obj(self.project_id, vaultid, blockid)
+        d.create_vault(projectid, vaultid)
+        d.vault_exists(projectid, vaultid)
+        d.delete_vault(projectid, vaultid)
+        d.store_block(projectid, vaultid, blockid, '')
+        d.block_exists(projectid, vaultid, blockid)
+        d.delete_block(projectid, vaultid, blockid)
+        d.get_block_obj(projectid, vaultid, blockid)
 
     def test_vault_crud(self):
 
@@ -71,15 +85,22 @@ class SwiftStorageDriverTest(FunctionalTest):
         projectid = 'test_project_id'
         vaultid = 'test_vault_id'
 
-        assert not d.vault_exists(projectid, vaultid)
+        if not self.mocking:
+            assert not d.vault_exists(projectid, vaultid)
+        else:
+            d.vault_exists(projectid, vaultid)
 
-        assert d.create_vault(projectid, vaultid)
+        if not self.mocking:
+            assert d.create_vault(projectid, vaultid)
 
-        assert d.vault_exists(projectid, vaultid)
+            assert d.vault_exists(projectid, vaultid)
 
         assert d.delete_vault(projectid, vaultid)
 
-        assert not d.vault_exists(projectid, vaultid)
+        if not self.mocking:
+            assert not d.vault_exists(projectid, vaultid)
+        else:
+            d.vault_exists(projectid, vaultid)
 
     def test_block_crud(self):
 
@@ -105,18 +126,20 @@ class SwiftStorageDriverTest(FunctionalTest):
         # Read back the block data and compare
         file_obj = d.get_block_obj(projectid, vault_id, block_id)
 
-        returned_data = file_obj.read()
+        if not self.mocking:
+            returned_data = file_obj.read()
 
-        # Returned data should be exatly the same
+            # Returned data should be exatly the same
 
-        assert len(returned_data) == block_size
-        assert returned_data == block_data._content
+            assert len(returned_data) == block_size
+            assert returned_data == block_data._content
 
         d.delete_block(projectid, vault_id, block_id)
 
-        assert not d.block_exists(projectid, vault_id, block_id)
-
-        assert None == d.get_block_obj(projectid, vault_id, 'invalid_block_id')
+        if not self.mocking:
+            assert not d.block_exists(projectid, vault_id, block_id)
+            assert None == d.get_block_obj(projectid,
+                vault_id, 'invalid_block_id')
 
     def test_block_generator(self):
         d = SwiftStorageDriver(self.storage_url, self.token, self.project_id)
@@ -155,7 +178,8 @@ class SwiftStorageDriverTest(FunctionalTest):
 
         for x in range(0, len(fetched_data)):
             blocks[x][1].seek(0)
-            assert fetched_data[x].read() == blocks[x][1].read()
+            if not self.mocking:
+                assert fetched_data[x].read() == blocks[x][1].read()
 
         # Clean up.
         for block_id in range(0, 10):

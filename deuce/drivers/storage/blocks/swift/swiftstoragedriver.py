@@ -1,10 +1,14 @@
+
+from pecan import conf
+
 from deuce.drivers.storage.blocks import BlockStorageDriver
 
 import os
 import io
 import shutil
 
-from swiftclient import client as Conn
+import importlib
+
 from swiftclient.exceptions import ClientException
 
 import StringIO
@@ -17,12 +21,16 @@ class SwiftStorageDriver(BlockStorageDriver):
         self._token = auth_token
         self._project_id = project_id
 
+        self.lib_pack = importlib.import_module(
+            conf.block_storage_driver.swift.swift_module)
+        self.Conn = getattr(self.lib_pack, 'client')
+
     # =========== VAULTS ===============================
     def create_vault(self, project_id, vault_id):
         response = dict()
 
         try:
-            Conn.put_container(
+            self.Conn.put_container(
                 url=self._storage_url,
                 token=self._token,
                 container=vault_id,
@@ -33,7 +41,7 @@ class SwiftStorageDriver(BlockStorageDriver):
 
     def vault_exists(self, project_id, vault_id):
         try:
-            ret = Conn.head_container(
+            ret = self.Conn.head_container(
                 url=self._storage_url,
                 token=self._token,
                 container=vault_id)
@@ -44,7 +52,7 @@ class SwiftStorageDriver(BlockStorageDriver):
     def delete_vault(self, project_id, vault_id):
         response = dict()
         try:
-            Conn.delete_container(
+            self.Conn.delete_container(
                 url=self._storage_url,
                 token=self._token,
                 container=vault_id,
@@ -57,7 +65,7 @@ class SwiftStorageDriver(BlockStorageDriver):
     def store_block(self, project_id, vault_id, block_id, blockdata):
         response = dict()
         try:
-            ret_etag = Conn.put_object(
+            ret_etag = self.Conn.put_object(
                 url=self._storage_url,
                 token=self._token,
                 container=vault_id,
@@ -72,7 +80,7 @@ class SwiftStorageDriver(BlockStorageDriver):
 
     def block_exists(self, project_id, vault_id, block_id):
         try:
-            ret = Conn.head_object(
+            ret = self.Conn.head_object(
                 url=self._storage_url,
                 token=self._token,
                 container=vault_id,
@@ -84,7 +92,7 @@ class SwiftStorageDriver(BlockStorageDriver):
     def delete_block(self, project_id, vault_id, block_id):
         response = dict()
         try:
-            Conn.delete_object(
+            self.Conn.delete_object(
                 url=self._storage_url,
                 token=self._token,
                 container=vault_id,
@@ -99,7 +107,7 @@ class SwiftStorageDriver(BlockStorageDriver):
         buff = StringIO.StringIO()
         try:
             ret_hdr, ret_obj_body = \
-                Conn.get_object(
+                self.Conn.get_object(
                     url=self._storage_url,
                     token=self._token,
                     container=vault_id,
