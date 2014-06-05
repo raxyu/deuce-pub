@@ -6,10 +6,7 @@ import uuid
 from deuce.tests import FunctionalTest
 from deuce.drivers.storage.metadata import MetadataStorageDriver
 from deuce.drivers.storage.metadata.sqlite import SqliteStorageDriver
-try:
-    import simplejson as json
-except:
-    import json
+import json
 
 
 def list_comp(list1, list2):
@@ -158,9 +155,12 @@ class SqliteStorageDriverTest(FunctionalTest):
         # GAPs (gap at front)
         for bid, offset in blockpairs.items():
             driver.register_block(project_id, vault_id, bid, gap_block_size)
-        res = driver.finalize_file(project_id, vault_id, file_id)
-        exp = {"Gap": {"before": [u"block_1", 333]}}
-        assert list_comp(res[0].items(), exp.items())
+        try:
+            res = driver.finalize_file(project_id, vault_id, file_id)
+        except Exception as e:
+            res = json.loads(str(e))
+            exp = {"Gap": {"before": ["block_1", 333]}}
+            assert list_comp(res.items(), exp.items())
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # OVERLAPs (gap at front)
@@ -168,9 +168,12 @@ class SqliteStorageDriverTest(FunctionalTest):
             driver.unregister_block(project_id, vault_id, bid)
             driver.register_block(project_id, vault_id,
             bid, overlap_block_size)
-        res = driver.finalize_file(project_id, vault_id, file_id)
-        exp = {'Gap': {'before': [u'block_1', 333]}}
-        assert list_comp(res[0].items(), exp.items())
+        try:
+            res = driver.finalize_file(project_id, vault_id, file_id)
+        except Exception as e:
+            res = json.loads(str(e))
+            exp = {"Gap": {"before": ["block_1", 333]}}
+            assert list_comp(res.items(), exp.items())
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # put back the missed block at the front
@@ -181,9 +184,13 @@ class SqliteStorageDriverTest(FunctionalTest):
         for bid, offset in blockpairs.items():
             driver.unregister_block(project_id, vault_id, bid)
             driver.register_block(project_id, vault_id, bid, gap_block_size)
-        res = driver.finalize_file(project_id, vault_id, file_id)
-        exp = {'Gap': {'after': [u'block_0', 0], 'before': [u'block_1', 333]}}
-        assert list_comp(res[0].items(), exp.items())
+        try:
+            res = driver.finalize_file(project_id, vault_id, file_id)
+        except Exception as e:
+            res = json.loads(str(e))
+            exp = {"Gap": {"after": ["block_0", 0],
+                "before": ["block_1", 333]}}
+            assert list_comp(res.items(), exp.items())
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # Create a overlap in the middle
@@ -191,10 +198,13 @@ class SqliteStorageDriverTest(FunctionalTest):
             driver.unregister_block(project_id, vault_id, bid)
             driver.register_block(project_id, vault_id,
                 bid, overlap_block_size)
-        res = driver.finalize_file(project_id, vault_id, file_id)
-        exp = {'Overlap': {'after':
-            [u'block_0', 0], 'before': [u'block_1', 333]}}
-        assert list_comp(res[0].items(), exp.items())
+        try:
+            res = driver.finalize_file(project_id, vault_id, file_id)
+        except Exception as e:
+            res = json.loads(str(e))
+            exp = {"Overlap": {"after": ["block_0", 0],
+                "before": ["block_1", 333]}}
+            assert list_comp(res.items(), exp.items())
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # Fix and back to normal
@@ -203,17 +213,23 @@ class SqliteStorageDriverTest(FunctionalTest):
             driver.register_block(project_id, vault_id, bid, normal_block_size)
 
         # GAP at the eof.
-        res = driver.finalize_file(project_id, vault_id,
-            file_id, file_size=14000)
-        exp = {'Gap': {'after': [u'block_39', 12987]}}
-        assert list_comp(res[0].items(), exp.items())
+        try:
+            res = driver.finalize_file(project_id, vault_id,
+                file_id, file_size=14000)
+        except Exception as e:
+            res = json.loads(str(e))
+            exp = {"Gap": {"after": ["block_39", 12987]}}
+            assert list_comp(res.items(), exp.items())
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # OVERLAP at the eof.
-        res = driver.finalize_file(project_id, vault_id,
-            file_id, file_size=12900)
-        exp = {'Overlap': {'after': [u'block_39', 12987]}}
-        assert list_comp(res[0].items(), exp.items())
+        try:
+            res = driver.finalize_file(project_id, vault_id,
+                file_id, file_size=12900)
+        except Exception as e:
+            res = json.loads(str(e))
+            exp = {"Overlap": {"after": ["block_39", 12987]}}
+            assert list_comp(res.items(), exp.items())
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # Just perfect.

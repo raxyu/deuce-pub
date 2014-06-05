@@ -3,6 +3,8 @@ from pecan import conf
 import deuce
 import importlib
 
+import json
+
 from deuce.drivers.storage.metadata import MetadataStorageDriver
 
 # SQL schemas. Note: the schema is versions
@@ -296,7 +298,8 @@ class SqliteStorageDriver(MetadataStorageDriver):
             if offset1 != 0:
                 retlist.extend([{"Gap" if offset1 > 0 else "Overlap":
                     {"before": [blockid1, offset1]}}])
-                return retlist
+                retstr = json.dumps(retlist[0])
+                raise Exception(retstr)
 
             while True:
                 nextrow = cursor.fetchone()
@@ -307,7 +310,8 @@ class SqliteStorageDriver(MetadataStorageDriver):
                             if offset1 + size1 < file_size
                             else "Overlap":
                             {"after": [blockid1, offset1]}}])
-                        return retlist
+                        retstr = json.dumps(retlist[0])
+                        raise Exception(retstr)
                     break
                 blockid2 = nextrow[0]
                 offset2 = nextrow[1]
@@ -321,7 +325,8 @@ class SqliteStorageDriver(MetadataStorageDriver):
                         else "Overlap":
                         {"after": [blockid1, offset1],
                         "before": [blockid2, offset2]}}])
-                    return retlist
+                    retstr = json.dumps(retlist[0])
+                    raise Exception(retstr)
 
                 blockid1 = blockid2
                 offset1 = offset2
