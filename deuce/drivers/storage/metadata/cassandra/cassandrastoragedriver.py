@@ -191,53 +191,28 @@ class CassandraStorageDriver(MetadataStorageDriver):
         exists"""
 
         # Check for gaps and overlaps.
-        retlist = []
         expected_offset = 0
 
         args = (project_id, vault_id, uuid.UUID(file_id))
 
         res = self._session.execute(CQL_GET_ALL_FILE_BLOCKS_W_SIZE, args)
-        rownum = len(res)
-        rowcnt = 0
-        while rowcnt < rownum:
-            blockid1 = res[rowcnt][0]
-            offset1 = res[rowcnt][1]
-            size1 = res[rowcnt][2]
 
-            # Check the first block.
-            if rowcnt == 0 and offset1 != 0:
-                retlist.extend([{"Gap" if offset1 > 0 else "Overlap":
-                    {"before": [blockid1, offset1]}}])
-                return retlist
+        for blockid, offset, size in res:
+            if offset == expected_offset:
+                expected_offset += size
+            elif offset < expected_offset:  # Overlap scenario
+                raise Exception("Overlap after {0} and before {1}".
+                    format(offset, expected_offset))
+            else:  # Gap scenario
+                raise Exception("Gap after {0} and before {1}".
+                    format(expected_offset, offset))
 
-            # Check the last block.
-            if rowcnt == rownum - 1:
-                if file_size != 0 and offset1 + size1 != file_size:
-                    retlist.extend([{"Gap"
-                        if offset1 + size1 < file_size
-                        else "Overlap":
-                        {"after": [blockid1, offset1]}}])
-                    return retlist
-            else:
-                blockid2 = res[rowcnt + 1][0]
-                offset2 = res[rowcnt + 1][1]
-                size2 = res[rowcnt + 1][2]
-                expected_offset = expected_offset + size1
-
-                # Check the blocks in the middle.
-                if offset2 != expected_offset:
-                    retlist.extend([{"Gap"
-                        if offset2 > expected_offset
-                        else "Overlap":
-                        {"after": [blockid1, offset1],
-                        "before": [blockid2, offset2]}}])
-                    return retlist
-
-                blockid1 = blockid2
-                offset1 = offset2
-                size1 = size2
-
-            rowcnt += 1
+        # Now we must check the very last block
+        if file_size is not None and file_size != 0 and \
+                file_size != expected_offset:
+            raise Exception("{0} after {1}".
+                format("Gap" if expected_offset < file_size
+                else "Overlap", expected_offset))
 
         if self.has_file(project_id, vault_id, file_id):
             args = (project_id, vault_id, uuid.UUID(file_id))
