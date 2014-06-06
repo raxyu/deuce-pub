@@ -31,6 +31,11 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         # Maintain the document size less than the system maximun.
         self._docnum = int(conf.metadata_driver.mongodb.maxFileBlockSegNum)
 
+    def __del__(self):
+        self._blocks.drop()
+        self._files.drop()
+        self._fileblocks.drop()
+
     def _determine_limit(self, limit):
         """ Determines the limit based on user input """
 
@@ -99,18 +104,57 @@ class MongoDbStorageDriver(MetadataStorageDriver):
 
         self._files.remove(args)
 
-    def finalize_file(self, project_id, vault_id, file_id):
+    def finalize_file(self, project_id, vault_id, file_id, file_size=None):
         """Updates FILES to set a file to finalized. This function
         makes no assumptions about whether or not the file record actually
         exists"""
         self._files.ensure_index([('projectid', 1),
-            ('vaultid', 1), ('fileid', 1)])
+            ('vaultid', 1), ('fileid', 1), ('blockseq', 1)])
 
         find_args = {
             "projectid": project_id,
             "vaultid": vault_id,
             "fileid": file_id
         }
+
+
+        # Check for gaps and overlaps.
+        retlist = []
+
+        res = list(self._fileblocks.find(find_args, {"blockseq": 1,
+            "blockid": 1, "offset": 1, "size": 1}).sort("blockseq", 1))
+
+        if res and res[0]:
+            # Check front.
+            first_offset = res[0].get('offset')
+            if first_offset != 0:
+                retlist.extend([{"Gap" if first_offset > 0 else "Overlap":
+                    {"after": [None, None], "before":
+                        [res[0].get('blockid'),
+                        res[0].get('offset')]}}])
+
+            # Check middle.
+            for cnt in range(0, len(res) - 1):
+                diff = res[cnt].get('offset') + res[cnt].get('size') - \
+                    res[cnt + 1].get('offset')
+                if diff != 0:
+                    retlist.extend([{"Gap" if diff < 0 else "Overlap":
+                        {"after": [res[cnt].get('blockid'),
+                        res[cnt].get('offset')], "before":
+                            [res[cnt + 1].get('blockid'),
+                            res[cnt + 1].get('offset')]}}])
+
+            # Check eof.
+            if file_size and file_size != 0:
+                diff = res[-1].get('offset') + res[-1].get('size') - file_size
+                if diff != 0:
+                    retlist.extend([{"Gap" if diff < 0 else "Overlap":
+                        {"after": [res[0].get('blockid'),
+                        res[0].get('offset')]}}])
+
+        if retlist:
+            return retlist
+
 
         # There could be multiple document for the same file.
         # Need work on one single document a time.
@@ -311,7 +355,9 @@ class MongoDbStorageDriver(MetadataStorageDriver):
 
         return blocks
 
-    def assign_block(self, project_id, vault_id, file_id, block_id, offset):
+    def assign_block(self, project_id, vault_id, file_id, block_seq, block_id,
+            block_offset, block_size):
+
         # TODO(jdp): tweak this to support multiple assignments
         # TODO(jdp): check for overlaps in metadata
         self._files.ensure_index([('projectid', 1),
@@ -320,16 +366,26 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             'projectid': project_id,
             'vaultid': vault_id,
             'fileid': file_id,
-            'blockid': block_id,
-            'offset': offset
+            'blockseq': block_seq
         }
 
-        self._fileblocks.update(args, args, upsert=True)
+        set_args = {
+            'projectid': project_id,
+            'vaultid': vault_id,
+            'fileid': file_id,
+            'blockseq': block_seq,
+            'blockid': block_id,
+            'offset': block_offset,
+            'size': block_size
+        }
+
+        self._fileblocks.update(args, set_args, upsert=True)
+
         # Ordered in pymongo.ASCENDING.
         self._fileblocks.ensure_index([("projectid", 1),
             ("vaultid", 1),
             ("fileid", 1),
-            ("blockid", 1)])
+            ("blockseq", 1)])
 
     def register_block(self, project_id, vault_id, block_id, blocksize):
         if not self.has_block(project_id, vault_id, block_id):
