@@ -6,6 +6,54 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 # is to enable 100% code coverage when testing
 
 
+class OverlapError(Exception):
+    """OverlapError is raised when finalizing
+    a file is attempted but is not possible
+    because two blocks overlap each other in
+    the file"""
+    def __init__(self, vault_id, file_id, block_id, position):
+        """Creates a new OverlapError Exception
+
+        :param vault_id: The vault containing the file
+        :param file_id: The file containing the overlap
+        :param block_id: The ID of the overlapping block
+        :param positoin: The place in the file where the
+           overlap was detected"""
+        self.vault_id = vault_id
+        self.file_id = file_id
+        self.block_id = block_id
+        self.position = position
+
+        msg = "Overlap detected with block {0} as byte {1} for file {2}".format(
+            self.block_id, self.position, self.file_id)
+
+        Exception.__init__(self, msg)
+
+
+class GapError(Exception):
+    """GapError is raised becasue a file can
+    not be finalized because a portion of the
+    file is not covered by a block"""
+    def __init__(self, vault_id, file_id, startpos, endpos):
+        """Creates a new OverlapError Exception
+
+        :param vault_id: The vault containing the file
+        :param file_id: The file containing the overlap
+        :param startpos: The first position of the detected gap
+        :param endpos: The last position of the detected gap
+        """
+        self.vault_id = vault_id
+        self.file_id = file_id
+        self.position = position
+        self.startpos = startpos
+        self.endpos = endpos
+
+        msg = "Gap in file {0} from {1}-{2}".format(
+            self.file_id, self.startpos, self.endpos)
+
+        Exception.__init__(self, msg)
+
+
 @six.add_metaclass(ABCMeta)
 class MetadataStorageDriver(object):
     """MetadataStorageDriver is an abstract base class that
