@@ -108,15 +108,21 @@ class FilesController(RestController):
             abort(404)
 
         # Fileid with an empty body will finalize the file.
-        filesize = request.headers['filesize'] if 'filesize' \
+        filesize = request.headers['Filesize'] if 'Filesize' \
             in request.headers.keys() else 0
+
         if not request.body:
-            res = deuce.metadata_driver.finalize_file(request.project_id,
-                vault_id, file_id, filesize)
-            # There are gaps or overlaps in blocks of the file
-            # The list of errors returns
-            # TODO: NEED RETURN 413
-            return res
+            try:
+                res = deuce.metadata_driver.finalize_file(request.project_id,
+                    vault_id, file_id, filesize)
+                return res
+            except Exception as e:
+                # There are gaps or overlaps in blocks of the file
+                # The list of errors returns
+                # NEED RETURN 413
+                details = str(e)
+                response.status_code = 413
+                return details
 
         if f.finalized:
             # A finalized file cannot be

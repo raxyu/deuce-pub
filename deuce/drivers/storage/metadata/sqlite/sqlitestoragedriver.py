@@ -3,6 +3,7 @@ from pecan import conf
 import deuce
 import importlib
 
+
 from deuce.drivers.storage.metadata import MetadataStorageDriver
 
 # SQL schemas. Note: the schema is versions
@@ -281,51 +282,26 @@ class SqliteStorageDriver(MetadataStorageDriver):
         }
 
         # Check for gaps and overlaps.
-        retlist = []
         expected_offset = 0
 
-        cursor = self._conn.cursor()
-        cursor.execute(SQL_CREATE_FILEBLOCK_LIST, args)
-        row = cursor.fetchone()
-        if row is not None:
-            blockid1 = row[0]
-            offset1 = row[1]
-            size1 = row[2]
+        res = self._conn.execute(SQL_CREATE_FILEBLOCK_LIST, args)
 
-            # Check the first block.
-            if offset1 != 0:
-                retlist.extend([{"Gap" if offset1 > 0 else "Overlap":
-                    {"before": [blockid1, offset1]}}])
-                return retlist
+        for blockid, offset, size in res:
+            if offset == expected_offset:
+                expected_offset += size
+            elif offset < expected_offset:  # Overlap scenario
+                raise Exception("Overlap after {0} and before {1}".
+                    format(offset, expected_offset))
+            else:  # Gap scenario
+                raise Exception("Gap after {0} and before {1}".
+                    format(expected_offset, offset))
 
-            while True:
-                nextrow = cursor.fetchone()
-                if nextrow is None:
-                    # Check the last block.
-                    if file_size != 0 and offset1 + size1 != file_size:
-                        retlist.extend([{"Gap"
-                            if offset1 + size1 < file_size
-                            else "Overlap":
-                            {"after": [blockid1, offset1]}}])
-                        return retlist
-                    break
-                blockid2 = nextrow[0]
-                offset2 = nextrow[1]
-                size2 = nextrow[2]
-                expected_offset = expected_offset + size1
-
-                # Check the blocks in the middle.
-                if offset2 != expected_offset:
-                    retlist.extend([{"Gap"
-                        if offset2 > expected_offset
-                        else "Overlap":
-                        {"after": [blockid1, offset1],
-                        "before": [blockid2, offset2]}}])
-                    return retlist
-
-                blockid1 = blockid2
-                offset1 = offset2
-                size1 = size2
+        # Now we must check the very last block
+        if file_size is not None and file_size != 0 and \
+                file_size != expected_offset:
+            raise Exception("{0} after {1}".
+                format("Gap" if expected_offset < file_size
+                else "Overlap", expected_offset))
 
         res = self._conn.execute(SQL_FINALIZE_FILE, args)
         self._conn.commit()

@@ -8,6 +8,13 @@ from deuce.drivers.storage.metadata import MetadataStorageDriver
 from deuce.drivers.storage.metadata.sqlite import SqliteStorageDriver
 
 
+def list_comp(list1, list2):
+    for val in list1:
+        if val in list2:
+            return True
+    return False
+
+
 class SqliteStorageDriverTest(FunctionalTest):
 
     def create_driver(self):
@@ -77,7 +84,7 @@ class SqliteStorageDriverTest(FunctionalTest):
         file_id = self._create_file_id()
 
         assert not driver.has_file(project_id, vault_id, file_id)
-        driver.finalize_file(project_id, vault_id, file_id)
+        retval = driver.finalize_file(project_id, vault_id, file_id)
 
         try:
             data = driver.get_file_data(project_id, vault_id, file_id)
@@ -147,7 +154,12 @@ class SqliteStorageDriverTest(FunctionalTest):
         # GAPs (gap at front)
         for bid, offset in blockpairs.items():
             driver.register_block(project_id, vault_id, bid, gap_block_size)
-        res = driver.finalize_file(project_id, vault_id, file_id)
+        try:
+            res = driver.finalize_file(project_id, vault_id, file_id)
+        except Exception as e:
+            res = str(e)
+            exp = "Gap after 0 and before 333"
+            self.assertEqual(res, exp)
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # OVERLAPs (gap at front)
@@ -155,7 +167,12 @@ class SqliteStorageDriverTest(FunctionalTest):
             driver.unregister_block(project_id, vault_id, bid)
             driver.register_block(project_id, vault_id,
             bid, overlap_block_size)
-        res = driver.finalize_file(project_id, vault_id, file_id)
+        try:
+            res = driver.finalize_file(project_id, vault_id, file_id)
+        except Exception as e:
+            res = str(e)
+            exp = "Gap after 0 and before 333"
+            self.assertEqual(res, exp)
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # put back the missed block at the front
@@ -166,7 +183,12 @@ class SqliteStorageDriverTest(FunctionalTest):
         for bid, offset in blockpairs.items():
             driver.unregister_block(project_id, vault_id, bid)
             driver.register_block(project_id, vault_id, bid, gap_block_size)
-        res = driver.finalize_file(project_id, vault_id, file_id)
+        try:
+            res = driver.finalize_file(project_id, vault_id, file_id)
+        except Exception as e:
+            res = str(e)
+            exp = "Gap after 222 and before 333"
+            self.assertEqual(res, exp)
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # Create a overlap in the middle
@@ -174,7 +196,12 @@ class SqliteStorageDriverTest(FunctionalTest):
             driver.unregister_block(project_id, vault_id, bid)
             driver.register_block(project_id, vault_id,
                 bid, overlap_block_size)
-        res = driver.finalize_file(project_id, vault_id, file_id)
+        try:
+            res = driver.finalize_file(project_id, vault_id, file_id)
+        except Exception as e:
+            res = str(e)
+            exp = "Overlap after 333 and before 444"
+            self.assertEqual(res, exp)
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # Fix and back to normal
@@ -183,18 +210,29 @@ class SqliteStorageDriverTest(FunctionalTest):
             driver.register_block(project_id, vault_id, bid, normal_block_size)
 
         # GAP at the eof.
-        res = driver.finalize_file(project_id, vault_id,
-            file_id, file_size=14000)
+        try:
+            res = driver.finalize_file(project_id, vault_id,
+                file_id, file_size=14000)
+        except Exception as e:
+            res = str(e)
+            exp = "Gap after 13320"
+            self.assertEqual(res, exp)
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # OVERLAP at the eof.
-        res = driver.finalize_file(project_id, vault_id,
-            file_id, file_size=12900)
+        try:
+            res = driver.finalize_file(project_id, vault_id,
+                file_id, file_size=12900)
+        except Exception as e:
+            res = str(e)
+            exp = "Overlap after 13320"
+            self.assertEqual(res, exp)
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # Just perfect.
         res = driver.finalize_file(project_id, vault_id,
             file_id, file_size=13320)
+        assert not res
         assert driver.is_finalized(project_id, vault_id, file_id)
 
         # Now create a generator of the files. The output

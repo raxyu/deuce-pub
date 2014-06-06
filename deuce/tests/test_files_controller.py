@@ -295,15 +295,22 @@ class TestFilesController(FunctionalTest):
         response = self.app.get(self._file_id, headers=hdrs)
         assert len(response.body) == 0
 
-        # Finalize file
+        # Failed Finalize file for block gap & overlap
         params = {}
+        failhdrs = hdrs.copy()
+        failhdrs['Filesize'] = '100'
+        response = self.app.post(self._file_id, params=params,
+                headers=failhdrs,
+                expect_errors=True)
+        assert response.status_int == 413
+
+        # Successfully finalize file
         response = self.app.post(self._file_id, params=params, headers=hdrs)
         assert response.status_int == 200
 
         # Error on trying to change Finalized file.
         response = self.app.post(self._file_id, params=data, headers=hdrs,
                                  expect_errors=True)
-
         assert response.status_int == 400
 
         # Get finalized file.
