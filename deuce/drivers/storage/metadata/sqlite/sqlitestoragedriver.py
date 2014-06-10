@@ -4,7 +4,8 @@ import deuce
 import importlib
 
 
-from deuce.drivers.storage.metadata import MetadataStorageDriver
+from deuce.drivers.storage.metadata import MetadataStorageDriver,\
+    OverlapError, GapError
 
 # SQL schemas. Note: the schema is versions
 # in such a way that new instances always start
@@ -290,18 +291,24 @@ class SqliteStorageDriver(MetadataStorageDriver):
             if offset == expected_offset:
                 expected_offset += size
             elif offset < expected_offset:  # Overlap scenario
-                raise Exception("Overlap after {0} and before {1}".
-                    format(offset, expected_offset))
-            else:  # Gap scenario
-                raise Exception("Gap after {0} and before {1}".
-                    format(expected_offset, offset))
+                raise OverlapError(project_id, vault_id, file_id,
+                    blockid, startpos=offset, endpos=expected_offset)
+            else:
+                raise GapError(project_id, vault_id, file_id,
+                    startpos=expected_offset, endpos=offset)
 
         # Now we must check the very last block
-        if file_size is not None and file_size != 0 and \
-                file_size != expected_offset:
-            raise Exception("{0} after {1}".
-                format("Gap" if expected_offset < file_size
-                else "Overlap", expected_offset))
+        if file_size and file_size != expected_offset:
+
+            if expected_offset < file_size:
+                raise GapError(project_id, vault_id, file_id, expected_offset,
+                    file_size)
+
+            else:
+                assert expected_offset > file_size
+
+                raise OverlapError(project_id, vault_id, file_id, file_size,
+                    startpos=file_size, endpos=expected_offset)
 
         res = self._conn.execute(SQL_FINALIZE_FILE, args)
         self._conn.commit()

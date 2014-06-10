@@ -4,7 +4,8 @@ import hashlib
 import os
 import uuid
 from deuce.tests import FunctionalTest
-from deuce.drivers.storage.metadata import MetadataStorageDriver
+from deuce.drivers.storage.metadata import MetadataStorageDriver, GapError,\
+    OverlapError
 from deuce.drivers.storage.metadata.sqlite import SqliteStorageDriver
 
 
@@ -154,25 +155,31 @@ class SqliteStorageDriverTest(FunctionalTest):
         # GAPs (gap at front)
         for bid, offset in blockpairs.items():
             driver.register_block(project_id, vault_id, bid, gap_block_size)
-        try:
+
+        with self.assertRaises(GapError) as ctx:
             res = driver.finalize_file(project_id, vault_id, file_id)
-        except Exception as e:
-            res = str(e)
-            exp = "Gap after 0 and before 333"
-            self.assertEqual(res, exp)
+
+        self.assertEqual(ctx.exception.vault_id, vault_id)
+        self.assertEqual(ctx.exception.file_id, file_id)
+        self.assertEqual(ctx.exception.startpos, 0)
+        self.assertEqual(ctx.exception.endpos, 333)
+
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # OVERLAPs (gap at front)
         for bid, offset in blockpairs.items():
             driver.unregister_block(project_id, vault_id, bid)
             driver.register_block(project_id, vault_id,
-            bid, overlap_block_size)
-        try:
+                bid, overlap_block_size)
+
+        with self.assertRaises(GapError) as ctx:
             res = driver.finalize_file(project_id, vault_id, file_id)
-        except Exception as e:
-            res = str(e)
-            exp = "Gap after 0 and before 333"
-            self.assertEqual(res, exp)
+
+        self.assertEqual(ctx.exception.vault_id, vault_id)
+        self.assertEqual(ctx.exception.file_id, file_id)
+        self.assertEqual(ctx.exception.startpos, 0)
+        self.assertEqual(ctx.exception.endpos, 333)
+
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # put back the missed block at the front
@@ -183,12 +190,15 @@ class SqliteStorageDriverTest(FunctionalTest):
         for bid, offset in blockpairs.items():
             driver.unregister_block(project_id, vault_id, bid)
             driver.register_block(project_id, vault_id, bid, gap_block_size)
-        try:
+
+        with self.assertRaises(GapError) as ctx:
             res = driver.finalize_file(project_id, vault_id, file_id)
-        except Exception as e:
-            res = str(e)
-            exp = "Gap after 222 and before 333"
-            self.assertEqual(res, exp)
+
+        self.assertEqual(ctx.exception.vault_id, vault_id)
+        self.assertEqual(ctx.exception.file_id, file_id)
+        self.assertEqual(ctx.exception.startpos, 222)
+        self.assertEqual(ctx.exception.endpos, 333)
+
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # Create a overlap in the middle
@@ -196,12 +206,16 @@ class SqliteStorageDriverTest(FunctionalTest):
             driver.unregister_block(project_id, vault_id, bid)
             driver.register_block(project_id, vault_id,
                 bid, overlap_block_size)
-        try:
+
+        with self.assertRaises(OverlapError) as ctx:
             res = driver.finalize_file(project_id, vault_id, file_id)
-        except Exception as e:
-            res = str(e)
-            exp = "Overlap after 333 and before 444"
-            self.assertEqual(res, exp)
+
+        self.assertEqual(ctx.exception.vault_id, vault_id)
+        self.assertEqual(ctx.exception.file_id, file_id)
+        self.assertEqual(ctx.exception.block_id, 'block_1')
+        self.assertEqual(ctx.exception.startpos, 333)
+        self.assertEqual(ctx.exception.endpos, 444)
+
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
         # Fix and back to normal
@@ -209,29 +223,35 @@ class SqliteStorageDriverTest(FunctionalTest):
             driver.unregister_block(project_id, vault_id, bid)
             driver.register_block(project_id, vault_id, bid, normal_block_size)
 
-        # GAP at the eof.
-        try:
+        # gap at the eof.
+        with self.assertRaises(GapError) as ctx:
             res = driver.finalize_file(project_id, vault_id,
                 file_id, file_size=14000)
-        except Exception as e:
-            res = str(e)
-            exp = "Gap after 13320"
-            self.assertEqual(res, exp)
+
+        self.assertEqual(ctx.exception.vault_id, vault_id)
+        self.assertEqual(ctx.exception.file_id, file_id)
+        self.assertEqual(ctx.exception.startpos, 13320)
+        self.assertEqual(ctx.exception.endpos, 14000)
+
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
-        # OVERLAP at the eof.
-        try:
+        # overlap at the eof.
+        with self.assertRaises(OverlapError) as ctx:
             res = driver.finalize_file(project_id, vault_id,
                 file_id, file_size=12900)
-        except Exception as e:
-            res = str(e)
-            exp = "Overlap after 13320"
-            self.assertEqual(res, exp)
+
+        self.assertEqual(ctx.exception.vault_id, vault_id)
+        self.assertEqual(ctx.exception.file_id, file_id)
+        self.assertEqual(ctx.exception.startpos, 12900)  # end of file
+        self.assertEqual(ctx.exception.endpos, 13320)  # Overlap past EOF
+
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
-        # Just perfect.
+        # This should now succeed and the file
+        # should be successfully finalized
         res = driver.finalize_file(project_id, vault_id,
             file_id, file_size=13320)
+
         assert not res
         assert driver.is_finalized(project_id, vault_id, file_id)
 
