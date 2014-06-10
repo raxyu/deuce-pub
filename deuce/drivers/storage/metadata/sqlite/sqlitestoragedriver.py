@@ -3,7 +3,9 @@ from pecan import conf
 import deuce
 import importlib
 
-from deuce.drivers.storage.metadata import MetadataStorageDriver
+
+from deuce.drivers.storage.metadata import MetadataStorageDriver,\
+    OverlapError, GapError
 
 # SQL schemas. Note: the schema is versions
 # in such a way that new instances always start
@@ -117,10 +119,20 @@ SQL_GET_ALL_FILES = '''
     LIMIT :limit
 '''
 
+SQL_CREATE_FILEBLOCK_LIST = '''
+    SELECT blocks.blockid, fileblocks.offset, blocks.size
+    FROM blocks, fileblocks
+    WHERE fileblocks.blockid = blocks.blockid
+    AND fileblocks.projectid = :projectid
+    AND fileblocks.vaultid = :vaultid
+    AND fileblocks.fileid = :fileid
+    ORDER by offset
+'''
+
 SQL_FINALIZE_FILE = '''
-    update files
-    set finalized=1
-    where projectid=:projectid
+    UPDATE files
+    SET finalized=1
+    WHERE projectid=:projectid
     AND fileid=:fileid
     AND vaultid=:vaultid
 '''
@@ -134,12 +146,12 @@ SQL_ASSIGN_BLOCK_TO_FILE = '''
 SQL_REGISTER_BLOCK = '''
     INSERT INTO blocks
     (projectid, vaultid, blockid, size)
-    values (:projectid, :vaultid, :blockid, :blocksize)
+    VALUES (:projectid, :vaultid, :blockid, :blocksize)
 '''
 
 SQL_UNREGISTER_BLOCK = '''
     DELETE FROM blocks
-    where projectid=:projectid AND blockid=:blockid
+    WHERE projectid=:projectid AND blockid=:blockid
 '''
 
 SQL_HAS_BLOCK = '''
@@ -257,22 +269,50 @@ class SqliteStorageDriver(MetadataStorageDriver):
             'fileid': file_id
         }
 
-        self._conn.execute(SQL_DELETE_FILE, args)
+        res = self._conn.execute(SQL_DELETE_FILE, args)
         self._conn.commit()
 
-    def finalize_file(self, project_id, vault_id, file_id):
+    def finalize_file(self, project_id, vault_id, file_id, file_size=None):
         """Updates the files table to set a file to finalized. This function
         makes no assumptions about whether or not the file record actually
         exists"""
-
         args = {
             'projectid': project_id,
             'vaultid': vault_id,
             'fileid': file_id
         }
 
-        self._conn.execute(SQL_FINALIZE_FILE, args)
+        # Check for gaps and overlaps.
+        expected_offset = 0
+
+        res = self._conn.execute(SQL_CREATE_FILEBLOCK_LIST, args)
+
+        for blockid, offset, size in res:
+            if offset == expected_offset:
+                expected_offset += size
+            elif offset < expected_offset:  # Overlap scenario
+                raise OverlapError(project_id, vault_id, file_id,
+                    blockid, startpos=offset, endpos=expected_offset)
+            else:
+                raise GapError(project_id, vault_id, file_id,
+                    startpos=expected_offset, endpos=offset)
+
+        # Now we must check the very last block
+        if file_size and file_size != expected_offset:
+
+            if expected_offset < file_size:
+                raise GapError(project_id, vault_id, file_id, expected_offset,
+                    file_size)
+
+            else:
+                assert expected_offset > file_size
+
+                raise OverlapError(project_id, vault_id, file_id, file_size,
+                    startpos=file_size, endpos=expected_offset)
+
+        res = self._conn.execute(SQL_FINALIZE_FILE, args)
         self._conn.commit()
+        return None
 
     def get_block_data(self, project_id, vault_id, block_id):
         """Returns the blocksize for this block"""
@@ -379,7 +419,6 @@ class SqliteStorageDriver(MetadataStorageDriver):
 
     def assign_block(self, project_id, vault_id, file_id, block_id, offset):
         # TODO(jdp): tweak this to support multiple assignments
-        # TODO(jdp): check for overlaps in metadata
         args = {
             'projectid': project_id,
             'vaultid': vault_id,
@@ -397,7 +436,7 @@ class SqliteStorageDriver(MetadataStorageDriver):
                 'projectid': project_id,
                 'vaultid': vault_id,
                 'blockid': block_id,
-                'blocksize': blocksize
+                'blocksize': int(blocksize)
             }
 
             self._conn.execute(SQL_REGISTER_BLOCK, args)

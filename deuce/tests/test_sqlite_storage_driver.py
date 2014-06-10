@@ -4,8 +4,16 @@ import hashlib
 import os
 import uuid
 from deuce.tests import FunctionalTest
-from deuce.drivers.storage.metadata import MetadataStorageDriver
+from deuce.drivers.storage.metadata import MetadataStorageDriver, GapError,\
+    OverlapError
 from deuce.drivers.storage.metadata.sqlite import SqliteStorageDriver
+
+
+def list_comp(list1, list2):
+    for val in list1:
+        if val in list2:
+            return True
+    return False
 
 
 class SqliteStorageDriverTest(FunctionalTest):
@@ -77,7 +85,7 @@ class SqliteStorageDriverTest(FunctionalTest):
         file_id = self._create_file_id()
 
         assert not driver.has_file(project_id, vault_id, file_id)
-        driver.finalize_file(project_id, vault_id, file_id)
+        retval = driver.finalize_file(project_id, vault_id, file_id)
 
         try:
             data = driver.get_file_data(project_id, vault_id, file_id)
@@ -124,24 +132,127 @@ class SqliteStorageDriverTest(FunctionalTest):
         vault_id = self._create_vault_id()
         file_id = self._create_file_id()
 
-        num_blocks = int(0.5 * conf.api_configuration.max_returned_num)
-        block_ids = ['block_{0}'.format(id) for id in range(0, num_blocks)]
-        offsets = [x * 333 for x in range(0, len(block_ids))]
+        normal_block_size = 333
+        gap_block_size = 222
+        overlap_block_size = 444
 
-        pairs = dict(zip(block_ids, offsets))
+        # GAP at front (miss the 1st block)
+        num_blocks = int(0.5 * conf.api_configuration.max_returned_num)
+        block_ids = ['block_{0}'.format(id) for id in range(1, num_blocks)]
+        offsets = [x * normal_block_size for x in range(1, num_blocks)]
+
+        blockpairs = dict(zip(block_ids, offsets))
 
         # Create a file
         driver.create_file(project_id, vault_id, file_id)
 
         # Assign each block
-        for bid, offset in pairs.items():
-            driver.register_block(project_id, vault_id, bid, 1024)
+        for bid, offset in blockpairs.items():
             driver.assign_block(project_id, vault_id, file_id, bid, offset)
 
         assert not driver.is_finalized(project_id, vault_id, file_id)
 
-        driver.finalize_file(project_id, vault_id, file_id)
+        # GAPs (gap at front)
+        for bid, offset in blockpairs.items():
+            driver.register_block(project_id, vault_id, bid, gap_block_size)
 
+        with self.assertRaises(GapError) as ctx:
+            res = driver.finalize_file(project_id, vault_id, file_id)
+
+        self.assertEqual(ctx.exception.vault_id, vault_id)
+        self.assertEqual(ctx.exception.file_id, file_id)
+        self.assertEqual(ctx.exception.startpos, 0)
+        self.assertEqual(ctx.exception.endpos, 333)
+
+        assert not driver.is_finalized(project_id, vault_id, file_id)
+
+        # OVERLAPs (gap at front)
+        for bid, offset in blockpairs.items():
+            driver.unregister_block(project_id, vault_id, bid)
+            driver.register_block(project_id, vault_id,
+                bid, overlap_block_size)
+
+        with self.assertRaises(GapError) as ctx:
+            res = driver.finalize_file(project_id, vault_id, file_id)
+
+        self.assertEqual(ctx.exception.vault_id, vault_id)
+        self.assertEqual(ctx.exception.file_id, file_id)
+        self.assertEqual(ctx.exception.startpos, 0)
+        self.assertEqual(ctx.exception.endpos, 333)
+
+        assert not driver.is_finalized(project_id, vault_id, file_id)
+
+        # put back the missed block at the front
+        # Create a gap in the middle
+        block_ids.insert(0, 'block_0')
+        blockpairs['block_0'] = 0
+        driver.assign_block(project_id, vault_id, file_id, 'block_0', 0)
+        for bid, offset in blockpairs.items():
+            driver.unregister_block(project_id, vault_id, bid)
+            driver.register_block(project_id, vault_id, bid, gap_block_size)
+
+        with self.assertRaises(GapError) as ctx:
+            res = driver.finalize_file(project_id, vault_id, file_id)
+
+        self.assertEqual(ctx.exception.vault_id, vault_id)
+        self.assertEqual(ctx.exception.file_id, file_id)
+        self.assertEqual(ctx.exception.startpos, 222)
+        self.assertEqual(ctx.exception.endpos, 333)
+
+        assert not driver.is_finalized(project_id, vault_id, file_id)
+
+        # Create a overlap in the middle
+        for bid, offset in blockpairs.items():
+            driver.unregister_block(project_id, vault_id, bid)
+            driver.register_block(project_id, vault_id,
+                bid, overlap_block_size)
+
+        with self.assertRaises(OverlapError) as ctx:
+            res = driver.finalize_file(project_id, vault_id, file_id)
+
+        self.assertEqual(ctx.exception.vault_id, vault_id)
+        self.assertEqual(ctx.exception.file_id, file_id)
+        self.assertEqual(ctx.exception.block_id, 'block_1')
+        self.assertEqual(ctx.exception.startpos, 333)
+        self.assertEqual(ctx.exception.endpos, 444)
+
+        assert not driver.is_finalized(project_id, vault_id, file_id)
+
+        # Fix and back to normal
+        for bid, offset in blockpairs.items():
+            driver.unregister_block(project_id, vault_id, bid)
+            driver.register_block(project_id, vault_id, bid, normal_block_size)
+
+        # gap at the eof.
+        with self.assertRaises(GapError) as ctx:
+            res = driver.finalize_file(project_id, vault_id,
+                file_id, file_size=14000)
+
+        self.assertEqual(ctx.exception.vault_id, vault_id)
+        self.assertEqual(ctx.exception.file_id, file_id)
+        self.assertEqual(ctx.exception.startpos, 13320)
+        self.assertEqual(ctx.exception.endpos, 14000)
+
+        assert not driver.is_finalized(project_id, vault_id, file_id)
+
+        # overlap at the eof.
+        with self.assertRaises(OverlapError) as ctx:
+            res = driver.finalize_file(project_id, vault_id,
+                file_id, file_size=12900)
+
+        self.assertEqual(ctx.exception.vault_id, vault_id)
+        self.assertEqual(ctx.exception.file_id, file_id)
+        self.assertEqual(ctx.exception.startpos, 12900)  # end of file
+        self.assertEqual(ctx.exception.endpos, 13320)  # Overlap past EOF
+
+        assert not driver.is_finalized(project_id, vault_id, file_id)
+
+        # This should now succeed and the file
+        # should be successfully finalized
+        res = driver.finalize_file(project_id, vault_id,
+            file_id, file_size=13320)
+
+        assert not res
         assert driver.is_finalized(project_id, vault_id, file_id)
 
         # Now create a generator of the files. The output
@@ -160,7 +271,7 @@ class SqliteStorageDriverTest(FunctionalTest):
         self.assertEqual(len(fetched_blocks), limit)
 
         # -1 to exclude the trailer
-        for x in range(0, len(fetched_blocks) - 1):
+        for x in range(0, limit):
             self.assertEqual(fetched_blocks[x][0], block_ids[x])
 
         # Add 2 more blocks that aren't assigned.
@@ -175,16 +286,17 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         fetched_blocks = list(gen)
 
-        assert len(fetched_blocks) == num_blocks
+        self.assertEqual(len(fetched_blocks), num_blocks)
 
         # Now try file_block_generator with no limit
         retgen = \
             driver.create_file_block_generator(
                 project_id, vault_id, file_id, offset=None, limit=None)
 
-        output = list(retgen)
+        output = sorted(list(retgen))
+        prep = sorted(list(x for x in blockpairs.items()))
 
-        self.assertEqual(output, list(zip(block_ids, offsets)))
+        self.assertEqual(output, prep)
 
     def test_file_generator(self):
 
