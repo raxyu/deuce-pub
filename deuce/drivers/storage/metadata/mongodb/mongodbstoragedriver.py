@@ -9,7 +9,8 @@ import atexit
 
 
 import itertools
-from deuce.drivers.storage.metadata import MetadataStorageDriver
+from deuce.drivers.storage.metadata import MetadataStorageDriver, \
+    GapError, OverlapError
 
 
 class MongoDbStorageDriver(MetadataStorageDriver):
@@ -99,7 +100,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
 
         self._files.remove(args)
 
-    def finalize_file(self, project_id, vault_id, file_id):
+    def finalize_file(self, project_id, vault_id, file_id, file_size=None):
         """Updates FILES to set a file to finalized. This function
         makes no assumptions about whether or not the file record actually
         exists"""
@@ -117,6 +118,37 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         resfile = self._files.find(find_args)
         if resfile.count() < 1:
             return
+
+        # Check for gap and overlap.
+        fileblocks_list = list(self._fileblocks.
+            find(find_args).sort('offset', 1))
+        expected_offset = 0
+
+        for item in fileblocks_list:
+            offset = item['offset']
+            blockid = item['blockid']
+
+            if offset == expected_offset:
+                blockdata = self.get_block_data(project_id, vault_id, blockid)
+                expected_offset += int(blockdata['blocksize'])
+            elif offset < expected_offset:  # Overlap scenario
+                raise OverlapError(project_id, vault_id, file_id,
+                    blockid, startpos=offset, endpos=expected_offset)
+            else:
+                raise GapError(project_id, vault_id, file_id,
+                    startpos=expected_offset, endpos=offset)
+
+        # Now we must check the very last block
+        if file_size and file_size != expected_offset:
+            if expected_offset < file_size:
+                raise GapError(project_id, vault_id, file_id, expected_offset,
+                    file_size)
+            else:
+                assert expected_offset > file_size
+
+                raise OverlapError(project_id, vault_id, file_id, file_size,
+                    startpos=file_size, endpos=expected_offset)
+
         filerec_id = list(resfile)[0].get('_id')
 
         # Chop up FILEBLOCKS list, and save to block chunks
@@ -252,7 +284,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         limit = self._determine_limit(limit)
 
         return list(block['blockid'] for block in
-            self._blocks.find(args).sort("blockid", 1).limit(limit))
+            self._blocks.find(args).sort(str("blockid"), int(1)).limit(int(limit)))
 
     def create_file_generator(self, project_id, vault_id,
             marker=0, limit=0, finalized=True):

@@ -9,13 +9,6 @@ from deuce.drivers.storage.metadata import MetadataStorageDriver, GapError,\
 from deuce.drivers.storage.metadata.sqlite import SqliteStorageDriver
 
 
-def list_comp(list1, list2):
-    for val in list1:
-        if val in list2:
-            return True
-    return False
-
-
 class SqliteStorageDriverTest(FunctionalTest):
 
     def create_driver(self):
@@ -282,6 +275,9 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         # Now create a generator of the files. The output
         # should be in the same order as block_ids
+        # Test driver branch with a given marker
+        gen = driver.create_block_generator(project_id, vault_id, marker=0)
+        # Test driver branch with a default marker
         gen = driver.create_block_generator(project_id, vault_id)
 
         fetched_blocks = list(gen)
@@ -289,6 +285,11 @@ class SqliteStorageDriverTest(FunctionalTest):
         self.assertEqual(len(fetched_blocks), num_blocks)
 
         # Now try file_block_generator with no limit
+        # Force returning an empty list by an unreasonable offset.
+        retgen = \
+            driver.create_file_block_generator(
+                project_id, vault_id, file_id, offset=999999999, limit=None)
+        # A good set.
         retgen = \
             driver.create_file_block_generator(
                 project_id, vault_id, file_id, offset=None, limit=None)
