@@ -21,6 +21,7 @@ def patch_aggregate(self, list):
     for item in list:
         if '$match' in item and item['$match'] == {
                 'blocks.offset': {"$gte": 999999999}}:
+            # tester asks an empty return.
             retval['result'].append({'blocks': []})
             return retval
 
