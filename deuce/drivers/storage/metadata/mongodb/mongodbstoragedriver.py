@@ -251,7 +251,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         args = {
             'projectid': project_id,
             'vaultid': vault_id,
-            'blockid': block_id
+            'blockid': str(block_id)
         }
 
         return self._blocks.find_one(args) is not None
@@ -265,13 +265,13 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         args = {
             'projectid': project_id,
             'vaultid': vault_id,
-            'blockid': block_id
+            'blockid': str(block_id)
         }
 
         return self._blocks.find_one(args)
 
     def create_block_generator(self, project_id,
-            vault_id, marker=None, limit=0):
+            vault_id, marker=None, limit=None):
         self._blocks.ensure_index([('projectid', 1),
             ('vaultid', 1), ('blockid', 1)])
         args = {
@@ -279,34 +279,39 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             "vaultid": vault_id
         }
         if marker is not None:
-            args["blockid"] = {"$gte": marker}
+            args["blockid"] = {"$gte": str(marker)}
 
         limit = self._determine_limit(limit)
 
         return list(block['blockid'] for block in
-            self._blocks.find(args).sort(str("blockid"), int(1)).limit(int(limit)))
+            self._blocks.find(args).sort('blockid', 1).limit(limit))
 
     def create_file_generator(self, project_id, vault_id,
-            marker=0, limit=0, finalized=True):
+            marker=None, limit=None, finalized=True):
         self._files.ensure_index([('projectid', 1),
             ('vaultid', 1), ('fileid', 1)])
         limit = self._determine_limit(limit)
 
-        args = {'projectid': project_id, 'vaultid': vault_id,
-            'fileid': {"$gte": marker}, 'finalized': finalized}
+        args = dict()
+        if marker:
+            args = {'projectid': project_id, 'vaultid': vault_id,
+                'fileid': {"$gte": marker}, 'finalized': finalized}
+        else:
+            args = {'projectid': project_id, 'vaultid': vault_id,
+                'finalized': finalized}
 
         return list(retfile['fileid'] for retfile in
             self._files.find(args).sort("fileid", 1).limit(limit))
 
     def create_file_block_generator(self, project_id, vault_id, file_id,
-            offset=0, limit=0):
+            offset=None, limit=None):
         self._files.ensure_index([('projectid', 1),
             ('vaultid', 1), ('fileid', 1), ('seq', 1)])
         limit = self._determine_limit(limit)
+        search_offset = offset if offset else 0
         blocks = []
         blockset = []
 
-        search_offset = offset
         args = {'projectid': project_id, 'vaultid': vault_id,
             'fileid': file_id}
 
@@ -328,6 +333,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
                         "blockid": "$blocks.blockid",
                         "offset": "$blocks.offset"}}}},
             {'$sort': {"blocks.offset": 1}}])
+
         resblocks = resblocks.get('result')
 
         # The resblocks is a list of lists; Flat it.
@@ -368,7 +374,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             args = {
                 'projectid': project_id,
                 'vaultid': vault_id,
-                'blockid': block_id,
+                'blockid': str(block_id),
                 'blocksize': blocksize
             }
 
@@ -380,6 +386,6 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         args = {
             'projectid': project_id,
             'vaultid': vault_id,
-            'blockid': block_id
+            'blockid': str(block_id)
         }
         self._blocks.remove(args)
