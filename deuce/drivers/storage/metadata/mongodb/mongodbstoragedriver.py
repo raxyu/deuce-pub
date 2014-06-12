@@ -9,7 +9,8 @@ import atexit
 
 
 import itertools
-from deuce.drivers.storage.metadata import MetadataStorageDriver
+from deuce.drivers.storage.metadata import MetadataStorageDriver, \
+    GapError, OverlapError
 
 
 class MongoDbStorageDriver(MetadataStorageDriver):
@@ -99,7 +100,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
 
         self._files.remove(args)
 
-    def finalize_file(self, project_id, vault_id, file_id):
+    def finalize_file(self, project_id, vault_id, file_id, file_size=None):
         """Updates FILES to set a file to finalized. This function
         makes no assumptions about whether or not the file record actually
         exists"""
@@ -117,6 +118,37 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         resfile = self._files.find(find_args)
         if resfile.count() < 1:
             return
+
+        # Check for gap and overlap.
+        fileblocks_list = list(self._fileblocks.
+            find(find_args).sort('offset', 1))
+        expected_offset = 0
+
+        for item in fileblocks_list:
+            offset = item['offset']
+            blockid = item['blockid']
+
+            if offset == expected_offset:
+                blockdata = self.get_block_data(project_id, vault_id, blockid)
+                expected_offset += int(blockdata['blocksize'])
+            elif offset < expected_offset:  # Overlap scenario
+                raise OverlapError(project_id, vault_id, file_id,
+                    blockid, startpos=offset, endpos=expected_offset)
+            else:
+                raise GapError(project_id, vault_id, file_id,
+                    startpos=expected_offset, endpos=offset)
+
+        # Now we must check the very last block
+        if file_size and file_size != expected_offset:
+            if expected_offset < file_size:
+                raise GapError(project_id, vault_id, file_id, expected_offset,
+                    file_size)
+            else:
+                assert expected_offset > file_size
+
+                raise OverlapError(project_id, vault_id, file_id, file_size,
+                    startpos=file_size, endpos=expected_offset)
+
         filerec_id = list(resfile)[0].get('_id')
 
         # Chop up FILEBLOCKS list, and save to block chunks
@@ -219,7 +251,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         args = {
             'projectid': project_id,
             'vaultid': vault_id,
-            'blockid': block_id
+            'blockid': str(block_id)
         }
 
         return self._blocks.find_one(args) is not None
@@ -233,13 +265,13 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         args = {
             'projectid': project_id,
             'vaultid': vault_id,
-            'blockid': block_id
+            'blockid': str(block_id)
         }
 
         return self._blocks.find_one(args)
 
     def create_block_generator(self, project_id,
-            vault_id, marker=None, limit=0):
+            vault_id, marker=None, limit=None):
         self._blocks.ensure_index([('projectid', 1),
             ('vaultid', 1), ('blockid', 1)])
         args = {
@@ -247,34 +279,39 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             "vaultid": vault_id
         }
         if marker is not None:
-            args["blockid"] = {"$gte": marker}
+            args["blockid"] = {"$gte": str(marker)}
 
         limit = self._determine_limit(limit)
 
         return list(block['blockid'] for block in
-            self._blocks.find(args).sort("blockid", 1).limit(limit))
+            self._blocks.find(args).sort('blockid', 1).limit(limit))
 
     def create_file_generator(self, project_id, vault_id,
-            marker=0, limit=0, finalized=True):
+            marker=None, limit=None, finalized=True):
         self._files.ensure_index([('projectid', 1),
             ('vaultid', 1), ('fileid', 1)])
         limit = self._determine_limit(limit)
 
-        args = {'projectid': project_id, 'vaultid': vault_id,
-            'fileid': {"$gte": marker}, 'finalized': finalized}
+        args = dict()
+        if marker:
+            args = {'projectid': project_id, 'vaultid': vault_id,
+                'fileid': {"$gte": marker}, 'finalized': finalized}
+        else:
+            args = {'projectid': project_id, 'vaultid': vault_id,
+                'finalized': finalized}
 
         return list(retfile['fileid'] for retfile in
             self._files.find(args).sort("fileid", 1).limit(limit))
 
     def create_file_block_generator(self, project_id, vault_id, file_id,
-            offset=0, limit=0):
+            offset=None, limit=None):
         self._files.ensure_index([('projectid', 1),
             ('vaultid', 1), ('fileid', 1), ('seq', 1)])
         limit = self._determine_limit(limit)
+        search_offset = offset if offset else 0
         blocks = []
         blockset = []
 
-        search_offset = offset
         args = {'projectid': project_id, 'vaultid': vault_id,
             'fileid': file_id}
 
@@ -296,6 +333,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
                         "blockid": "$blocks.blockid",
                         "offset": "$blocks.offset"}}}},
             {'$sort': {"blocks.offset": 1}}])
+
         resblocks = resblocks.get('result')
 
         # The resblocks is a list of lists; Flat it.
@@ -336,7 +374,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             args = {
                 'projectid': project_id,
                 'vaultid': vault_id,
-                'blockid': block_id,
+                'blockid': str(block_id),
                 'blocksize': blocksize
             }
 
@@ -348,6 +386,6 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         args = {
             'projectid': project_id,
             'vaultid': vault_id,
-            'blockid': block_id
+            'blockid': str(block_id)
         }
         self._blocks.remove(args)

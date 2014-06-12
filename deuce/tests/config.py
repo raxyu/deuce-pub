@@ -74,8 +74,8 @@ block_storage_driver = {
 
 
 metadata_driver = {
-    'driver_path': 'deuce.drivers.storage.metadata.sqlite.sqlitestoragedriver',
-    'module': 'SqliteStorageDriver',
+    'driver': ('deuce.drivers.storage.metadata.sqlite.sqlitestoragedriver.'
+        'SqliteStorageDriver'),
     'sqlite': {
         'path': '/tmp/deuce_sqlite_unittest_vaultmeta.db',
         'db_module': 'sqlite3'

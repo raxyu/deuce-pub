@@ -6,6 +6,7 @@ from deuce.tests.mock_cassandra import Cluster
 
 # from cassandra.cluster import Cluster
 from deuce.drivers.storage.metadata import MetadataStorageDriver
+from deuce.drivers.storage.metadata import GapError, OverlapError
 from pecan import conf
 
 
@@ -47,6 +48,16 @@ CQL_GET_FILE_BLOCKS = '''
     AND offset >= %s
     ORDER BY offset
     LIMIT %s
+'''
+
+CQL_GET_ALL_FILE_BLOCKS_W_SIZE = '''
+    SELECT blocks.blockid, fileblocks.offset, blocks.blocksize
+    FROM blocks, fileblocks
+    WHERE fileblocks.blockid = blocks.blockid
+    AND fileblocks.projectid = %s
+    AND fileblocks.vaultid = %s
+    AND fileblocks.fileid = %s
+    ORDER by offset
 '''
 
 CQL_GET_ALL_BLOCKS = '''
@@ -175,16 +186,48 @@ class CassandraStorageDriver(MetadataStorageDriver):
 
         self._session.execute(CQL_DELETE_FILE, args)
 
-    def finalize_file(self, project_id, vault_id, file_id):
+    def finalize_file(self, project_id, vault_id, file_id, file_size=None):
         """Updates the files table to set a file to finalized. This function
         makes no assumptions about whether or not the file record actually
         exists"""
 
+        # Check for gaps and overlaps.
+        expected_offset = 0
+
+        args = (project_id, vault_id, uuid.UUID(file_id))
+
+        res = self._session.execute(CQL_GET_ALL_FILE_BLOCKS_W_SIZE, args)
+
+        for blockid, offset, size in res:
+            if offset == expected_offset:
+                expected_offset += size
+            elif offset < expected_offset:  # Block overlaps previous block
+                raise OverlapError(project_id, vault_id, file_id, blockid,
+                    startpos=offset, endpos=expected_offset)
+            else:  # There is a gap between this block and the previous one
+                raise GapError(project_id, vault_id, file_id,
+                    startpos=expected_offset, endpos=offset)
+
+        # Now we must check the very last block and ensure
+        # that is completes the file. This is only doable if
+        # the final file size was provided
+        if file_size and file_size != expected_offset:
+
+            if expected_offset < file_size:  # Gap
+                raise GapError(project_id, vault_id, file_id,
+                    startpos=expected_offset, endpos=file_size)
+
+            else:
+                assert expected_offset > file_size
+
+                # This means that the "last" block overlaps
+                # the end of the file.
+                raise OverlapError(project_id, vault_id, file_id, blockid,
+                    startpos=file_size, endpos=expected_offset)
+
         if self.has_file(project_id, vault_id, file_id):
             args = (project_id, vault_id, uuid.UUID(file_id))
             res = self._session.execute(CQL_FINALIZE_FILE, args)
-
-        # else: do nothing
 
     def get_block_data(self, project_id, vault_id, block_id):
         args = (project_id, vault_id, block_id)

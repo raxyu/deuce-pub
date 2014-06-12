@@ -6,6 +6,58 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 # is to enable 100% code coverage when testing
 
 
+class OverlapError(Exception):
+    """OverlapError is raised when finalizing
+    a file is attempted but is not possible
+    because two blocks overlap each other in
+    the file"""
+    def __init__(self, project_id, vault_id, file_id, block_id,
+            startpos, endpos):
+        """Creates a new OverlapError Exception
+
+        :param vault_id: The vault containing the file
+        :param file_id: The file containing the overlap
+        :param block_id: The ID of the overlapping block
+        :param startpos: The first overlapped byte
+        :param endpos: The last overlapped block
+        """
+        self.project_id = project_id
+        self.vault_id = vault_id
+        self.file_id = file_id
+        self.block_id = block_id
+        self.startpos = startpos
+        self.endpos = endpos
+
+        msg = "[{0}/{1} Overlap at block {2} file {3} at [{4}-{5}]".format(
+            project_id, vault_id, block_id, file_id, startpos, endpos)
+
+        Exception.__init__(self, msg)
+
+
+class GapError(Exception):
+    """GapError is raised becasue a file can
+    not be finalized because a portion of the
+    file is not covered by a block"""
+    def __init__(self, project_id, vault_id, file_id, startpos, endpos):
+        """Creates a new OverlapError Exception
+
+        :param vault_id: The vault containing the file
+        :param file_id: The file containing the overlap
+        :param startpos: The first position of the detected gap
+        :param endpos: The last position of the detected gap
+        """
+        self.project_id = project_id
+        self.vault_id = vault_id
+        self.file_id = file_id
+        self.startpos = startpos
+        self.endpos = endpos
+
+        msg = "[{3}\{4}] Gap in file {0} from {1}-{2}".format(
+            file_id, startpos, endpos, project_id, vault_id)
+
+        Exception.__init__(self, msg)
+
+
 @six.add_metaclass(ABCMeta)
 class MetadataStorageDriver(object):
     """MetadataStorageDriver is an abstract base class that
@@ -29,7 +81,7 @@ class MetadataStorageDriver(object):
         raise NotImplementedError
 
     @abstractmethod
-    def finalize_file(self, project_id, vault_id, file_id):
+    def finalize_file(self, project_id, vault_id, file_id, file_size=None):
         """Finalizes a file that has been de-duped. This
         check ensures that all blocks have been marked have
         been uploaded and that there are no 'gaps' in the

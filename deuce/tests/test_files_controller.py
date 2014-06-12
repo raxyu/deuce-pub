@@ -268,42 +268,49 @@ class TestFilesController(FunctionalTest):
         assert len(response.body) == 0
 
         # Register 1.20 times of blocks into system.
-        data = "{\"blocks\":["
+        data2 = "{\"blocks\":["
         enough_num2 = int(1.2 * conf.api_configuration.max_returned_num)
 
         block_list2, blocks_data2 = self.helper_create_blocks(num_blocks=(
             enough_num2 - enough_num))
         for cnt in range(enough_num, enough_num2):
-            data = data + '{' + '\"id\": \"{0}\", \"size\": \"100\", \
+            data2 = data2 + '{' + '\"id\": \"{0}\", \"size\": \"100\", \
                 \"offset\": \"{1}\"'.format(str(block_list2[cnt - enough_num]),
                 str(cnt * 100)) + '}'
             if cnt < enough_num2 - 1:
-                data = data + ','
-        data = data + ']}'
+                data2 = data2 + ','
+        data2 = data2 + ']}'
 
-        response = self.app.post(self._file_id, params=data, headers=hdrs)
+        response = self.app.post(self._file_id, params=data2, headers=hdrs)
         assert len(response.body) > 2
 
         # Put the blocks to storage.
         self.helper_store_blocks(blocks_data2)
 
         # Add blocks. resp will be empty.
-        response = self.app.post(self._file_id, params=data, headers=hdrs)
+        response = self.app.post(self._file_id, params=data2, headers=hdrs)
         assert len(response.body) == 2
 
         # Get the file.
         response = self.app.get(self._file_id, headers=hdrs)
         assert len(response.body) == 0
 
-        # Finalize file
+        # Failed Finalize file for block gap & overlap
         params = {}
+        failhdrs = hdrs.copy()
+        failhdrs['Filesize'] = '100'
+        response = self.app.post(self._file_id, params=params,
+                headers=failhdrs,
+                expect_errors=True)
+        assert response.status_int == 413
+
+        # Successfully finalize file
         response = self.app.post(self._file_id, params=params, headers=hdrs)
         assert response.status_int == 200
 
         # Error on trying to change Finalized file.
         response = self.app.post(self._file_id, params=data, headers=hdrs,
                                  expect_errors=True)
-
         assert response.status_int == 400
 
         # Get finalized file.
@@ -387,10 +394,8 @@ class TestFilesController(FunctionalTest):
              conf.api_configuration.max_returned_num)
 
     def helper_create_blocks(self, num_blocks):
-        min_size = 1
-        max_size = 2000
 
-        block_sizes = [randrange(min_size, max_size) for x in
+        block_sizes = [100 for x in
             range(0, num_blocks)]
 
         data = [os.urandom(x) for x in block_sizes]
