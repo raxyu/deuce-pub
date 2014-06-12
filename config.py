@@ -49,7 +49,7 @@ block_storage_driver = {
     'driver': 'deuce.drivers.storage.blocks.disk.DiskStorageDriver',
     'options': {
         'path': '/tmp/block_storage'
-    }
+    },
     'swift': {
         'driver': 'deuce.drivers.storage.blocks.swift.SwiftStorageDriver',
         'swift_module': 'swiftclient',
