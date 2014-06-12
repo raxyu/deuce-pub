@@ -1,5 +1,6 @@
 
 import os
+import hashlib
 
 
 class MockFile(object):
@@ -7,6 +8,8 @@ class MockFile(object):
     def __init__(self, size):
         self._pos = 0
         self._content = os.urandom(size)
+        self._sha1 = hashlib.sha1()
+        self._sha1.update(self._content)
 
     def seek(self, pos):
         self._pos = pos
@@ -26,3 +29,6 @@ class MockFile(object):
         self._pos += bytes_to_read
 
         return res
+
+    def sha1(self):
+        return self._sha1.hexdigest()
