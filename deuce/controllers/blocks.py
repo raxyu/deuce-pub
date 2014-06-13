@@ -1,5 +1,4 @@
 
-import hashlib
 from pecan import conf, expose, request, response, abort
 from pecan.rest import RestController
 from deuce.model import Vault, Block
@@ -84,12 +83,10 @@ class BlocksController(RestController):
         """Uploads a block into Deuce. The URL of the block
         is returned in the Location header
         """
-        # Validate the hash of the block data against block_id
-        if hashlib.sha1(request.body).hexdigest() != block_id:
-            response.status_code = 412
-            return
-
         vault = Vault.get(request.project_id, vault_id)
 
-        vault.put_block(
-            block_id, request.body, request.headers['content-length'])
+        try:
+            vault.put_block(
+                block_id, request.body, request.headers['content-length'])
+        except Exception as e:
+            response.status_code = 412
