@@ -18,6 +18,7 @@ Fine details of the API are still being worked out and are subject to change. AP
 
 Features
 --------
+ * Python 2.7, 3.3 and pypy are supported
  * Client-side de-duplication
  * Server-side reconstructiona nd retrieval of de-duplicated data
  * Pluggable driver support for metadata and block backend stores
