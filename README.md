@@ -11,15 +11,44 @@ In today's web-enabled world we generate a *lot* of data. This is especially tru
 
 Focus of this project is intentionally very narrow, following the *NIX notion of small tools that can be pieced together with other tools to do amazing things.
 
+Fine details of the API are still being worked out and are subject to change. API docs are available [here](http://docs.deuce.apiary.io).
+
 Features
 --------
  * Client-side de-duplication
- * Server-side de-duplication
+ * Server-side reconstructiona nd retrieval of de-duplicated data
  * Pluggable driver support for metadata and block backend stores
- * Compatible with Open Stack
+ * Cassandra, MongoDB and sqlite drivers for metadata storage
+ * Disk storage and Open Stack Swift supported for block storage
+ * Designed from the ground up to work well in Open Stack environments
 
 What Deuce is not?
 ------------------
  * A backup program. It is ideal for being used by a backup system for implementing data, but it in itself is not a backup program. 
  * Block storage. In spite of using some common words, Deuce does not aim to compete with block storage solutions such as Open Stack cinder.
  * Object storage (such as Open Stack Swift)
+
+
+Installation
+------------
+Trying out Deuce is simple. The default configuration is setup to use sqlite and disk storage drivers. This means that you can be up and running quickly for development and evaluation purposes. 
+
+
+Clone this repo: 
+
+```
+  git clone https://github.com/rackerlabs/deuce.git
+```
+
+Install the code
+
+```
+  cd deuce
+  python setup.py develop
+```
+
+Start it up
+
+```
+  pecan serve config.py
+```
