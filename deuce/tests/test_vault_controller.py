@@ -45,8 +45,7 @@ class TestVaultController(FunctionalTest):
 
         # Now if we get the vault, what do we get? For now,
         # let's enforce that we get a 204 (No Content)
-        response = self.app.get(vault_path, headers=self._hdrs,
-            expect_errors=True)
+        response = self.app.get(vault_path, headers=self._hdrs)
 
         assert response.status_code == 200
 
