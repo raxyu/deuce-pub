@@ -11,6 +11,9 @@ In today's web-enabled world we generate a *lot* of data. This is especially tru
 
 Focus of this project is intentionally very narrow, following the *NIX notion of small tools that can be pieced together with other tools to do amazing things.
 
+API
+---
+
 Fine details of the API are still being worked out and are subject to change. API docs are available [here](http://docs.deuce.apiary.io).
 
 Features
