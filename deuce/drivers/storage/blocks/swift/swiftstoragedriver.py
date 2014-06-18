@@ -11,7 +11,7 @@ import importlib
 
 from swiftclient.exceptions import ClientException
 
-from six import StringIO
+from six import BytesIO
 
 
 class SwiftStorageDriver(BlockStorageDriver):
@@ -104,7 +104,7 @@ class SwiftStorageDriver(BlockStorageDriver):
 
     def get_block_obj(self, project_id, vault_id, block_id):
         response = dict()
-        buff = StringIO()
+        buff = BytesIO()
         try:
             ret_hdr, ret_obj_body = \
                 self.Conn.get_object(
