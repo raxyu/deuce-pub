@@ -20,4 +20,5 @@ class ProjectIDHook(PecanHook):
             state.request.project_id = state.request.headers[hdr_name]
             # TODO: validate the project_id
         except KeyError:
-            abort(400)  # Invalid request
+            # Invalid request
+            abort(400, comment="Missing Header : X-Project-ID")

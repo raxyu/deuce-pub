@@ -107,12 +107,11 @@ class FilesController(RestController):
         if not f:
             abort(404)
 
-        # Fileid with an empty body will finalize the file.
-        filesize = request.headers['Filesize'] if 'Filesize' \
-            in request.headers.keys() else 0
-
         if not request.body:
             try:
+                # Fileid with an empty body will finalize the file.
+                filesize = request.headers['Filesize'] if 'Filesize' \
+                    in request.headers.keys() else 0
                 res = deuce.metadata_driver.finalize_file(request.project_id,
                     vault_id, file_id, filesize)
                 return res
