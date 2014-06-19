@@ -48,6 +48,8 @@ Install the code
 
 ```
   cd deuce
+  virtualenv env
+  . env/bin/activate
   python setup.py develop
 ```
 
