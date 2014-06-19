@@ -68,7 +68,7 @@ class SwiftStorageDriver(BlockStorageDriver):
         try:
             mdhash = hashlib.md5()
             mdhash.update(blockdata)
-            mdetag = mdhash.digest()
+            mdetag = mdhash.hexdigest()
             ret_etag = self.Conn.put_object(
                 url=self._storage_url,
                 token=self._token,
@@ -122,3 +122,10 @@ class SwiftStorageDriver(BlockStorageDriver):
             return buff
         except ClientException as e:
             return None
+
+    def create_blocks_generator(self, project_id, vault_id, block_gen):
+        """Returns a generator of file-like objects that are
+        ready to read. These objects will get closed
+        individually."""
+        return (self.get_block_obj(project_id, vault_id, block_id)
+            for block_id in block_gen)

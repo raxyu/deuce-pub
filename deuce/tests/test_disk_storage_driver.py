@@ -106,7 +106,7 @@ class DiskStorageDriverTest(FunctionalTest):
         orig_hex = orig_hash.hexdigest()
 
         for block_id, block_data in blocks:
-            driver.store_block(projectid, vault_id,
+            retval = driver.store_block(projectid, vault_id,
                 block_id, block_data.read())
             block_data.seek(0)
 

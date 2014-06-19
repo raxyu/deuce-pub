@@ -81,7 +81,7 @@ def put_object(url,
     mdhash = hashlib.md5()
     mdhash.update(contents)
     response_dict['status'] = 201
-    return mdhash.digest()
+    return mdhash.hexdigest()
 
 
 # Check Block
