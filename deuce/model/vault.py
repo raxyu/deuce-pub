@@ -33,7 +33,7 @@ class Vault(object):
 
         # Validate the hash of the block data against block_id
         if hashlib.sha1(blockdata).hexdigest() != block_id:
-            raise Exception('Invalid Block Hash')
+            raise ValueError('Invalid Hash Value in the block ID')
 
         retval = deuce.storage_driver.store_block(
             self.project_id, self.id, block_id, blockdata)
