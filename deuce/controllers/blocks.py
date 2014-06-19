@@ -88,5 +88,5 @@ class BlocksController(RestController):
         try:
             vault.put_block(
                 block_id, request.body, request.headers['content-length'])
-        except Exception as e:
+        except ValueError as e:
             response.status_code = 412
