@@ -8,6 +8,7 @@ import io
 import shutil
 
 import importlib
+import hashlib
 
 from swiftclient.exceptions import ClientException
 
@@ -65,6 +66,9 @@ class SwiftStorageDriver(BlockStorageDriver):
     def store_block(self, project_id, vault_id, block_id, blockdata):
         response = dict()
         try:
+            mdhash = hashlib.md5()
+            mdhash.update(blockdata)
+            mdetag = mdhash.digest()
             ret_etag = self.Conn.put_object(
                 url=self._storage_url,
                 token=self._token,
@@ -72,9 +76,9 @@ class SwiftStorageDriver(BlockStorageDriver):
                 name='blocks/' + str(block_id),
                 contents=blockdata,
                 content_length=len(blockdata),
-                # etag=*TODO*,
+                etag=mdetag,
                 response_dict=response)
-            return response['status'] == 201
+            return response['status'] == 201 and ret_etag == mdetag
         except ClientException as e:
             return False
 

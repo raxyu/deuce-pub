@@ -78,7 +78,8 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
         driver.create_vault(projectid, vaultid)
         driver.vault_exists(projectid, vaultid)
         driver.delete_vault(projectid, vaultid)
-        driver.store_block(projectid, vaultid, blockid, '')
+        driver.store_block(projectid, vaultid, blockid,
+            str('').encode('utf-8'))
         driver.block_exists(projectid, vaultid, blockid)
         driver.delete_block(projectid, vaultid, blockid)
         driver.get_block_obj(projectid, vaultid, blockid)

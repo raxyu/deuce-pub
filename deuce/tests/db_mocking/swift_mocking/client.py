@@ -4,6 +4,7 @@ import os
 import io
 import shutil
 from swiftclient.exceptions import ClientException
+import hashlib
 
 container_path = '/tmp/swift_mocking'
 
@@ -65,7 +66,8 @@ def put_object(url,
             name,
             contents,
             content_length,
-            response_dict):
+            response_dict,
+            etag=None):
 
     blocks_path = os.path.join(_get_vault_path(container), 'blocks')
     if not os.path.exists(blocks_path):
@@ -75,7 +77,11 @@ def put_object(url,
 
     with open(path, 'wb') as outfile:
         outfile.write(contents)
+
+    mdhash = hashlib.md5()
+    mdhash.update(contents)
     response_dict['status'] = 201
+    return mdhash.digest()
 
 
 # Check Block

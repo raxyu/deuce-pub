@@ -85,5 +85,6 @@ class BlocksController(RestController):
         """
         vault = Vault.get(request.project_id, vault_id)
 
-        vault.put_block(
+        retval = vault.put_block(
             block_id, request.body, request.headers['content-length'])
+        response.status_code = (201 if retval is True else 500)
