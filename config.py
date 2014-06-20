@@ -25,15 +25,21 @@ app = {
 
 logging = {
     'loggers': {
-        'root': {'level': 'INFO', 'handlers': ['console']},
-        'deuce': {'level': 'DEBUG', 'handlers': ['console']},
-        'py.warnings': {'handlers': ['console']},
+        'root': {'level': 'INFO', 'handlers': ['logfile']},
+        'deuce': {'level': 'DEBUG', 'handlers': ['logfile']},
+        'py.warnings': {'handlers': ['logfile']},
         '__force_dict__': True
     },
     'handlers': {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'logfile': {
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/deuce.log',
+            'level': 'INFO',
             'formatter': 'simple'
         }
     },

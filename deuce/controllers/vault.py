@@ -5,6 +5,9 @@ from deuce.controllers.blocks import BlocksController
 from deuce.controllers.files import FilesController
 from deuce.controllers.validation import *
 from deuce.model import Vault
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class VaultController(RestController):
@@ -14,12 +17,15 @@ class VaultController(RestController):
 
     @expose()
     def index(self):
+        logger.warning('Invalid vault controller index request.')
         response.status_code = 404
 
     @expose()
     @validate(vault_name=VaultPutRule)
     def post(self, vault_name):
         vault = Vault.create(request.project_id, vault_name)
+        # TODO: Need check and monitor failed vault.
+        logger.info('Vault [{0}] created.'.format(vault_name))
         response.status_code = 201 if vault else 500
 
     @expose()
@@ -30,6 +36,7 @@ class VaultController(RestController):
         if Vault.get(request.project_id, vault_id):
             response.status_code = 200
         else:
+            logger.error('Vault [{0}] does not exist.'.format(vault_id))
             response.status_code = 404
 
         return None
@@ -42,6 +49,9 @@ class VaultController(RestController):
 
         if vault:
             vault.delete()
+            logger.info('Vault [{0}] created.'.format(vault_id))
             response.status_code = 200
         else:
+            logger.error('Vault [{0}] deletion failed. \
+                Vault does not exist.'.format(vault_id))
             response.status_code = 404

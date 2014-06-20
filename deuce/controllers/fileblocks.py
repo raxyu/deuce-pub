@@ -11,6 +11,10 @@ from deuce.controllers.validation import *
 
 BLOCK_ID_LENGTH = 40
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class FileBlocksController(RestController):
 
@@ -29,6 +33,7 @@ class FileBlocksController(RestController):
         f = vault.get_file(file_id)
 
         if not f:
+            logger.error('File [{0}] does not exist.'.format(file_id))
             abort(404)
 
         inmarker = int(request.params.get('marker', 0))
