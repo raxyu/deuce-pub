@@ -33,7 +33,7 @@ class FileBlocksController(RestController):
         f = vault.get_file(file_id)
 
         if not f:
-            logger.error('File [{0}] does not exist.'.format(file_id))
+            logger.error('File [{0}] does not exist'.format(file_id))
             abort(404)
 
         inmarker = int(request.params.get('marker', 0))

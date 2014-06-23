@@ -47,8 +47,8 @@ logging = {
     },
     'formatters': {
         'simple': {
-            'format': ('%(asctime)s %(levelname)-5.5s [%(name)s]'
-                       '[%(threadName)s] %(message)s')
+            'format': ('%(asctime)s %(levelname)-5.5s [%(name)s/%(lineno)d]'
+                       '[%(threadName)s] : %(message)s')
         }
     }
 }

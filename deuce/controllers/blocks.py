@@ -30,7 +30,7 @@ class BlocksController(RestController):
         vault = Vault.get(request.project_id, vault_id)
 
         if not vault:
-            logger.error('Vault [{0}] does not exist.'.format(vault_id))
+            logger.error('Vault [{0}] does not exist'.format(vault_id))
             response.status_code = 404
             return
 
@@ -77,7 +77,7 @@ class BlocksController(RestController):
         block = vault.get_block(block_id)
 
         if block is None:
-            logger.error('block [{0}] does not exist.'.format(block_id))
+            logger.error('block [{0}] does not exist'.format(block_id))
             abort(404)
 
         response.body_file = block.get_obj()
@@ -93,4 +93,4 @@ class BlocksController(RestController):
 
         vault.put_block(
             block_id, request.body, request.headers['content-length'])
-        logger.info('block [{0}] added.'.format(block_id))
+        logger.info('block [{0}] added'.format(block_id))

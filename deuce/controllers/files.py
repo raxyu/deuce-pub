@@ -30,7 +30,7 @@ class FilesController(RestController):
         vault = Vault.get(request.project_id, vault_id)
 
         if not vault:
-            logger.error('Vault [{0}] does not exist.'.format(vault_id))
+            logger.error('Vault [{0}] does not exist'.format(vault_id))
             abort(404)
 
         inmarker = request.params.get('marker')
@@ -68,13 +68,13 @@ class FilesController(RestController):
         vault = Vault.get(request.project_id, vault_id)
 
         if not vault:
-            logger.error('Vault [{0}] does not exist.'.format(vault_id))
+            logger.error('Vault [{0}] does not exist'.format(vault_id))
             abort(404)
 
         f = vault.get_file(file_id)
 
         if not f:
-            logger.error('File [{0}] does not exist.'.format(file_id))
+            logger.error('File [{0}] does not exist'.format(file_id))
             abort(404)
 
         block_gen = deuce.metadata_driver.create_file_block_generator(
@@ -98,7 +98,7 @@ class FilesController(RestController):
         # caller tried to post to a vault that
         # does not exist
         if not vault:
-            logger.error('Vault [{0}] does not exist.'.format(vault_id))
+            logger.error('Vault [{0}] does not exist'.format(vault_id))
             abort(400)
 
         if file_id is not None:
@@ -108,15 +108,15 @@ class FilesController(RestController):
 
         response.headers["Location"] = "files/%s" % file.file_id
         response.status_code = 201  # Created
-        logger.error('File [{0}] created at {1}.'.
-            format(file_id, response.headers["Location"]))
+        logger.error('File [{0}] created'.
+            format(response.headers["Location"]))
 
     def _assign(self, vault, vault_id, file_id):
 
         f = vault.get_file(file_id)
 
         if not f:
-            logger.error('File [{0}] does not exist.'.format(file_id))
+            logger.error('File [{0}] does not exist'.format(file_id))
             abort(404)
 
         if not request.body:
@@ -133,8 +133,8 @@ class FilesController(RestController):
                 # NEED RETURN 413
                 details = str(e)
                 response.status_code = 413
-                logger.error('File [{0}] finalization \
-                    failed: {1}.'.format(file_id, details))
+                logger.error('File [{0}] finalization '
+                    'failed; [{1}]'.format(file_id, details))
                 return details
 
         if f.finalized:
@@ -142,8 +142,8 @@ class FilesController(RestController):
             # modified
             # TODO: Determine a better, more precise
             #       status code
-            logger.error('Finalized file [{0}] \
-                cannot be modified.'.format(file_id))
+            logger.error('Finalized file [{0}] '
+                'cannot be modified'.format(file_id))
             abort(400)
 
         blocks = request.json_body['blocks']
