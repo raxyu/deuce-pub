@@ -30,9 +30,9 @@ if not os.path.exists(log_directory):
 
 logging = {
     'loggers': {
-        'root': {'level': 'INFO', 'handlers': ['logfile']},
-        'deuce': {'level': 'DEBUG', 'handlers': ['logfile']},
-        'py.warnings': {'handlers': ['logfile']},
+        'root': {'level': 'INFO', 'handlers': ['rotatelogfile']},
+        'deuce': {'level': 'DEBUG', 'handlers': ['rotatelogfile']},
+        'py.warnings': {'handlers': ['rotatelogfile']},
         '__force_dict__': True
     },
     'handlers': {
@@ -45,6 +45,14 @@ logging = {
             'class': 'logging.FileHandler',
             'filename': os.path.join(log_directory, 'deuce.log'),
             'level': 'INFO',
+            'formatter': 'simple'
+        },
+        'rotatelogfile': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(log_directory, 'deuce.log'),
+            'level': 'INFO',
+            'maxBytes': 400000000,
+            'backupCount': 2,
             'formatter': 'simple'
         }
     },
