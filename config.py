@@ -23,6 +23,11 @@ app = {
     }
 }
 
+log_directory = 'log'
+import os
+if not os.path.exists(log_directory):
+    os.makedirs(log_directory)
+
 logging = {
     'loggers': {
         'root': {'level': 'INFO', 'handlers': ['logfile']},
@@ -38,7 +43,7 @@ logging = {
         },
         'logfile': {
             'class': 'logging.FileHandler',
-            'filename': '/var/log/deuce.log',
+            'filename': os.path.join(log_directory, 'deuce.log'),
             'level': 'INFO',
             'formatter': 'simple'
         }
