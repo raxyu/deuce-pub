@@ -108,7 +108,7 @@ class FilesController(RestController):
 
         response.headers["Location"] = "files/%s" % file.file_id
         response.status_code = 201  # Created
-        logger.error('File [{0}] created'.
+        logger.info('File [{0}] created'.
             format(response.headers["Location"]))
 
     def _assign(self, vault, vault_id, file_id):
