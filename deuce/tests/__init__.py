@@ -33,11 +33,13 @@ def setUp():
     prod_conf = pecan.configuration.conf_from_file('../config.py')
     conf_dict = prod_conf.to_dict()
 
-    conf_dict['metadata_driver']['mongodb']['is_mocking'] = True
+    # To update existed items.
     conf_dict['metadata_driver']['mongodb']['db_module'] = \
         'deuce.tests.db_mocking.mongodb_mocking'
     conf_dict['metadata_driver']['mongodb']['FileBlockReadSegNum'] = 10
     conf_dict['metadata_driver']['mongodb']['maxFileBlockSegNum'] = 30
+    # To add for-test-only items.
+    # conf_dict['metadata_driver']['mongodb']['foo'] = 'bar'
 
 
 def tearDown():

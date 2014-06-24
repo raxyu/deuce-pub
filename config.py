@@ -66,11 +66,9 @@ metadata_driver = {
 
         # Production DB module or unittest
         # With real mongodb daemon.
-        'is_mocking': False,
         'db_module': 'pymongo',
         #
         # Mocking DB module.
-        # 'is_mocking': True,
         # 'db_module': 'deuce.tests.db_mocking.mongodb_mocking',
 
         # An arbitary segment number for blocks fetching and
