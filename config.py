@@ -86,5 +86,5 @@ metadata_driver = {
 
 api_configuration = {
     # Define system limitation on page size
-    'max_returned_num': 100
+    'max_returned_num': 80
 }
