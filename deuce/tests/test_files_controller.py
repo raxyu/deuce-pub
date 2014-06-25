@@ -60,6 +60,18 @@ class TestFilesController(FunctionalTest):
                                 headers=self._hdrs, expect_errors=True)
         assert response.status_int == 404  # Not found
 
+        # Delete a file from non existed vault.
+        response = self.app.delete(self._NOT_EXIST_files_path + '/' +
+                '10000000-0000-0000-0000-000000000000', headers=self._hdrs,
+                expect_errors=True)
+        assert response.status_int == 404
+
+        # Delete a non existed file.
+        response = self.app.delete(self._files_path + '/' +
+                '10000000-0000-0000-0000-000000000000',
+                headers=self._hdrs, expect_errors=True)
+        assert response.status_int == 404
+
     def helper_create_files(self, num):
         params = {}
         for cnt in range(0, num):
@@ -264,8 +276,9 @@ class TestFilesController(FunctionalTest):
         assert len(response.body) == 2
 
         # Get unfinalized file.
-        response = self.app.get(self._file_id, headers=hdrs)
-        assert len(response.body) == 0
+        response = self.app.get(self._file_id, headers=hdrs,
+                expect_errors=True)
+        assert response.status_int == 412
 
         # Register 1.20 times of blocks into system.
         data2 = "{\"blocks\":["
@@ -292,8 +305,9 @@ class TestFilesController(FunctionalTest):
         assert len(response.body) == 2
 
         # Get the file.
-        response = self.app.get(self._file_id, headers=hdrs)
-        assert len(response.body) == 0
+        response = self.app.get(self._file_id, headers=hdrs,
+                expect_errors=True)
+        assert response.status_int == 412
 
         # Failed Finalize file for block gap & overlap
         params = {}
@@ -317,8 +331,12 @@ class TestFilesController(FunctionalTest):
         response = self.app.get(self._file_id, headers=hdrs)
         assert response.status_int == 200
 
-        # Now list the blocks that make up this file
+        # List the blocks that make up this file
         self.helper_test_file_blocks_controller(self._file_id, hdrs)
+
+        # Delete the finalized file.
+        response = self.app.delete(self._file_id, headers=hdrs)
+        assert response.status_int == 200
 
     def test_nonexistent_file_endpoints(self):
         file_path_format = '/v1.0/{0}/files/{1}'

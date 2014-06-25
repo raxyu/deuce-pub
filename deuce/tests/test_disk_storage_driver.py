@@ -34,8 +34,16 @@ class DiskStorageDriverTest(FunctionalTest):
 
         assert d.vault_exists(projectid, vaultid)
 
-        d.delete_vault(projectid, vaultid)
+        # delete a non-empty vault.
+        block_id = 'blah'
+        d.store_block(projectid, vaultid, block_id, b' ')
 
+        assert not d.delete_vault(projectid, vaultid)
+        assert d.vault_exists(projectid, vaultid)
+
+        d.delete_block(projectid, vaultid, block_id)
+
+        assert d.delete_vault(projectid, vaultid)
         assert not d.vault_exists(projectid, vaultid)
 
     def test_block_crud(self):
