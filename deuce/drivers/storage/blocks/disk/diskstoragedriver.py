@@ -38,7 +38,11 @@ class DiskStorageDriver(BlockStorageDriver):
 
     def delete_vault(self, project_id, vault_id):
         path = self._get_vault_path(project_id, vault_id)
-        os.rmdir(path)
+        try:
+            os.rmdir(path)
+            return True
+        except:
+            return False
 
     def store_block(self, project_id, vault_id, block_id, blockdata):
         path = self._get_block_path(project_id, vault_id, block_id)
