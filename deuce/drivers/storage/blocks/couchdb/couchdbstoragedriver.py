@@ -1,64 +1,94 @@
+
 from pecan import conf
+
 from deuce.drivers.storage.blocks import BlockStorageDriver
 
 import os
 import io
 import shutil
 
+import importlib
+import hashlib
+
+import couchdb
+
+from six import BytesIO
+
 
 class CouchdbStorageDriver(BlockStorageDriver):
 
-    def __init__(self):
-        # Load the pecan config
-        self._path = conf.block_storage_driver.options.path
+    def __init__(self, server_url):
+        self.couch = couchdb.Server(server_url)
+        self.vault = None
 
-    def _get_vault_path(self, project_id, vault_id):
-        return os.path.join(self._path, str(project_id), vault_id)
 
-    def _get_block_path(self, project_id, vault_id, block_id):
-        vault_path = self._get_vault_path(project_id, vault_id)
-        return os.path.join(vault_path, str(block_id))
-
+    # =========== VAULTS ===============================
     def create_vault(self, project_id, vault_id):
-        path = self._get_vault_path(project_id, vault_id)
+        db = "deuce_test/"+project_id+"/"+vault_id+"/"+"blocks"
+        try:
+            self.vault = self.couch.create(db)
+            return True
+        except Exception, e:
+            self.vault = self.couch[db]
+            return False
 
-        if not os.path.exists(path):
-            shutil.os.makedirs(path)
 
     def vault_exists(self, project_id, vault_id):
-        path = self._get_vault_path(project_id, vault_id)
-        return os.path.exists(path)
+        db = 'deuce_test/'+project_id+'/'+vault_id+'/'+'blocks'
+        try:
+            if self.couch[db]:
+                return True
+            else:
+                return False
+        except Exception:
+            return False
 
     def delete_vault(self, project_id, vault_id):
-        path = self._get_vault_path(project_id, vault_id)
-        os.rmdir(path)
+        db = 'deuce_test/'+project_id+'/'+vault_id+'/'+'blocks'
+        try:
+            self.couch.delete(db)
+            return True
+        except Exception:
+            return False
 
+    # =========== BLOCKS ===============================
     def store_block(self, project_id, vault_id, block_id, blockdata):
-        path = self._get_block_path(project_id, vault_id, block_id)
-
-        with open(path, 'wb') as outfile:
-            outfile.write(blockdata)
-
-        return True
+        try:
+            doc = {
+                "_id": block_id
+                }
+            self.vault.save(doc)
+            self.vault.put_attachment(doc, blockdata, filename=block_id)
+            return True
+        except Exception:
+            return False
 
     def block_exists(self, project_id, vault_id, block_id):
-        path = self._get_block_path(project_id, vault_id, block_id)
-        return os.path.exists(path)
+
+        if block_id in self.vault:
+            return True
+        else:
+            return False
 
     def delete_block(self, project_id, vault_id, block_id):
-        path = self._get_block_path(project_id, vault_id, block_id)
-
-        if os.path.exists(path):
-            os.remove(path)
+        try:
+            doc = self.vault[block_id]
+            self.vault.delete(doc)
+            return True
+        except:
+            return False
+        
 
     def get_block_obj(self, project_id, vault_id, block_id):
-        """Returns a file-like object capable or streaming the
-        block data. If the object cannot be retrieved, the list
-        of objects should be returned
-        """
-        path = self._get_block_path(project_id, vault_id, block_id)
-
-        if not os.path.exists(path):
+        try:
+            doc = self.vault[block_id]
+            return self.vault.get_attachment(block_id, filename=block_id)
+        except:
             return None
 
-        return open(path, 'rb')
+    def create_blocks_generator(self, project_id, vault_id, block_gen):
+        """Returns a generator of file-like objects that are
+        ready to read. These objects will get closed
+        individually."""
+        return (self.get_block_obj(project_id, vault_id, block_id)
+            for block_id in block_gen)
