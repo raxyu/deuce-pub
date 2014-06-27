@@ -10,7 +10,7 @@ import shutil
 import importlib
 import hashlib
 
-import couchdb
+import pycouchdb
 
 from six import BytesIO
 
@@ -18,71 +18,73 @@ from six import BytesIO
 class CouchdbStorageDriver(BlockStorageDriver):
 
     def __init__(self, server_url):
-        self.couch = couchdb.Server(server_url)
-        self.vault = None
-
+        self.couch = pycouchdb.Server(server_url)
 
     # =========== VAULTS ===============================
-    def create_vault(self, project_id, vault_id):
-        db = "deuce_test/"+project_id+"/"+vault_id+"/"+"blocks"
-        try:
-            self.vault = self.couch.create(db)
-            return True
-        except Exception, e:
-            self.vault = self.couch[db]
-            return False
 
+    def get_vault(self, project_id, vault_id):
+        try:
+            db_path = "deuce_test/" + project_id + \
+                "/" + vault_id + "/" + "blocks"
+            return self.couch.database(db_path)
+        except:
+            return None
+
+    def create_vault(self, project_id, vault_id):
+        try:
+            db_path = "deuce_test/" + project_id + \
+                "/" + vault_id + "/" + "blocks"
+            self.couch.create(db_path)
+            return True
+        except:
+            return False
 
     def vault_exists(self, project_id, vault_id):
-        db = 'deuce_test/'+project_id+'/'+vault_id+'/'+'blocks'
-        try:
-            if self.couch[db]:
-                return True
-            else:
-                return False
-        except Exception:
+        vault = self.get_vault(project_id, vault_id)
+        if vault is None:
             return False
+        return True
 
     def delete_vault(self, project_id, vault_id):
-        db = 'deuce_test/'+project_id+'/'+vault_id+'/'+'blocks'
         try:
-            self.couch.delete(db)
+            db_path = "deuce_test/" + project_id + \
+                "/" + vault_id + "/" + "blocks"
+            self.couch.delete(db_path)
             return True
-        except Exception:
+        except:
             return False
 
     # =========== BLOCKS ===============================
     def store_block(self, project_id, vault_id, block_id, blockdata):
         try:
-            doc = {
-                "_id": block_id
-                }
-            self.vault.save(doc)
-            self.vault.put_attachment(doc, blockdata, filename=block_id)
-            return True
-        except Exception:
-            return False
-
-    def block_exists(self, project_id, vault_id, block_id):
-
-        if block_id in self.vault:
-            return True
-        else:
-            return False
-
-    def delete_block(self, project_id, vault_id, block_id):
-        try:
-            doc = self.vault[block_id]
-            self.vault.delete(doc)
+            doc = {"_id": block_id}
+            vault = self.get_vault(project_id, vault_id)
+            doc = vault.save(doc)
+            ret = vault.put_attachment(doc, blockdata, filename=block_id)
             return True
         except:
             return False
-        
+
+    def block_exists(self, project_id, vault_id, block_id):
+        vault = self.get_vault(project_id, vault_id)
+        if vault and block_id in vault:
+            return True
+        return False
+
+    def delete_block(self, project_id, vault_id, block_id):
+        vault = self.get_vault(project_id, vault_id)
+        if vault:
+            vault.delete(block_id)
+            return True
+        return False
 
     def get_block_obj(self, project_id, vault_id, block_id):
         try:
-            doc = self.vault[block_id]
-            return self.vault.get_attachment(block_id, filename=block_id)
+            vault = self.get_vault(project_id, vault_id)
+            if vault:
+                doc = vault.get(block_id)
+                return BytesIO(vault.get_attachment(doc, filename=block_id))
+            return None
         except:
             return None
 

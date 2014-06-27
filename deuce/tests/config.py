@@ -59,9 +59,9 @@ block_storage_driver = {
     },
     'swift': {
         'driver': 'deuce.drivers.storage.blocks.swift.SwiftStorageDriver',
-        #'is_mocking': True,
+        # 'is_mocking': True,
         'is_mocking': False,
-        #'swift_module': 'deuce.tests.db_mocking.swift_mocking',
+        # 'swift_module': 'deuce.tests.db_mocking.swift_mocking',
         'swift_module': 'swiftclient',
 
         # 'auth_url': 'YOUR AUTH URL',
