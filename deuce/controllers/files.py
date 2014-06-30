@@ -50,6 +50,7 @@ class FilesController(RestController):
             returl = set_qs(request.url, query_args)
 
             response.headers["X-Next-Batch"] = returl
+            response.headers["Transaction-ID"] = request.context.request_id
 
         return resp
 
@@ -98,6 +99,7 @@ class FilesController(RestController):
         file = vault.create_file()
 
         response.headers["Location"] = "files/%s" % file.file_id
+        response.headers["Transaction-ID"] = request.context.request_id
         response.status_code = 201  # Created
 
     def _assign(self, vault, vault_id, file_id):

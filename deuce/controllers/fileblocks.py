@@ -22,6 +22,7 @@ class FileBlocksController(RestController):
         marker=OffsetMarkerRule, limit=LimitRule)
     def get_all(self, vault_id, file_id):
 
+        response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(request.project_id, vault_id)
 
         assert vault is not None

@@ -21,6 +21,7 @@ class VaultController(RestController):
     def post(self, vault_name):
         vault = Vault.create(request.project_id, vault_name)
         response.status_code = 201 if vault else 500
+        response.headers["Transaction-ID"] = request.context.request_id
 
     @expose()
     @validate(vault_id=VaultGetRule)
@@ -32,6 +33,7 @@ class VaultController(RestController):
         else:
             response.status_code = 404
 
+        response.headers["Transaction-ID"] = request.context.request_id
         return None
 
     @expose()
@@ -45,3 +47,5 @@ class VaultController(RestController):
             response.status_code = 204
         else:
             response.status_code = 404
+
+        response.headers["Transaction-ID"] = request.context.request_id
