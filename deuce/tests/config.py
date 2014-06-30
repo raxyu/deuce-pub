@@ -43,7 +43,7 @@ logging = {
     'formatters': {
         'simple': {
             'format': ('%(asctime)s %(levelname)-5.5s [%(name)s]'
-                       '[%(threadName)s] %(message)s')
+                       '[%(threadName)s] [%(request_id)s] %(message)s')
         }
     }
 }
