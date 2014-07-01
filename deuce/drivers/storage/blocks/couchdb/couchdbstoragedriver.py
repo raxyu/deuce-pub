@@ -1,16 +1,11 @@
 
-from pecan import conf
-
-from deuce.drivers.storage.blocks import BlockStorageDriver
-
-import os
-import io
-import shutil
-
-import importlib
-import hashlib
 
 import pycouchdb
+from deuce.drivers.storage.blocks import BlockStorageDriver
+
+from pecan import conf
+import importlib
+
 
 from six import BytesIO
 
@@ -57,8 +52,8 @@ class CouchdbStorageDriver(BlockStorageDriver):
     # =========== BLOCKS ===============================
     def store_block(self, project_id, vault_id, block_id, blockdata):
         try:
-            doc = {"_id": block_id}
             vault = self.get_vault(project_id, vault_id)
+            doc = {"_id": block_id}
             doc = vault.save(doc)
             ret = vault.put_attachment(doc, blockdata, filename=block_id)
             return True
