@@ -10,7 +10,7 @@ server = {
 def get_hooks():
     from deuce.hooks import ProjectIDHook
     from deuce.hooks import TransactionIDHook
-    return [ProjectIDHook(), TransactionIDHook()]
+    return [TransactionIDHook(), ProjectIDHook()]
 
 # Pecan Application Configurations
 app = {
