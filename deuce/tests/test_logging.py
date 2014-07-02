@@ -13,6 +13,7 @@ class TestLogging(FunctionalTest):
         self._hdrs = {"X-Project-ID": "sample_project_id"}
 
     def _testuuid(self, request_id):
+        request_id = request_id.decode("utf-8")
         try:
             uuid.UUID(request_id.replace(request_id[:4], ''))
         except ValueError:
