@@ -75,7 +75,7 @@ class BlocksController(RestController):
             abort(404)
 
         response.body_file = block.get_obj()
-        response.status_code = 200
+        response.status_code = 204
 
     @expose()
     @validate(vault_id=VaultPutRule, block_id=BlockPutRuleNoneOk)
