@@ -21,11 +21,11 @@ class FilesController(RestController):
     @expose('json')
     @validate(vault_id=VaultGetRule, marker=FileMarkerRule, limit=LimitRule)
     def get_all(self, vault_id):
-
+        response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(request.project_id, vault_id)
 
         if not vault:
-            abort(404)
+            abort(404, headers={"Transaction-ID": request.context.request_id})
 
         inmarker = request.params.get('marker')
         limit = int(request.params.get('limit',
@@ -50,7 +50,6 @@ class FilesController(RestController):
             returl = set_qs(request.url, query_args)
 
             response.headers["X-Next-Batch"] = returl
-            response.headers["Transaction-ID"] = request.context.request_id
 
         return resp
 
@@ -59,16 +58,16 @@ class FilesController(RestController):
     def get_one(self, vault_id, file_id):
         """Fetches, re-assembles and streams a single
         file out of Deuce"""
-
+        response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(request.project_id, vault_id)
 
         if not vault:
-            abort(404)
+            abort(404, headers={"Transaction-ID": request.context.request_id})
 
         f = vault.get_file(file_id)
 
         if not f:
-            abort(404)
+            abort(404, headers={"Transaction-ID": request.context.request_id})
 
         block_gen = deuce.metadata_driver.create_file_block_generator(
             request.project_id, vault_id, file_id)
@@ -86,12 +85,13 @@ class FilesController(RestController):
         the new file is returned in the Location
         header
         """
+        response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(request.project_id, vault_id)
 
         # caller tried to post to a vault that
         # does not exist
         if not vault:
-            abort(400)
+            abort(400, headers={"Transaction-ID": request.context.request_id})
 
         if file_id is not None:
             return self._assign(vault, vault_id, file_id)
@@ -99,15 +99,14 @@ class FilesController(RestController):
         file = vault.create_file()
 
         response.headers["Location"] = "files/%s" % file.file_id
-        response.headers["Transaction-ID"] = request.context.request_id
         response.status_code = 201  # Created
 
     def _assign(self, vault, vault_id, file_id):
-
+        response.headers["Transaction-ID"] = request.context.request_id
         f = vault.get_file(file_id)
 
         if not f:
-            abort(404)
+            abort(404, headers={"Transaction-ID": request.context.request_id})
 
         if not request.body:
             try:
@@ -130,7 +129,7 @@ class FilesController(RestController):
             # modified
             # TODO: Determine a better, more precise
             #       status code
-            abort(400)
+            abort(400, headers={"Transaction-ID": request.context.request_id})
 
         blocks = request.json_body['blocks']
 

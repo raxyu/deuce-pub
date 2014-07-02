@@ -30,7 +30,7 @@ class FileBlocksController(RestController):
         f = vault.get_file(file_id)
 
         if not f:
-            abort(404)
+            abort(404, headers={"Transaction-ID": request.context.request_id})
 
         inmarker = int(request.params.get('marker', 0))
         limit = int(request.params.get('limit',

@@ -1,7 +1,7 @@
 from pecan.hooks import PecanHook
 
-from deuce.openstack.common import local
-from deuce.openstack.common import context
+from deuce.common import local
+from deuce.common import context
 
 
 class TransactionIDHook(PecanHook):

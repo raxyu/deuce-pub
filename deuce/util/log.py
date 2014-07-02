@@ -1,7 +1,6 @@
 import logging
-import six
 
-from deuce.openstack.common import local
+from deuce.common import local
 
 _loggers = {}
 
@@ -9,10 +8,6 @@ _loggers = {}
 class ContextAdapter(logging.LoggerAdapter):
 
     def process(self, msg, kwargs):
-
-        if not isinstance(msg, six.string_types):
-            msg = six.text_type(msg)
-
         context = getattr(local.store, 'context', None)
         kwargs['extra'] = {'request_id': context.request_id}
         self.extra = kwargs['extra']

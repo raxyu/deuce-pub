@@ -72,7 +72,7 @@ class BlocksController(RestController):
         block = vault.get_block(block_id)
 
         if block is None:
-            abort(404)
+            abort(404, headers={"Transaction-ID": request.context.request_id})
         response.headers["Transaction-ID"] = request.context.request_id
         response.body_file = block.get_obj()
         response.status_code = 204

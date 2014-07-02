@@ -22,7 +22,7 @@ import weakref
 class WeakLocal(threading.local):
     def __getattribute__(self, attr):
         rval = super(WeakLocal, self).__getattribute__(attr)
-        if rval:
+        if rval:  # pragma: no cover
             # NOTE(mikal): this bit is confusing. What is stored is a weak
             # reference, not the value itself. We therefore need to lookup
             # the weak reference and return the inner value here.
