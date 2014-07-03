@@ -28,7 +28,7 @@ class VaultController(RestController):
         """Returns the vault controller object"""
 
         if Vault.get(request.project_id, vault_id):
-            response.status_code = 200
+            response.status_code = 204
         else:
             response.status_code = 404
 
@@ -42,6 +42,6 @@ class VaultController(RestController):
 
         if vault:
             vault.delete()
-            response.status_code = 200
+            response.status_code = 204
         else:
             response.status_code = 404
