@@ -140,9 +140,9 @@ CQL_HAS_BLOCK = '''
 class CassandraStorageDriver(MetadataStorageDriver):
 
     def __init__(self):
-        # TODO: Get this from config.py
-        self._cluster = Cluster(['127.0.0.1'])
-        self._session = self._cluster.connect('deucekeyspace')
+        self._cluster = Cluster(conf.metadata_driver.cassandra.cluster)
+        deuce_keyspace = conf.metadata_driver.cassandra.keyspace
+        self._session = self._cluster.connect(deuce_keyspace)
 
     def _determine_limit(self, limit):
         """ Determines the limit based on user input """
