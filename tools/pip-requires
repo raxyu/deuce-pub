@@ -1,3 +1,5 @@
 pecan
 pymongo
 six
+python-keystoneclient
+python-swiftclient
