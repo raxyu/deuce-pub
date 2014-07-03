@@ -58,7 +58,15 @@ metadata_driver = {
 
     'cassandra': {
         'cluster': ['127.0.0.1'],
-        'keyspace': 'deucekeyspace'
+        'keyspace': 'deucekeyspace',
+
+        # Production DB with real cassandra
+        'is_mocking': False,
+        'db_module': 'cassandra.cluster',
+        #
+        # Mocking DB module
+        # 'is_mocking': True,
+        # 'db_module': 'deuce.tests.mock_cassandra',
     },
 
     'sqlite': {
