@@ -55,10 +55,17 @@ block_storage_driver = {
 metadata_driver = {
     'driver': ('deuce.drivers.storage.metadata.sqlite.sqlitestoragedriver.'
         'SqliteStorageDriver'),
+
+    'cassandra': {
+        'cluster': ['127.0.0.1'],
+        'keyspace': 'deucekeyspace'
+    },
+
     'sqlite': {
         'path': '/tmp/deuce_sqlite_unittest_vaultmeta.db',
         'db_module': 'sqlite3'
     },
+
     'mongodb': {
         'path': 'deuce_mongo_unittest_vaultmeta',
         'url': 'mongodb://127.0.0.1',
