@@ -7,7 +7,8 @@ server = {
 
 def get_hooks():
     from deuce.hooks import ProjectIDHook
-    return [ProjectIDHook()]
+    from deuce.hooks import TransactionIDHook
+    return [TransactionIDHook(), ProjectIDHook()]
 
 # Pecan Application Configurations
 app = {
@@ -40,7 +41,7 @@ logging = {
     'formatters': {
         'simple': {
             'format': ('%(asctime)s %(levelname)-5.5s [%(name)s]'
-                       '[%(threadName)s] %(message)s')
+                       '[%(threadName)s] [%(request_id)s] %(message)s')
         }
     }
 }

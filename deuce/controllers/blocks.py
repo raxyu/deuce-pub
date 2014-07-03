@@ -24,7 +24,7 @@ class BlocksController(RestController):
     def get_all(self, vault_id):
 
         vault = Vault.get(request.project_id, vault_id)
-
+        response.headers["Transaction-ID"] = request.context.request_id
         if not vault:
             response.status_code = 404
             return
@@ -65,15 +65,15 @@ class BlocksController(RestController):
         # Step 2: Stream the block back to the user
         vault = Vault.get(request.project_id, vault_id)
 
-        # Existence of the vault should have been confirmeds
+        # Existence of the vault should have been confirmed
         # in the vault controller
         assert vault is not None
 
         block = vault.get_block(block_id)
 
         if block is None:
-            abort(404)
-
+            abort(404, headers={"Transaction-ID": request.context.request_id})
+        response.headers["Transaction-ID"] = request.context.request_id
         response.body_file = block.get_obj()
         response.status_code = 204
 
@@ -83,6 +83,8 @@ class BlocksController(RestController):
         """Uploads a block into Deuce. The URL of the block
         is returned in the Location header
         """
+
+        response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(request.project_id, vault_id)
 
         retval = vault.put_block(

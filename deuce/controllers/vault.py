@@ -19,6 +19,7 @@ class VaultController(RestController):
     @expose()
     @validate(vault_name=VaultPutRule)
     def post(self, vault_name):
+        response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.create(request.project_id, vault_name)
         response.status_code = 201 if vault else 500
 
@@ -26,7 +27,7 @@ class VaultController(RestController):
     @validate(vault_id=VaultGetRule)
     def get_one(self, vault_id):
         """Returns the vault controller object"""
-
+        response.headers["Transaction-ID"] = request.context.request_id
         if Vault.get(request.project_id, vault_id):
             response.status_code = 204
         else:
@@ -37,7 +38,7 @@ class VaultController(RestController):
     @expose()
     @validate(vault_id=VaultPutRule)
     def delete(self, vault_id):
-
+        response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(request.project_id, vault_id)
 
         if vault:

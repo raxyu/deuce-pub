@@ -1,6 +1,7 @@
 coverage
 nose
 testtools
+testfixtures
 setuptools>=1.1.6
 pep8
 sentinels
