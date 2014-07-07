@@ -47,14 +47,14 @@ class TestVaultController(FunctionalTest):
         # let's enforce that we get a 204 (No Content)
         response = self.app.get(vault_path, headers=self._hdrs)
 
-        assert response.status_code == 200
+        assert response.status_code == 204
 
         # Now delete the vault (this should be OK since it
         # contains nothing in it.
         response = self.app.delete(vault_path, headers=self._hdrs,
             expect_errors=True)
 
-        assert response.status_code == 200
+        assert response.status_code == 204
 
         # Now we should get a 404 when trying to get the vault
         response = self.app.get(vault_path, headers=self._hdrs,
