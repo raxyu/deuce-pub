@@ -1,10 +1,8 @@
 
+import importlib
 import six
 import uuid
 
-from deuce.tests.mock_cassandra import Cluster
-
-# from cassandra.cluster import Cluster
 from deuce.drivers.storage.metadata import MetadataStorageDriver
 from deuce.drivers.storage.metadata import GapError, OverlapError
 from pecan import conf
@@ -140,9 +138,12 @@ CQL_HAS_BLOCK = '''
 class CassandraStorageDriver(MetadataStorageDriver):
 
     def __init__(self):
-        # TODO: Get this from config.py
-        self._cluster = Cluster(['127.0.0.1'])
-        self._session = self._cluster.connect('deucekeyspace')
+        self.cassandra = importlib.import_module(
+            conf.metadata_driver.cassandra.db_module)
+        self._cluster = self.cassandra.Cluster(
+            conf.metadata_driver.cassandra.cluster)
+        deuce_keyspace = conf.metadata_driver.cassandra.keyspace
+        self._session = self._cluster.connect(deuce_keyspace)
 
     def _determine_limit(self, limit):
         """ Determines the limit based on user input """

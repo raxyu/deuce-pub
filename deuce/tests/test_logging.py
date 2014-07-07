@@ -1,0 +1,44 @@
+import uuid
+from testfixtures import LogCapture
+
+from deuce.tests import FunctionalTest
+from deuce.util import log as logging
+
+
+class TestLogging(FunctionalTest):
+
+    def setUp(self):
+        super(TestLogging, self).setUp()
+
+        self._hdrs = {"X-Project-ID": "sample_project_id"}
+
+    def _testuuid(self, request_id):
+        request_id = request_id.decode("utf-8")
+        try:
+            uuid.UUID(request_id.replace(request_id[:4], ''))
+        except ValueError:
+            return False
+        else:
+            return True
+
+    def test_logging_handler(self):
+        self.app.get('/v1.0/', headers=self._hdrs, expect_errors=True)
+
+        # NOTE(TheSriram): Create a new LOG handler, and make sure the
+        # the next time we try to create one, we receive the one created
+        # earlier.
+
+        LOG_new = logging.getLogger(__name__)
+        LOG_exists = logging.getLogger(__name__)
+
+        self.assertEqual(LOG_new, LOG_exists)
+
+    def test_logging_requestid(self):
+        self.app.get('/v1.0/', headers=self._hdrs, expect_errors=True)
+
+        LOG = logging.getLogger(__name__)
+
+        with LogCapture() as capture:
+            LOG.info("Testing Request ID")
+
+        self.assertTrue(self._testuuid(capture.records[0].request_id))

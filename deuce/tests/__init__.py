@@ -34,10 +34,20 @@ def setUp():
     conf_dict = prod_conf.to_dict()
 
     # To update existed items.
+    # MongoDB
     conf_dict['metadata_driver']['mongodb']['db_module'] = \
         'deuce.tests.db_mocking.mongodb_mocking'
     conf_dict['metadata_driver']['mongodb']['FileBlockReadSegNum'] = 10
     conf_dict['metadata_driver']['mongodb']['maxFileBlockSegNum'] = 30
+    # Cassandra
+    conf_dict['metadata_driver']['cassandra']['db_module'] = \
+        'deuce.tests.mock_cassandra'
+    conf_dict['metadata_driver']['cassandra']['is_mocking'] = True
+    # Swift
+    conf_dict['block_storage_driver']['swift']['swift_module'] = \
+        'deuce.tests.db_mocking.swift_mocking'
+    conf_dict['block_storage_driver']['swift']['is_mocking'] = True
+
     # To add for-test-only items.
     # conf_dict['metadata_driver']['mongodb']['foo'] = 'bar'
 

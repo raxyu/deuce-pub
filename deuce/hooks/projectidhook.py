@@ -21,4 +21,5 @@ class ProjectIDHook(PecanHook):
             # TODO: validate the project_id
         except KeyError:
             # Invalid request
-            abort(400, comment="Missing Header : X-Project-ID")
+            abort(400, comment="Missing Header : X-Project-ID",
+                  headers={'Transaction-ID': state.request.context.request_id})

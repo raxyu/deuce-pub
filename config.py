@@ -7,7 +7,8 @@ server = {
 
 def get_hooks():
     from deuce.hooks import ProjectIDHook
-    return [ProjectIDHook()]
+    from deuce.hooks import TransactionIDHook
+    return [TransactionIDHook(), ProjectIDHook()]
 
 # Pecan Application Configurations
 app = {
@@ -40,7 +41,7 @@ logging = {
     'formatters': {
         'simple': {
             'format': ('%(asctime)s %(levelname)-5.5s [%(name)s]'
-                       '[%(threadName)s] %(message)s')
+                       '[%(threadName)s] [%(request_id)s] %(message)s')
         }
     }
 }
@@ -49,16 +50,41 @@ block_storage_driver = {
     'driver': 'deuce.drivers.storage.blocks.disk.DiskStorageDriver',
     'options': {
         'path': '/tmp/block_storage'
+    },
+    'swift': {
+        'driver': 'deuce.drivers.storage.blocks.swift.SwiftStorageDriver',
+        'swift_module': 'swiftclient',
+
+        'auth_url': 'YOUR AUTH URL',
+        # For example,
+        # 'auth_url': 'https://identity.api.rackspacecloud.com/v2.0/',
+        'username': 'YOUR USER NAME',
+        'password': 'YOUR PASSWORD',
     }
 }
 
 metadata_driver = {
     'driver': ('deuce.drivers.storage.metadata.sqlite.sqlitestoragedriver.'
         'SqliteStorageDriver'),
+
+    'cassandra': {
+        'cluster': ['127.0.0.1'],
+        'keyspace': 'deucekeyspace',
+
+        # Production DB with real cassandra
+        'is_mocking': False,
+        'db_module': 'cassandra.cluster',
+        #
+        # Mocking DB module
+        # 'is_mocking': True,
+        # 'db_module': 'deuce.tests.mock_cassandra',
+    },
+
     'sqlite': {
         'path': '/tmp/deuce_sqlite_unittest_vaultmeta.db',
         'db_module': 'sqlite3'
     },
+
     'mongodb': {
         'path': 'deuce_mongo_unittest_vaultmeta',
         'url': 'mongodb://127.0.0.1',
