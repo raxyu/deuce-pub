@@ -266,7 +266,7 @@ class TestBlocksController(FunctionalTest):
         for sha1 in block_list:
             path = self._get_block_path(sha1)
             response = self.app.get(path, headers=self._hdrs)
-            assert response.status_int == 200
+            assert response.status_int == 204
 
             bindata = response.body
 
