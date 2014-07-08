@@ -115,7 +115,8 @@ class DiskStorageDriverTest(FunctionalTest):
 
         for block_data in blocks:
             block_id = block_data.sha1()
-            driver.store_block(projectid, vault_id, block_id, block_data.read())
+            driver.store_block(projectid, vault_id, block_id,
+                block_data.read())
             block_data.seek(0)
 
         # Now call the block generator.
