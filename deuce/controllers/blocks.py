@@ -75,7 +75,7 @@ class BlocksController(RestController):
             abort(404, headers={"Transaction-ID": request.context.request_id})
         response.headers["Transaction-ID"] = request.context.request_id
         response.body_file = block.get_obj()
-        response.status_code = 204
+        response.status_code = 200
 
     @expose()
     @validate(vault_id=VaultPutRule, block_id=BlockPutRuleNoneOk)

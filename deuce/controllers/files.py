@@ -96,7 +96,7 @@ class FilesController(RestController):
             request.project_id, vault_id, block_ids)
 
         response.body_file = FileCat(objs)
-        response.status_code = 204
+        response.status_code = 200
 
     @expose('json')
     @validate(vault_id=VaultPutRule, file_id=FilePostRuleNoneOk)
