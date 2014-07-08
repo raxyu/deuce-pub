@@ -5,6 +5,8 @@ from functools import wraps
 from collections import namedtuple
 from pecan import request, abort
 
+from deuce.common import local
+
 VAULT_ID_MAX_LEN = 128
 VAULT_ID_REGEX = re.compile('^[a-zA-Z0-9_\-]+$')
 BLOCK_ID_REGEX = re.compile('\\b[0-9a-f]{40}\\b')
@@ -188,7 +190,8 @@ def val_limit(value):
 
 
 def _abort(status_code):
-    abort(status_code, headers={"Transaction-ID": request.context.request_id})
+    transaction = getattr(local.store, 'context')
+    abort(status_code, headers={"Transaction-ID": transaction.request_id})
 
 # parameter rules
 VaultGetRule = Rule(val_vault_id(), lambda: _abort(404))
