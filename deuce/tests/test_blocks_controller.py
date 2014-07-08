@@ -71,6 +71,15 @@ class TestBlocksController(FunctionalTest):
     def test_with_bad_marker_and_limit(self):
         block_list = self.helper_create_blocks(num_blocks=5)
 
+        # TODO: Need reenable after each function can cleanup/delete
+        #       blocks afterward.
+        # Now try to get a list of blocks to ensure that they'e
+        # there.
+        # resp = self.app.get(self._blocks_path, headers=self._hdrs)
+        # all_blocks = resp.json_body
+        # self.assertEqual(len(all_blocks), 5)
+        # self.assertEqual(resp.status_code, 200)
+
         # Now check the first one. We're going to send the marker
         # and limit and we should get just one
         args = dict(limit=1)
