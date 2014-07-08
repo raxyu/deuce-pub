@@ -315,7 +315,7 @@ class TestFilesController(FunctionalTest):
 
         # Get finalized file.
         response = self.app.get(self._file_id, headers=hdrs)
-        assert response.status_int == 200
+        assert response.status_int == 204
 
         # Now list the blocks that make up this file
         self.helper_test_file_blocks_controller(self._file_id, hdrs)

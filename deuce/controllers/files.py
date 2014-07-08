@@ -1,3 +1,5 @@
+from deuce.util import log as logging
+
 from pecan import conf, expose, request, response
 from pecan.core import abort
 from pecan.rest import RestController
@@ -9,8 +11,6 @@ from deuce.controllers.validation import *
 from deuce.model import Vault, Block, File
 from deuce.util import FileCat
 from deuce.util import set_qs
-
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +26,12 @@ class FilesController(RestController):
     @expose('json')
     @validate(vault_id=VaultGetRule, marker=FileMarkerRule, limit=LimitRule)
     def get_all(self, vault_id):
-
+        response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(request.project_id, vault_id)
 
         if not vault:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
-            abort(404)
+            abort(404, headers={"Transaction-ID": request.context.request_id})
 
         inmarker = request.params.get('marker')
         limit = int(request.params.get('limit',
@@ -64,18 +64,18 @@ class FilesController(RestController):
     def get_one(self, vault_id, file_id):
         """Fetches, re-assembles and streams a single
         file out of Deuce"""
-
+        response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(request.project_id, vault_id)
 
         if not vault:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
-            abort(404)
+            abort(404, headers={"Transaction-ID": request.context.request_id})
 
         f = vault.get_file(file_id)
 
         if not f:
             logger.error('File [{0}] does not exist'.format(file_id))
-            abort(404)
+            abort(404, headers={"Transaction-ID": request.context.request_id})
 
         block_gen = deuce.metadata_driver.create_file_block_generator(
             request.project_id, vault_id, file_id)
@@ -93,13 +93,14 @@ class FilesController(RestController):
         the new file is returned in the Location
         header
         """
+        response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(request.project_id, vault_id)
 
         # caller tried to post to a vault that
         # does not exist
         if not vault:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
-            abort(400)
+            abort(400, headers={"Transaction-ID": request.context.request_id})
 
         if file_id is not None:
             return self._assign(vault, vault_id, file_id)
@@ -112,12 +113,12 @@ class FilesController(RestController):
             format(response.headers["Location"]))
 
     def _assign(self, vault, vault_id, file_id):
-
+        response.headers["Transaction-ID"] = request.context.request_id
         f = vault.get_file(file_id)
 
         if not f:
             logger.error('File [{0}] does not exist'.format(file_id))
-            abort(404)
+            abort(404, headers={"Transaction-ID": request.context.request_id})
 
         if not request.body:
             try:
@@ -144,7 +145,7 @@ class FilesController(RestController):
             #       status code
             logger.error('Finalized file [{0}] '
                 'cannot be modified'.format(file_id))
-            abort(400)
+            abort(400, headers={"Transaction-ID": request.context.request_id})
 
         blocks = request.json_body['blocks']
 

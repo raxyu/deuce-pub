@@ -1,3 +1,4 @@
+from deuce.util import log as logging
 
 from pecan import conf, expose, request, response, abort
 from pecan.rest import RestController
@@ -5,7 +6,6 @@ from deuce.model import Vault, Block
 from deuce.util import set_qs
 from six.moves.urllib.parse import urlparse
 from deuce.controllers.validation import *
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class BlocksController(RestController):
     def get_all(self, vault_id):
 
         vault = Vault.get(request.project_id, vault_id)
-
+        response.headers["Transaction-ID"] = request.context.request_id
         if not vault:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
             response.status_code = 404
@@ -70,7 +70,7 @@ class BlocksController(RestController):
         # Step 2: Stream the block back to the user
         vault = Vault.get(request.project_id, vault_id)
 
-        # Existence of the vault should have been confirmeds
+        # Existence of the vault should have been confirmed
         # in the vault controller
         assert vault is not None
 
@@ -78,8 +78,8 @@ class BlocksController(RestController):
 
         if block is None:
             logger.error('block [{0}] does not exist'.format(block_id))
-            abort(404)
-
+            abort(404, headers={"Transaction-ID": request.context.request_id})
+        response.headers["Transaction-ID"] = request.context.request_id
         response.body_file = block.get_obj()
         response.status_code = 200
 
@@ -89,8 +89,11 @@ class BlocksController(RestController):
         """Uploads a block into Deuce. The URL of the block
         is returned in the Location header
         """
+
+        response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(request.project_id, vault_id)
 
-        vault.put_block(
+        retval = vault.put_block(
             block_id, request.body, request.headers['content-length'])
         logger.info('block [{0}] added'.format(block_id))
+        response.status_code = (201 if retval is True else 500)

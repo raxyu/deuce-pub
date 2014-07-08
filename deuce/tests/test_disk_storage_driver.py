@@ -12,54 +12,62 @@ from hashlib import md5
 
 class DiskStorageDriverTest(FunctionalTest):
 
-    def test_ancestry(self):
-        d = DiskStorageDriver()
+    def create_driver(self):
+        return DiskStorageDriver()
 
-        assert isinstance(d, BlockStorageDriver)
-        assert isinstance(d, object)
+    def test_ancestry(self):
+        driver = self.create_driver()
+
+        assert isinstance(driver, BlockStorageDriver)
+        assert isinstance(driver, object)
 
     def test_basic_construction(self):
-        d = DiskStorageDriver()
+        driver = self.create_driver()
 
     def test_vault_crud(self):
 
-        d = DiskStorageDriver()
+        driver = self.create_driver()
 
         projectid = 'test_project_id'
         vaultid = 'test_vault_id'
 
-        assert not d.vault_exists(projectid, vaultid)
+        driver.delete_vault(projectid, vaultid)
 
-        d.create_vault(projectid, vaultid)
+        assert not driver.vault_exists(projectid, vaultid)
 
-        assert d.vault_exists(projectid, vaultid)
+        driver.create_vault(projectid, vaultid)
 
-        d.delete_vault(projectid, vaultid)
+        # To create an existed vault.
+        driver.create_vault(projectid, vaultid)
 
-        assert not d.vault_exists(projectid, vaultid)
+        assert driver.vault_exists(projectid, vaultid)
+
+        driver.delete_vault(projectid, vaultid)
+
+        assert not driver.vault_exists(projectid, vaultid)
 
     def test_block_crud(self):
 
-        d = DiskStorageDriver()
+        driver = self.create_driver()
 
         block_size = 3000
         vault_id = 'block_crud_vault_test'
         block_id = 'blah'
         projectid = 'test_project_id'
 
-        d.create_vault(projectid, vault_id)
+        driver.create_vault(projectid, vault_id)
 
         # Create a file-like object
         block_data = MockFile(block_size)
 
-        d.store_block(projectid, vault_id, block_id, block_data.read())
+        driver.store_block(projectid, vault_id, block_id, block_data.read())
 
         block_data.seek(0)
 
-        assert d.block_exists(projectid, vault_id, block_id)
+        assert driver.block_exists(projectid, vault_id, block_id)
 
         # Read back the block data and compare
-        file_obj = d.get_block_obj(projectid, vault_id, block_id)
+        file_obj = driver.get_block_obj(projectid, vault_id, block_id)
 
         returned_data = file_obj.read()
 
@@ -68,24 +76,25 @@ class DiskStorageDriverTest(FunctionalTest):
         assert len(returned_data) == block_size
         assert returned_data == block_data._content
 
-        d.delete_block(projectid, vault_id, block_id)
-        d.delete_block(projectid, vault_id, block_id)
+        driver.delete_block(projectid, vault_id, block_id)
+        driver.delete_block(projectid, vault_id, block_id)
 
-        assert not d.block_exists(projectid, vault_id, block_id)
+        assert not driver.block_exists(projectid, vault_id, block_id)
 
-        assert None == d.get_block_obj(projectid, vault_id, 'invalid_block_id')
+        assert None == driver.get_block_obj(projectid,
+            vault_id, 'invalid_block_id')
 
     def test_block_generator(self):
-        d = DiskStorageDriver()
+        driver = self.create_driver()
 
         block_size = 3000
         vault_id = 'generator_test'
         projectid = 'test_project_id'
 
-        d.create_vault(projectid, vault_id)
+        driver.create_vault(projectid, vault_id)
 
         # Test re-entrance
-        d.create_vault(projectid, vault_id)
+        driver.create_vault(projectid, vault_id)
 
         blocks = [(x, MockFile(block_size)) for x in range(0, 10)]
 
@@ -97,14 +106,15 @@ class DiskStorageDriverTest(FunctionalTest):
         orig_hex = orig_hash.hexdigest()
 
         for block_id, block_data in blocks:
-            d.store_block(projectid, vault_id, block_id, block_data.read())
+            retval = driver.store_block(projectid, vault_id,
+                block_id, block_data.read())
             block_data.seek(0)
 
         # Now call the block generator.
 
         blockid_gen = (x[0] for x in blocks)
 
-        gen = d.create_blocks_generator(projectid, vault_id, blockid_gen)
+        gen = driver.create_blocks_generator(projectid, vault_id, blockid_gen)
 
         fetched_data = list(gen)
 
