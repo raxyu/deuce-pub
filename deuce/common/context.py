@@ -9,4 +9,4 @@ class RequestContext(object):
     """
 
     def __init__(self):
-        self.request_id = b'req-' + str(uuid.uuid4()).encode('ascii')
+        self.request_id = 'req-' + str(uuid.uuid4())
