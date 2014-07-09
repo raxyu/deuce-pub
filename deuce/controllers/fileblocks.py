@@ -1,3 +1,4 @@
+from deuce.util import log as logging
 
 from pecan import conf, expose, request, response
 from pecan.rest import RestController
@@ -10,6 +11,8 @@ from deuce.model import Vault, File, Block
 from deuce.controllers.validation import *
 
 BLOCK_ID_LENGTH = 40
+
+logger = logging.getLogger(__name__)
 
 
 class FileBlocksController(RestController):
@@ -30,6 +33,7 @@ class FileBlocksController(RestController):
         f = vault.get_file(file_id)
 
         if not f:
+            logger.error('File [{0}] does not exist'.format(file_id))
             abort(404, headers={"Transaction-ID": request.context.request_id})
 
         inmarker = int(request.params.get('marker', 0))

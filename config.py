@@ -24,11 +24,16 @@ app = {
     }
 }
 
+log_directory = 'log'
+import os
+if not os.path.exists(log_directory):
+    os.makedirs(log_directory)
+
 logging = {
     'loggers': {
-        'root': {'level': 'INFO', 'handlers': ['console']},
-        'deuce': {'level': 'DEBUG', 'handlers': ['console']},
-        'py.warnings': {'handlers': ['console']},
+        'root': {'level': 'INFO', 'handlers': ['rotatelogfile']},
+        'deuce': {'level': 'DEBUG', 'handlers': ['rotatelogfile']},
+        'py.warnings': {'handlers': ['rotatelogfile']},
         '__force_dict__': True
     },
     'handlers': {
@@ -36,12 +41,26 @@ logging = {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
+        },
+        'logfile': {
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(log_directory, 'deuce.log'),
+            'level': 'INFO',
+            'formatter': 'simple'
+        },
+        'rotatelogfile': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(log_directory, 'deuce.log'),
+            'level': 'INFO',
+            'maxBytes': 400000000,
+            'backupCount': 2,
+            'formatter': 'simple'
         }
     },
     'formatters': {
         'simple': {
-            'format': ('%(asctime)s %(levelname)-5.5s [%(name)s]'
-                       '[%(threadName)s] [%(request_id)s] %(message)s')
+            'format': ('%(asctime)s %(levelname)-5.5s [%(name)s/%(lineno)d]'
+                       '[%(threadName)s] [%(request_id)s] : %(message)s')
         }
     }
 }

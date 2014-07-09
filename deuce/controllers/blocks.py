@@ -1,3 +1,4 @@
+from deuce.util import log as logging
 
 from pecan import conf, expose, request, response, abort
 from pecan.rest import RestController
@@ -5,6 +6,9 @@ from deuce.model import Vault, Block
 from deuce.util import set_qs
 from six.moves.urllib.parse import urlparse
 from deuce.controllers.validation import *
+
+logger = logging.getLogger(__name__)
+
 
 BLOCK_ID_LENGTH = 40
 
@@ -26,6 +30,7 @@ class BlocksController(RestController):
         vault = Vault.get(request.project_id, vault_id)
         response.headers["Transaction-ID"] = request.context.request_id
         if not vault:
+            logger.error('Vault [{0}] does not exist'.format(vault_id))
             response.status_code = 404
             return
 
@@ -72,6 +77,7 @@ class BlocksController(RestController):
         block = vault.get_block(block_id)
 
         if block is None:
+            logger.error('block [{0}] does not exist'.format(block_id))
             abort(404, headers={"Transaction-ID": request.context.request_id})
         response.headers["Transaction-ID"] = request.context.request_id
         response.body_file = block.get_obj()
@@ -89,4 +95,5 @@ class BlocksController(RestController):
 
         retval = vault.put_block(
             block_id, request.body, request.headers['content-length'])
+        logger.info('block [{0}] added'.format(block_id))
         response.status_code = (201 if retval is True else 500)
