@@ -78,4 +78,8 @@ class Vault(object):
         return File(self.project_id, self.id, file_id, finalized=data[0])
 
     def delete(self):
-        deuce.storage_driver.delete_vault(self.project_id, self.id)
+        return deuce.storage_driver.delete_vault(self.project_id, self.id)
+
+    def delete_file(self, file_id):
+        return deuce.metadata_driver.delete_file(
+            self.project_id, self.id, file_id)
