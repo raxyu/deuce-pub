@@ -9,7 +9,7 @@ import atexit
 
 
 import itertools
-from deuce.drivers.storage.metadata import MetadataStorageDriver, \
+from deuce.drivers.metadatadriver import MetadataStorageDriver, \
     GapError, OverlapError
 
 

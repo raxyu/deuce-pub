@@ -47,12 +47,12 @@ logging = {
 }
 
 block_storage_driver = {
-    'driver': 'deuce.drivers.storage.blocks.disk.DiskStorageDriver',
+    'driver': 'deuce.drivers.disk.DiskStorageDriver',
     'options': {
         'path': '/tmp/block_storage'
     },
     'swift': {
-        'driver': 'deuce.drivers.storage.blocks.swift.SwiftStorageDriver',
+        'driver': 'deuce.drivers.swift.SwiftStorageDriver',
         'swift_module': 'swiftclient',
 
         'auth_url': 'YOUR AUTH URL',
@@ -64,8 +64,7 @@ block_storage_driver = {
 }
 
 metadata_driver = {
-    'driver': ('deuce.drivers.storage.metadata.sqlite.sqlitestoragedriver.'
-        'SqliteStorageDriver'),
+    'driver': ('deuce.drivers.sqlite.SqliteStorageDriver'),
 
     'cassandra': {
         'cluster': ['127.0.0.1'],

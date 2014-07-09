@@ -4,7 +4,7 @@ import deuce
 import importlib
 
 
-from deuce.drivers.storage.metadata import MetadataStorageDriver,\
+from deuce.drivers.metadatadriver import MetadataStorageDriver,\
     OverlapError, GapError
 
 # SQL schemas. Note: the schema is versions
