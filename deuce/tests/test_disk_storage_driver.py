@@ -1,4 +1,5 @@
 
+import os
 from deuce.tests import FunctionalTest
 from deuce.drivers.storage.blocks import BlockStorageDriver
 from deuce.drivers.storage.blocks.disk import DiskStorageDriver
@@ -62,7 +63,6 @@ class DiskStorageDriverTest(FunctionalTest):
 
         block_size = 3000
         vault_id = 'block_crud_vault_test'
-        block_id = 'blah'
         projectid = 'test_project_id'
 
         driver.create_vault(projectid, vault_id)
@@ -70,8 +70,17 @@ class DiskStorageDriverTest(FunctionalTest):
         # Create a file-like object
         block_data = MockFile(block_size)
 
-        driver.store_block(projectid, vault_id, block_id, block_data.read())
+        # Test Invalid block_id, ie, wrong sha1 hash.
+        try:
+            driver.store_block(projectid, vault_id,
+                "test_disk_trouble_file", os.urandom(10))
+        except:
+            assert True
+        driver.delete_block(projectid, vault_id, "test_disk_trouble_file")
 
+        # Test valid block_id.
+        block_id = block_data.sha1()
+        driver.store_block(projectid, vault_id, block_id, block_data.read())
         block_data.seek(0)
 
         assert driver.block_exists(projectid, vault_id, block_id)
@@ -105,23 +114,29 @@ class DiskStorageDriverTest(FunctionalTest):
 
         driver.create_vault(projectid, vault_id)
 
-        blocks = [(x, MockFile(block_size)) for x in range(0, 10)]
+        # Test re-entrance
+        driver.create_vault(projectid, vault_id)
+
+        blocks = [MockFile(block_size) for x in range(0, 10)]
 
         orig_hash = md5()
 
-        for block_id, block_data in blocks:
+        for block_data in blocks:
             orig_hash.update(block_data._content)
 
         orig_hex = orig_hash.hexdigest()
 
-        for block_id, block_data in blocks:
-            retval = driver.store_block(projectid, vault_id,
-                block_id, block_data.read())
+        block_ids = []
+        for block_data in blocks:
+            block_id = block_data.sha1()
+            block_ids.append(block_id)
+            driver.store_block(projectid, vault_id, block_id,
+                block_data.read())
             block_data.seek(0)
 
         # Now call the block generator.
 
-        blockid_gen = (x[0] for x in blocks)
+        blockid_gen = block_ids[:]
 
         gen = driver.create_blocks_generator(projectid, vault_id, blockid_gen)
 
@@ -130,11 +145,11 @@ class DiskStorageDriverTest(FunctionalTest):
         assert len(fetched_data) == len(blocks) == 10
 
         for x in range(0, len(fetched_data)):
-            blocks[x][1].seek(0)
-            assert fetched_data[x].read() == blocks[x][1].read()
+            blocks[x].seek(0)
+            assert fetched_data[x].read() == blocks[x].read()
 
         # Clenaup.
-        for block_id, block_data in blocks:
+        for block_id in block_ids[:]:
             driver.delete_block(projectid, vault_id,
                 block_id)
         assert driver.delete_vault(projectid, vault_id)

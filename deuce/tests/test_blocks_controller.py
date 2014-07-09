@@ -61,12 +61,24 @@ class TestBlocksController(FunctionalTest):
         self.assertEqual(response.status_int, 404)
 
     def test_invalid_block_id(self):
-        path = self._blocks_path + '/invalid_block_id'
+        path = self._get_block_path('/invalid_block_id')
 
         response = self.app.put(path, headers=self._hdrs,
                                 expect_errors=True)
 
         self.assertEqual(response.status_int, 400)
+
+        # Put a block with the invalid blockid/hash.
+        path = self._get_block_path('1234567890123456789012345678901234567890')
+        headers = {
+            "Content-Type": "application/binary",
+            "Content-Length": str(10),
+        }
+        headers.update(self._hdrs)
+        data = os.urandom(10)
+        response = self.app.put(path, headers=headers,
+            params=data, expect_errors=True)
+        self.assertEqual(response.status_int, 412)
 
     def test_with_bad_marker_and_limit(self):
         block_list = self.helper_create_blocks(num_blocks=5)

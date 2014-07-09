@@ -6,6 +6,7 @@ from deuce.model.file import File
 
 import deuce
 import uuid
+import hashlib
 
 
 class Vault(object):
@@ -29,6 +30,11 @@ class Vault(object):
         self.id = vault_id
 
     def put_block(self, block_id, blockdata, data_len):
+
+        # Validate the hash of the block data against block_id
+        if hashlib.sha1(blockdata).hexdigest() != block_id:
+            raise ValueError('Invalid Hash Value in the block ID')
+
         retval = deuce.storage_driver.store_block(
             self.project_id, self.id, block_id, blockdata)
 

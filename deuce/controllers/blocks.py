@@ -93,7 +93,10 @@ class BlocksController(RestController):
         response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(request.project_id, vault_id)
 
-        retval = vault.put_block(
-            block_id, request.body, request.headers['content-length'])
-        logger.info('block [{0}] added'.format(block_id))
-        response.status_code = (201 if retval is True else 500)
+        try:
+            retval = vault.put_block(
+                block_id, request.body, request.headers['content-length'])
+            response.status_code = (201 if retval is True else 500)
+            logger.info('block [{0}] added'.format(block_id))
+        except ValueError as e:
+            response.status_code = 412
