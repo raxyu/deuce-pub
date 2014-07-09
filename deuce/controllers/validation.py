@@ -5,6 +5,8 @@ from functools import wraps
 from collections import namedtuple
 from pecan import request, abort
 
+from deuce.common import local
+
 VAULT_ID_MAX_LEN = 128
 VAULT_ID_REGEX = re.compile('^[a-zA-Z0-9_\-]+$')
 BLOCK_ID_REGEX = re.compile('\\b[0-9a-f]{40}\\b')
@@ -186,24 +188,29 @@ def val_limit(value):
     if not LIMIT_REGEX.match(value):
         raise ValidationFailed('Invalid limit {0}'.format(value))
 
+
+def _abort(status_code):
+    transaction = getattr(local.store, 'context')
+    abort(status_code, headers={"Transaction-ID": transaction.request_id})
+
 # parameter rules
-VaultGetRule = Rule(val_vault_id(), lambda: abort(404))
-VaultPutRule = Rule(val_vault_id(), lambda: abort(400))
-BlockGetRule = Rule(val_block_id(), lambda: abort(404))
-# BlockPostRule = Rule(val_vault_id(), lambda: abort(400))
-FileGetRule = Rule(val_file_id(), lambda: abort(404))
-FilePostRuleNoneOk = Rule(val_file_id(none_ok=True), lambda: abort(400))
-BlockPutRuleNoneOk = Rule(val_block_id(none_ok=True), lambda: abort(400))
+VaultGetRule = Rule(val_vault_id(), lambda: _abort(404))
+VaultPutRule = Rule(val_vault_id(), lambda: _abort(400))
+BlockGetRule = Rule(val_block_id(), lambda: _abort(404))
+# BlockPostRule = Rule(val_vault_id(), lambda: _abort(400))
+FileGetRule = Rule(val_file_id(), lambda: _abort(404))
+FilePostRuleNoneOk = Rule(val_file_id(none_ok=True), lambda: _abort(400))
+BlockPutRuleNoneOk = Rule(val_block_id(none_ok=True), lambda: _abort(400))
 
 # query string rules
-FileMarkerRule = Rule(val_file_id(none_ok=True), lambda: abort(404),
+FileMarkerRule = Rule(val_file_id(none_ok=True), lambda: _abort(404),
                       lambda v: request.params.get(v))
 
-OffsetMarkerRule = Rule(val_offset(none_ok=True), lambda: abort(404),
+OffsetMarkerRule = Rule(val_offset(none_ok=True), lambda: _abort(404),
                         lambda v: request.params.get(v))
 
-BlockMarkerRule = Rule(val_block_id(none_ok=True), lambda: abort(404),
+BlockMarkerRule = Rule(val_block_id(none_ok=True), lambda: _abort(404),
                        lambda v: request.params.get(v))
 
-LimitRule = Rule(val_limit(none_ok=True), lambda: abort(404),
+LimitRule = Rule(val_limit(none_ok=True), lambda: _abort(404),
                  lambda v: request.params.get(v))
