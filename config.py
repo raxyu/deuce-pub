@@ -111,25 +111,23 @@ metadata_driver = {
 
         # Production DB module or unittest
         # With real mongodb daemon.
-        # 'is_mocking': False,
-        # 'db_module': 'pymongo',
+        'db_module': 'pymongo',
         #
         # Mocking DB module.
-        'is_mocking': True,
-        'db_module': 'deuce.tests.db_mocking.mongodb_mocking',
+        # 'db_module': 'deuce.tests.db_mocking.mongodb_mocking',
 
         # An arbitary segment number for blocks fetching and
         # transferring from fileblocks collection to file collection
-        #    'FileBlockReadSegNum': 1000
-        'FileBlockReadSegNum': 10,
+        'FileBlockReadSegNum': 1000,
+        # 'FileBlockReadSegNum': 10,
 
         # pymongo block number in each File document
-        # 'maxFileBlockSegNum': 100000
-        'maxFileBlockSegNum': 30
+        'maxFileBlockSegNum': 100000
+        # 'maxFileBlockSegNum': 30
     }
 }
 
 api_configuration = {
     # Define system limitation on page size
-    'max_returned_num': 100
+    'max_returned_num': 80
 }

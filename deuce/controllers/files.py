@@ -24,6 +24,20 @@ class FilesController(RestController):
     blocks = FileBlocksController()
 
     @expose('json')
+    @validate(vault_id=VaultGetRule, file_id=FileGetRule)
+    def delete(self, vault_id, file_id):
+
+        vault = Vault.get(request.project_id, vault_id)
+        if not vault:
+            abort(404)
+
+        f = vault.get_file(file_id)
+        if not f:
+            abort(404)
+
+        vault.delete_file(file_id)
+
+    @expose('json')
     @validate(vault_id=VaultGetRule, marker=FileMarkerRule, limit=LimitRule)
     def get_all(self, vault_id):
         response.headers["Transaction-ID"] = request.context.request_id
@@ -77,11 +91,17 @@ class FilesController(RestController):
             logger.error('File [{0}] does not exist'.format(file_id))
             abort(404, headers={"Transaction-ID": request.context.request_id})
 
+        if not f.finalized:
+            abort(412, headers={"Transaction-ID": request.context.request_id})
+
         block_gen = deuce.metadata_driver.create_file_block_generator(
             request.project_id, vault_id, file_id)
 
+        block_ids = [block[0] for block in sorted(block_gen,
+            key=lambda block: block[1])]
+
         objs = deuce.storage_driver.create_blocks_generator(
-            request.project_id, vault_id, block_gen)
+            request.project_id, vault_id, block_ids)
 
         response.body_file = FileCat(objs)
         response.status_code = 200

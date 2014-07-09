@@ -51,11 +51,15 @@ def delete_container(url,
             token,
             container,
             response_dict):
-    path = _get_vault_path(container)
-    if os.path.exists(path):
-        shutil.rmtree(path)
-        response_dict['status'] = 201
-    else:
+    try:
+        path = _get_vault_path(container)
+        blockpath = os.path.join(path, 'blocks')
+        if os.listdir(path) == [] or os.listdir(blockpath) == []:
+            shutil.rmtree(path)
+            response_dict['status'] = 201
+        else:
+            raise ClientException('mocking')
+    except:
         raise ClientException('mocking')
 
 

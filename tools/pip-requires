@@ -1,4 +1,4 @@
-pecan
+pecan<=0.5.0
 pymongo
 six
 python-keystoneclient

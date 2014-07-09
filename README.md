@@ -15,6 +15,7 @@ API
 ---
 
 Fine details of the API are still being worked out and are subject to change. API docs are available [here](http://docs.deuce.apiary.io).
+API testing collection for Postman Google Chrome is in docs/deuce_postman.json
 
 Features
 --------

@@ -17,11 +17,7 @@ class TestModel(FunctionalTest):
         assert v is None
 
     def test_vault_crud(self):
-
-        vault_id = 'my_vault_id'
-
-        v = Vault.get(self.project_id, vault_id)
-        assert v is None
+        vault_id = 'my_vault_id_1'
 
         v = Vault.get(self.project_id, vault_id)
         assert v is None
@@ -35,8 +31,7 @@ class TestModel(FunctionalTest):
         assert v is None
 
     def test_file_crud(self):
-        vault_id = 'test_file_vault'
-        vault_id = 'my_vault_id'
+        vault_id = 'my_vault_id_2'
 
         v = Vault.create(self.project_id, vault_id)
 
