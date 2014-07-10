@@ -122,6 +122,8 @@ class FilesController(RestController):
             logger.error('Vault [{0}] does not exist'.format(vault_id))
             abort(400, headers={"Transaction-ID": request.context.request_id})
 
+        # overload to use the same end-point for creating a new file
+        # and assigning blocks to a file that is in progress
         if file_id is not None:
             return self._assign(vault, vault_id, file_id)
 
