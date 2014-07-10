@@ -50,7 +50,7 @@ class VaultController(RestController):
 
         if vault:
             vault.delete()
-            logger.info('Vault [{0}] created'.format(vault_id))
+            logger.info('Vault [{0}] deleted'.format(vault_id))
             response.status_code = 204
         else:
             logger.error('Vault [{0}] deletion failed; '
