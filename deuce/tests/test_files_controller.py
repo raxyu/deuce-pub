@@ -28,6 +28,7 @@ class TestFilesController(FunctionalTest):
         self.vault_id = 'files_vault_test'
         self._vault_path = '/v1.0/' + self.vault_id
         self._files_path = self._vault_path + '/files'
+        self._files_url_path = self._vault_path + '/files/urls'
         self._blocks_path = self._vault_path + '/blocks'
 
         # Create Vault
@@ -96,6 +97,9 @@ class TestFilesController(FunctionalTest):
         while True:
 
             response = self.app.get(self._files_path,
+                                    params=params, headers=self._hdrs)
+            # List in URLs, TODO: verify.
+            url_response = self.app.get(self._files_url_path,
                                     params=params, headers=self._hdrs)
 
             next_batch_url = response.headers.get("X-Next-Batch", '')

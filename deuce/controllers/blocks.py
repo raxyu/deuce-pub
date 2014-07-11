@@ -56,15 +56,16 @@ class UrlsBlocksController(RestController):
               limit=LimitRule)
     def get_all(self, vault_id):
         req_url = request.url
-        blocks_url = req_url[:req_url.rfind('/')]
+        blocks_url = req_url[:req_url.rfind('/urls')]
         blocks = get_all(vault_id, request, response)
-        #return blocks
 
         body = ''
         for block in blocks:
             block_url = str(blocks_url) + str('/') + str(block.__json__())
-            body += str("<a href=\"") + block_url + str("\">") +str(block.__json__()) + str('</a><br>')
+            body += str("<a href=\"") + block_url + str("\">") + str(
+                block.__json__()) + str('</a><br>')
         return body
+
 
 class BlocksController(RestController):
 

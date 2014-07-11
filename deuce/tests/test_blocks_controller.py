@@ -17,6 +17,7 @@ class TestBlocksController(FunctionalTest):
         vault_name = 'blocks_vault_test'
         self._vault_path = '/v1.0/{0}'.format(vault_name)
         self._blocks_path = '{0}/blocks'.format(self._vault_path)
+        self._blocks_url_path = '{0}/blocks/urls'.format(self._vault_path)
 
         self._hdrs = {"X-Project-ID": "sample_project_id"}
 
@@ -226,6 +227,10 @@ class TestBlocksController(FunctionalTest):
         while True:
             response = self.app.get(path,
                                     params=params, headers=self._hdrs)
+
+            # List in URLs, TODO: verify.
+            url_response = self.app.get(self._blocks_url_path,
+                params=params, headers=self._hdrs)
 
             next_batch_url = response.headers.get("X-Next-Batch")
 

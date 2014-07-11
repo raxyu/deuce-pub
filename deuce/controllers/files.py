@@ -50,34 +50,29 @@ def get_all(vault_id, request, response):
     return resp
 
 
-
 class UrlsFilesController(RestController):
     @expose()
     @validate(vault_id=VaultGetRule, marker=FileMarkerRule, limit=LimitRule)
     def get_all(self, vault_id):
         req_url = request.url
-        files_url = req_url[:req_url.rfind('/')]
+        files_url = req_url[:req_url.rfind('/urls')]
 
         files = get_all(vault_id, request, response)
 
         body = ''
         for afile in files:
             file_url = str(files_url) + str('/') + str(afile.__json__())
-            body += str("<a href=\"") + file_url + str("\">") +str(afile.__json__()) + str('</a><br>')
+            body += str("<a href=\"") + file_url + str("\">") + str(
+                afile.__json__()) + str('</a><br>')
         return body
-
-
 
 
 # Standard rule for marker-limit semantics
 # for the listing files
-
-
 class FilesController(RestController):
 
     blocks = FileBlocksController()
     urls = UrlsFilesController()
-
 
     @expose('json')
     @validate(vault_id=VaultGetRule, file_id=FileGetRule)
@@ -97,7 +92,6 @@ class FilesController(RestController):
     @validate(vault_id=VaultGetRule, marker=FileMarkerRule, limit=LimitRule)
     def get_all(self, vault_id):
         return get_all(vault_id, request, response)
-
 
     @expose()
     @validate(vault_id=VaultGetRule, file_id=FileGetRule)
