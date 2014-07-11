@@ -7,7 +7,7 @@ from deuce.model.file import File
 
 # Load the storage drivers manually into the model. Note:
 # This should change significantly.
-from deuce.drivers.storage.blocks.disk import DiskStorageDriver
+from deuce.drivers.disk import DiskStorageDriver
 
 import deuce
 import importlib
