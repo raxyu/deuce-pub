@@ -15,6 +15,60 @@ from deuce.util import set_qs
 logger = logging.getLogger(__name__)
 
 
+def get_all(vault_id, request, response):
+    response.headers["Transaction-ID"] = request.context.request_id
+    vault = Vault.get(request.project_id, vault_id)
+
+    if not vault:
+        logger.error('Vault [{0}] does not exist'.format(vault_id))
+        abort(404, headers={"Transaction-ID": request.context.request_id})
+
+    inmarker = request.params.get('marker')
+    limit = int(request.params.get('limit',
+       conf.api_configuration.max_returned_num))
+
+    # The +1 is to fetch one past the user's
+    # requested limit so that we can determine
+    # if the list was truncated or not
+    files = vault.get_files(inmarker, limit + 1)
+
+    resp = list(files)
+
+    # Note: the list may not actually be truncated
+    truncated = len(resp) == limit + 1
+
+    outmarker = resp.pop().file_id if truncated else None
+
+    if outmarker:
+        query_args = {'marker': outmarker}
+        query_args['limit'] = limit
+
+        returl = set_qs(request.url, query_args)
+
+        response.headers["X-Next-Batch"] = returl
+
+    return resp
+
+
+
+class UrlsFilesController(RestController):
+    @expose()
+    @validate(vault_id=VaultGetRule, marker=FileMarkerRule, limit=LimitRule)
+    def get_all(self, vault_id):
+        req_url = request.url
+        files_url = req_url[:req_url.rfind('/')]
+
+        files = get_all(vault_id, request, response)
+
+        body = ''
+        for afile in files:
+            file_url = str(files_url) + str('/') + str(afile.__json__())
+            body += str("<a href=\"") + file_url + str("\">") +str(afile.__json__()) + str('</a><br>')
+        return body
+
+
+
+
 # Standard rule for marker-limit semantics
 # for the listing files
 
@@ -22,6 +76,8 @@ logger = logging.getLogger(__name__)
 class FilesController(RestController):
 
     blocks = FileBlocksController()
+    urls = UrlsFilesController()
+
 
     @expose('json')
     @validate(vault_id=VaultGetRule, file_id=FileGetRule)
@@ -40,38 +96,8 @@ class FilesController(RestController):
     @expose('json')
     @validate(vault_id=VaultGetRule, marker=FileMarkerRule, limit=LimitRule)
     def get_all(self, vault_id):
-        response.headers["Transaction-ID"] = request.context.request_id
-        vault = Vault.get(request.project_id, vault_id)
+        return get_all(vault_id, request, response)
 
-        if not vault:
-            logger.error('Vault [{0}] does not exist'.format(vault_id))
-            abort(404, headers={"Transaction-ID": request.context.request_id})
-
-        inmarker = request.params.get('marker')
-        limit = int(request.params.get('limit',
-           conf.api_configuration.max_returned_num))
-
-        # The +1 is to fetch one past the user's
-        # requested limit so that we can determine
-        # if the list was truncated or not
-        files = vault.get_files(inmarker, limit + 1)
-
-        resp = list(files)
-
-        # Note: the list may not actually be truncated
-        truncated = len(resp) == limit + 1
-
-        outmarker = resp.pop().file_id if truncated else None
-
-        if outmarker:
-            query_args = {'marker': outmarker}
-            query_args['limit'] = limit
-
-            returl = set_qs(request.url, query_args)
-
-            response.headers["X-Next-Batch"] = returl
-
-        return resp
 
     @expose()
     @validate(vault_id=VaultGetRule, file_id=FileGetRule)

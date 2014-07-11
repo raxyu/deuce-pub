@@ -13,7 +13,62 @@ logger = logging.getLogger(__name__)
 BLOCK_ID_LENGTH = 40
 
 
+def get_all(vault_id, request, response):
+    vault = Vault.get(request.project_id, vault_id)
+    response.headers["Transaction-ID"] = request.context.request_id
+    if not vault:
+        logger.error('Vault [{0}] does not exist'.format(vault_id))
+        response.status_code = 404
+        return
+
+    inmarker = request.params.get('marker')
+
+    limit = int(request.params.get('limit',
+       conf.api_configuration.max_returned_num))
+
+    # We actually fetch the user's requested
+    # limit +1 to detect if the list is being
+    # truncated or not.
+    blocks = vault.get_blocks(inmarker, limit + 1)
+
+    # List the blocks into JSON and return.
+    # TODO: figure out a way to stream this back(??)
+    resp = list(blocks)
+
+    # Was the list truncated? See note above about +1
+    truncated = len(resp) > 0 and len(resp) == limit + 1
+
+    outmarker = resp.pop().block_id if truncated else None
+
+    if outmarker:
+        query_args = {'marker': outmarker}
+        query_args['limit'] = limit
+        returl = set_qs(request.url, query_args)
+        response.headers["X-Next-Batch"] = returl
+
+    return resp
+
+
+class UrlsBlocksController(RestController):
+
+    @expose()
+    @validate(vault_id=VaultGetRule, marker=BlockMarkerRule,
+              limit=LimitRule)
+    def get_all(self, vault_id):
+        req_url = request.url
+        blocks_url = req_url[:req_url.rfind('/')]
+        blocks = get_all(vault_id, request, response)
+        #return blocks
+
+        body = ''
+        for block in blocks:
+            block_url = str(blocks_url) + str('/') + str(block.__json__())
+            body += str("<a href=\"") + block_url + str("\">") +str(block.__json__()) + str('</a><br>')
+        return body
+
 class BlocksController(RestController):
+
+    urls = UrlsBlocksController()
 
     """The BlocksController is responsible for:
 
@@ -26,40 +81,7 @@ class BlocksController(RestController):
     @validate(vault_id=VaultGetRule, marker=BlockMarkerRule,
               limit=LimitRule)
     def get_all(self, vault_id):
-
-        vault = Vault.get(request.project_id, vault_id)
-        response.headers["Transaction-ID"] = request.context.request_id
-        if not vault:
-            logger.error('Vault [{0}] does not exist'.format(vault_id))
-            response.status_code = 404
-            return
-
-        inmarker = request.params.get('marker')
-
-        limit = int(request.params.get('limit',
-           conf.api_configuration.max_returned_num))
-
-        # We actually fetch the user's requested
-        # limit +1 to detect if the list is being
-        # truncated or not.
-        blocks = vault.get_blocks(inmarker, limit + 1)
-
-        # List the blocks into JSON and return.
-        # TODO: figure out a way to stream this back(??)
-        resp = list(blocks)
-
-        # Was the list truncated? See note above about +1
-        truncated = len(resp) > 0 and len(resp) == limit + 1
-
-        outmarker = resp.pop().block_id if truncated else None
-
-        if outmarker:
-            query_args = {'marker': outmarker}
-            query_args['limit'] = limit
-            returl = set_qs(request.url, query_args)
-            response.headers["X-Next-Batch"] = returl
-
-        return resp
+        return get_all(vault_id, request, response)
 
     @expose()
     @validate(vault_id=VaultGetRule, block_id=BlockGetRule)
