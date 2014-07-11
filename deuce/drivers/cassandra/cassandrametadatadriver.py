@@ -3,8 +3,8 @@ import importlib
 import six
 import uuid
 
-from deuce.drivers.storage.metadata import MetadataStorageDriver
-from deuce.drivers.storage.metadata import GapError, OverlapError
+from deuce.drivers.metadatadriver import MetadataStorageDriver
+from deuce.drivers.metadatadriver import GapError, OverlapError
 from pecan import conf
 
 

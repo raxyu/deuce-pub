@@ -8,7 +8,7 @@ import uuid
 from six.moves.urllib.parse import urlparse, parse_qs
 from unittest import TestCase
 from deuce.tests import FunctionalTest
-from deuce.drivers.storage.metadata.sqlite import SqliteStorageDriver
+from deuce.drivers.sqlite import SqliteStorageDriver
 from random import randrange
 import uuid
 

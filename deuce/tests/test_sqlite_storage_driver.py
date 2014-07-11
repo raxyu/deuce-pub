@@ -4,9 +4,9 @@ import hashlib
 import os
 import uuid
 from deuce.tests import FunctionalTest
-from deuce.drivers.storage.metadata import MetadataStorageDriver, GapError,\
+from deuce.drivers.metadatadriver import MetadataStorageDriver, GapError,\
     OverlapError
-from deuce.drivers.storage.metadata.sqlite import SqliteStorageDriver
+from deuce.drivers.sqlite import SqliteStorageDriver
 
 
 class SqliteStorageDriverTest(FunctionalTest):

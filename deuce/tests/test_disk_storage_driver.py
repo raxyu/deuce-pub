@@ -1,8 +1,8 @@
 
 import os
 from deuce.tests import FunctionalTest
-from deuce.drivers.storage.blocks import BlockStorageDriver
-from deuce.drivers.storage.blocks.disk import DiskStorageDriver
+from deuce.drivers.blockstoragedriver import BlockStorageDriver
+from deuce.drivers.disk import DiskStorageDriver
 from deuce.tests.util import MockFile
 
 from hashlib import md5

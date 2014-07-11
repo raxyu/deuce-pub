@@ -1,5 +1,5 @@
-from deuce.drivers.storage.metadata import MetadataStorageDriver
-from deuce.drivers.storage.metadata.mongodb import MongoDbStorageDriver
+from deuce.drivers.metadatadriver import MetadataStorageDriver
+from deuce.drivers.mongodb import MongoDbStorageDriver
 from deuce.tests.test_sqlite_storage_driver import SqliteStorageDriverTest
 
 

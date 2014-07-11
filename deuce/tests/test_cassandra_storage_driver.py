@@ -1,5 +1,5 @@
-from deuce.drivers.storage.metadata import MetadataStorageDriver
-from deuce.drivers.storage.metadata.cassandra import CassandraStorageDriver
+from deuce.drivers.metadatadriver import MetadataStorageDriver
+from deuce.drivers.cassandra import CassandraStorageDriver
 from deuce.tests.test_sqlite_storage_driver import SqliteStorageDriverTest
 
 

@@ -1,6 +1,6 @@
 
-from deuce.drivers.storage.blocks import BlockStorageDriver
-from deuce.drivers.storage.blocks.swift import SwiftStorageDriver
+from deuce.drivers.blockstoragedriver import BlockStorageDriver
+from deuce.drivers.swift import SwiftStorageDriver
 from deuce.tests.test_disk_storage_driver import DiskStorageDriverTest
 
 # Users need take care of authenticate themselves and

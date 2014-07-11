@@ -1,7 +1,7 @@
 
 from pecan import conf
 
-from deuce.drivers.storage.blocks import BlockStorageDriver
+from deuce.drivers.blockstoragedriver import BlockStorageDriver
 
 import os
 import io
