@@ -22,7 +22,7 @@ class VaultController(RestController):
 
     @expose()
     @validate(vault_name=VaultPutRule)
-    def post(self, vault_name):
+    def put(self, vault_name):
         response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.create(request.project_id, vault_name)
         # TODO: Need check and monitor failed vault.
