@@ -20,8 +20,8 @@ class TestBlocksController(FunctionalTest):
 
         self._hdrs = {"X-Project-ID": "sample_project_id"}
 
-        response = self.app.post(self._vault_path,
-                                 headers=self._hdrs)
+        response = self.app.put(self._vault_path,
+            headers=self._hdrs)
 
         self.block_list = []
         self.total_block_num = 0

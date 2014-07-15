@@ -20,7 +20,7 @@ class TestVaultController(FunctionalTest):
         vault_name = '@#$@#$@$'
         vault_path = '/v1.0/{0}'.format(vault_name)
 
-        response = self.app.post(vault_path, headers=self._hdrs,
+        response = self.app.put(vault_path, headers=self._hdrs,
                 expect_errors=True)
         self.assertEqual(response.status_int, 400)
 
@@ -40,7 +40,7 @@ class TestVaultController(FunctionalTest):
         assert response.status_code == 404
 
         # Now we create the vault, which should return a 201 (created)
-        response = self.app.post(vault_path, headers=self._hdrs)
+        response = self.app.put(vault_path, headers=self._hdrs)
         assert response.status_code == 201
 
         # Now if we get the vault, what do we get? For now,

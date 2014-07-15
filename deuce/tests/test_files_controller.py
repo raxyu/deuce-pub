@@ -31,7 +31,7 @@ class TestFilesController(FunctionalTest):
         self._blocks_path = self._vault_path + '/blocks'
 
         # Create Vault
-        response = self.app.post(self._vault_path, headers=self._hdrs)
+        response = self.app.put(self._vault_path, headers=self._hdrs)
         # Create File
         response = self.app.post(self._files_path, headers=self._hdrs)
         self._file_id = response.headers["Location"]
