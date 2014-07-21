@@ -58,7 +58,7 @@ logging = {
             'maxBytes': 400000000,
             'backupCount': 2,
             'formatter': 'simple'
-        }# ,
+        }  # ,
         # 'logstash': {
         #     'class': 'logstash.LogstashHandler',
         #     'level': 'INFO',
