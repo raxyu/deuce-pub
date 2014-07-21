@@ -1,5 +1,4 @@
 import logging
-import logstash
 
 from deuce.common import local
 
