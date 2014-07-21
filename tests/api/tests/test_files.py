@@ -348,3 +348,97 @@ class TestFinalizedFile(base.TestBase):
     def tearDown(self):
         super(TestFinalizedFile, self).tearDown()
         self.client.delete_vault(self.vaultname)
+
+
+@ddt.ddt
+class TestMultipleFinalizedFiles(base.TestBase):
+
+    def setUp(self):
+        super(TestMultipleFinalizedFiles, self).setUp()
+        self.createEmptyVault()
+        self.blocks_file = []
+        for _ in range(20):
+            self.blocks = []
+            self.createNewFile()
+            self.uploadBlock()
+            self.assignAllBlocksToFile()
+            self.blocks_file.append(self.blocks)
+            self.finalizeFile()
+
+    def test_list_multiple_files(self):
+        """List multiple files (20)"""
+
+        resp = self.client.list_of_files(vaultname=self.vaultname)
+        self.assertEqual(200, resp.status_code,
+                         'Status code for getting the list of all files '
+                         '{0}'.format(resp.status_code))
+        self.validate_headers(resp.headers, json=True)
+        self.assertListEqual(sorted(self.files), resp.json())
+
+    @ddt.data(2, 4, 5, 10)
+    def test_list_files_limit(self, value):
+        """List multiple files, setting the limit to value"""
+
+        url = None
+        for i in range(20 / value):
+            if not url:
+                resp = self.client.list_of_files(self.vaultname, limit=value)
+            else:
+                resp = self.client.list_of_files(alternate_url=url)
+            self.assertEqual(200, resp.status_code,
+                             'Status code for listing all files is '
+                             '{0}'.format(resp.status_code))
+            self.validate_headers(resp.headers, json=True)
+            if i < 20 / value - 1:
+                self.assertIn('x-next-batch', resp.headers)
+                url = resp.headers['x-next-batch']
+                self.validate_url(url, nextfilelist=True)
+            else:
+                self.assertNotIn('x-next-batch', resp.headers)
+            self.assertEqual(value, len(resp.json()),
+                             'Number of file ids returned is not {0} . '
+                             'Returned {1}'.format(value, len(resp.json())))
+            for fileid in resp.json():
+                self.assertIn(fileid, self.files)
+                self.files.remove(fileid)
+        self.assertEqual(0, len(self.files),
+                         'Discrepancy between the list of files returned '
+                         'and the files created/finalized')
+
+    @ddt.data(2, 4, 5, 10)
+    def test_list_files_limit_marker(self, value):
+        """List multiple files, setting the limit to value and using a
+        marker"""
+
+        markerid = sorted(self.files)[value]
+
+        url = None
+        for i in range(20 / value - 1):
+            if not url:
+                resp = self.client.list_of_files(self.vaultname,
+                                                 marker=markerid, limit=value)
+            else:
+                resp = self.client.list_of_files(alternate_url=url)
+            self.assertEqual(200, resp.status_code,
+                             'Status code for listing all files is '
+                             '{0}'.format(resp.status_code))
+            self.validate_headers(resp.headers, json=True)
+            if i < 20 / value - 2:
+                self.assertIn('x-next-batch', resp.headers)
+                url = resp.headers['x-next-batch']
+                self.validate_url(url, nextfilelist=True)
+            else:
+                self.assertNotIn('x-next-batch', resp.headers)
+            self.assertEqual(value, len(resp.json()),
+                             'Number of file ids returned is not {0} . '
+                             'Returned {1}'.format(value, len(resp.json())))
+            for fileid in resp.json():
+                self.assertIn(fileid, self.files)
+                self.files.remove(fileid)
+        self.assertEqual(value, len(self.files),
+                         'Discrepancy between the list of files returned '
+                         'and the files uploaded')
+
+    def tearDown(self):
+        super(TestMultipleFinalizedFiles, self).tearDown()
+        self.client.delete_vault(self.vaultname)
