@@ -31,9 +31,9 @@ if not os.path.exists(log_directory):
 
 logging = {
     'loggers': {
-        'root': {'level': 'INFO', 'handlers': ['rotatelogfile']},
-        'deuce': {'level': 'DEBUG', 'handlers': ['rotatelogfile']},
-        'py.warnings': {'handlers': ['rotatelogfile']},
+        'root': {'level': 'INFO', 'handlers': ['logstash']},
+        'deuce': {'level': 'DEBUG', 'handlers': ['logstash']},
+        'py.warnings': {'handlers': ['logstash']},
         '__force_dict__': True
     },
     'handlers': {
@@ -55,6 +55,13 @@ logging = {
             'maxBytes': 400000000,
             'backupCount': 2,
             'formatter': 'simple'
+        },
+        'logstash': {
+            'class': 'logstash.LogstashHandler',
+            'level': 'INFO',
+            'host': 'localhost',
+            'port': 5959,
+            'version': 1
         }
     },
     'formatters': {
