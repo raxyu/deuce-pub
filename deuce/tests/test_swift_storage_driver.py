@@ -20,15 +20,13 @@ import sys
 
 class SwiftStorageDriverTest(DiskStorageDriverTest):
 
-    def setUp(self):
-        super(SwiftStorageDriverTest, self).setUp()
+    def get_Auth_Token(self):
 
-        auth_url = conf.block_storage_driver.swift.auth_url
-        username = conf.block_storage_driver.swift.username
-        password = conf.block_storage_driver.swift.password
-
+        # Example : https://identity.api.rackspacecloud.com/v2.0/
+        auth_url = 'Auth URL'
+        username = 'User Name'
+        password = 'User Password'
         os_options = dict()
-
         self.mocking = False
         try:
             if conf.block_storage_driver.swift.is_mocking:
@@ -38,7 +36,7 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
 
         if not self.mocking:
             try:
-                self.storage_url, self.token = \
+                storage_url, token = \
                     Conn.get_keystoneclient_2_0(
                         auth_url=auth_url,
                         user=username,
@@ -48,38 +46,49 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
                 sys.exit(str(e))
 
         else:
-            self.storage_url = 'mocking_url'
-            self.token = 'mocking_token'
-        self.project_id = self.storage_url[self.storage_url.rfind("/") + 1:]
+            storage_url = 'mocking_url'
+            token = 'mocking_token'
+
+        return storage_url, token
 
     def test_basic_construction(self):
-        driver = SwiftStorageDriver(self.storage_url,
-            self.token, self.project_id)
+        storage_url, token = self.get_Auth_Token()
+        project_id = storage_url[storage_url.rfind("/") + 1:]
+        driver = SwiftStorageDriver(storage_url,
+            token, project_id)
 
     def create_driver(self):
-        return SwiftStorageDriver(self.storage_url,
-            self.token, self.project_id)
+        storage_url, token = self.get_Auth_Token()
+        project_id = storage_url[storage_url.rfind("/") + 1:]
+        return SwiftStorageDriver(storage_url,
+            token, project_id)
 
     def test_ancestry(self):
+        storage_url, token = self.get_Auth_Token()
+        project_id = storage_url[storage_url.rfind("/") + 1:]
 
-        driver = SwiftStorageDriver(self.storage_url,
-            self.token, self.project_id)
+        driver = SwiftStorageDriver(storage_url,
+            token, project_id)
         assert isinstance(driver, SwiftStorageDriver)
         assert isinstance(driver, object)
 
         # Test all exceptions
+        failed_token = token + '1'
         driver = SwiftStorageDriver(
-            self.storage_url,
-            self.token + '1',
-            self.project_id)
+            storage_url,
+            token + '1',
+            project_id)
         projectid = 'notmatter'
         vaultid = 'notmatter'
         blockid = 'notmatter'
-        driver.create_vault(projectid, vaultid)
-        driver.vault_exists(projectid, vaultid)
-        driver.delete_vault(projectid, vaultid)
+        driver.create_vault(projectid, vaultid, failed_token, storage_url)
+        driver.vault_exists(projectid, vaultid, failed_token, storage_url)
+        driver.delete_vault(projectid, vaultid, failed_token, storage_url)
         driver.store_block(projectid, vaultid, blockid,
-            str('').encode('utf-8'))
-        driver.block_exists(projectid, vaultid, blockid)
-        driver.delete_block(projectid, vaultid, blockid)
-        driver.get_block_obj(projectid, vaultid, blockid)
+            str('').encode('utf-8'), failed_token, storage_url)
+        driver.block_exists(projectid, vaultid, blockid,
+            failed_token, storage_url)
+        driver.delete_block(projectid, vaultid, blockid,
+            failed_token, storage_url)
+        driver.get_block_obj(projectid, vaultid, blockid,
+            failed_token, storage_url)
