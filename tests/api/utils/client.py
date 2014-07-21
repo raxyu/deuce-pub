@@ -24,7 +24,8 @@ class AuthClient(client.AutoMarshallingHTTPClient):
         Get Authentication Token using Username + Api Key
         """
         request_obj = auth_requests.AuthUsernameApiKey(username, api_key)
-        resp = self.request('POST', self.url, request_entity=request_obj,
+        resp = self.request('POST', self.url + '/tokens',
+                            request_entity=request_obj,
                             response_entity_type=auth_response.AuthToken)
         return resp
 
