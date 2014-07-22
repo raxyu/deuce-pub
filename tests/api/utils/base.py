@@ -143,7 +143,7 @@ class TestBase(fixtures.BaseTestFixture):
         else:
             self.vaultname = self.id_generator(size)
         resp = self.client.create_vault(self.vaultname)
-        return True if 201 == resp.status_code else False
+        return 201 == resp.status_code
 
     def createEmptyVault(self, vaultname=None, size=50):
         """
@@ -180,7 +180,7 @@ class TestBase(fixtures.BaseTestFixture):
         self.generateBlockData(block_data, size)
         resp = self.client.upload_block(self.vaultname, self.blockid,
                                         self.block_data)
-        return True if 201 == resp.status_code else False
+        return 201 == resp.status_code
 
     def uploadBlock(self, block_data=None, size=30720):
         """
@@ -202,7 +202,7 @@ class TestBase(fixtures.BaseTestFixture):
         self.fileurl = resp.headers['location']
         self.fileid = self.fileurl.split('/')[-1]
         self.files.append(self.fileid)
-        return True if 201 == resp.status_code else False
+        return 201 == resp.status_code
 
     def createNewFile(self):
         """
@@ -227,7 +227,7 @@ class TestBase(fixtures.BaseTestFixture):
         block_dict = {'blocks': block_list}
         resp = self.client.assign_to_file(json.dumps(block_dict),
                                           alternate_url=self.fileurl)
-        return True if 200 == resp.status_code else False
+        return 200 == resp.status_code
 
     def assignAllBlocksToFile(self):
         """
@@ -245,7 +245,7 @@ class TestBase(fixtures.BaseTestFixture):
         """
 
         resp = self.client.finalize_file(alternate_url=self.fileurl)
-        return True if 200 == resp.status_code else False
+        return 200 == resp.status_code
 
     def finalizeFile(self):
         """
