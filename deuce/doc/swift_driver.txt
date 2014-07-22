@@ -1,4 +1,18 @@
-Swift /Cloud Files Driver Testing Instructions
+
+
+I.  Swift/Cloud Files Driver Production Setup Instructions
+
+1. In deuce/tests/test_swift_storage_driver.py, replace auth_url with the correct value.
+
+    auth_url = 'Auth URL'
+
+2. Run Pecan command to start the service.
+
+    pecan serve config.py
+
+
+
+II.  Swift/Cloud Files Driver Testing Instructions
 
 1. In deuce/tests/test_swift_storage_driver.py, replace auth_url with the correct value.
 
