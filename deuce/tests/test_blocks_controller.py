@@ -41,6 +41,12 @@ class TestBlocksController(FunctionalTest):
         response = self.app.get(self._blocks_path, headers=self._hdrs)
         assert response.json_body == []
 
+        response = self.app.get(self._blocks_path, headers={
+            "X-Project-ID": "failing_auth_hook",
+            "X-Username": "failing_auth_hook",
+            "X-Password": "failing_auth_hook"},
+            expect_errors=True)
+
     def _create_block_id(data=None):
         """Creates a block ID for testing purpose"""
         sha1 = hashlib.sha1()

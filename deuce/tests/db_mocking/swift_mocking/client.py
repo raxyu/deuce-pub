@@ -136,4 +136,6 @@ def get_keystoneclient_2_0(auth_url,
             user,
             key,
             os_options):
+    if user == 'failing_auth_hook':
+        raise ClientException('mocking auth failure')
     return 'mocking_project_id', 'mocking_project_token'
