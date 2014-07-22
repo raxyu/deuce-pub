@@ -7,6 +7,8 @@ from six.moves.urllib.parse import urlparse, parse_qs
 from unittest import TestCase
 from deuce.tests import FunctionalTest
 
+import json
+
 
 class TestBlocksController(FunctionalTest):
 
@@ -18,7 +20,15 @@ class TestBlocksController(FunctionalTest):
         self._vault_path = '/v1.0/{0}'.format(vault_name)
         self._blocks_path = '{0}/blocks'.format(self._vault_path)
 
-        self._hdrs = {"X-Project-ID": "sample_project_id"}
+        json_cred = open('./storage_credentials.json')
+        cred = json.load(json_cred)
+        username = str(cred['username'])
+        password = str(cred['password'])
+        json_cred.close()
+
+        self._hdrs = {"X-Project-ID": "sample_project_id",
+            "X-Username": username,
+            "X-Password": password}
 
         response = self.app.put(self._vault_path,
             headers=self._hdrs)

@@ -130,3 +130,10 @@ def get_object(url,
         buff = infile.read()
 
     return dict(), buff
+
+
+def get_keystoneclient_2_0(auth_url,
+            user,
+            key,
+            os_options):
+    return 'mocking_project_id', 'mocking_project_token'

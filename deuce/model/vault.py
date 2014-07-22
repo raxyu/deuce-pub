@@ -12,31 +12,38 @@ import hashlib
 class Vault(object):
 
     @staticmethod
-    def get(project_id, vault_id):
+    def get(project_id, vault_id, auth_token=None, storage_url=None):
 
-        if deuce.storage_driver.vault_exists(project_id, vault_id):
+        if deuce.storage_driver.vault_exists(project_id, vault_id,
+                auth_token=auth_token,
+                storage_url=storage_url):
             return Vault(project_id, vault_id)
 
         return None
 
     @staticmethod
-    def create(project_id, vault_id):
+    def create(project_id, vault_id, auth_token=None, storage_url=None):
         """Creates the vault with the specified vault_id"""
-        deuce.storage_driver.create_vault(project_id, vault_id)
+        deuce.storage_driver.create_vault(project_id, vault_id,
+                auth_token=auth_token,
+                storage_url=storage_url)
         return Vault(project_id, vault_id)
 
     def __init__(self, project_id, vault_id):
         self.project_id = project_id
         self.id = vault_id
 
-    def put_block(self, block_id, blockdata, data_len):
+    def put_block(self, block_id, blockdata, data_len,
+            auth_token=None, storage_url=None):
 
         # Validate the hash of the block data against block_id
         if hashlib.sha1(blockdata).hexdigest() != block_id:
             raise ValueError('Invalid Hash Value in the block ID')
 
         retval = deuce.storage_driver.store_block(
-            self.project_id, self.id, block_id, blockdata)
+            self.project_id, self.id, block_id, blockdata,
+            auth_token=auth_token,
+            storage_url=storage_url)
 
         file_id = deuce.metadata_driver.register_block(
             self.project_id, self.id, block_id, data_len)
@@ -50,9 +57,10 @@ class Vault(object):
 
         return (Block(self.project_id, self.id, bid) for bid in gen)
 
-    def get_block(self, block_id):
+    def get_block(self, block_id, auth_token=None, storage_url=None):
         obj = deuce.storage_driver.get_block_obj(self.project_id, self.id,
-            block_id)
+            block_id, auth_token=auth_token,
+            storage_url=storage_url)
 
         return Block(self.project_id, self.id, block_id, obj) if obj else None
 
@@ -83,8 +91,10 @@ class Vault(object):
 
         return File(self.project_id, self.id, file_id, finalized=data[0])
 
-    def delete(self):
-        return deuce.storage_driver.delete_vault(self.project_id, self.id)
+    def delete(self, auth_token=None, storage_url=None):
+        return deuce.storage_driver.delete_vault(self.project_id, self.id,
+                auth_token=auth_token,
+                storage_url=storage_url)
 
     def delete_file(self, file_id):
         return deuce.metadata_driver.delete_file(

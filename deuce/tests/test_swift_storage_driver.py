@@ -12,6 +12,7 @@ from swiftclient.exceptions import ClientException
 from pecan import conf
 
 import sys
+import json
 
 
 # TODO: Make this test generic -- it should not konw
@@ -22,11 +23,13 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
 
     def get_Auth_Token(self):
 
-        # Example : https://identity.api.rackspacecloud.com/v2.0/
-        auth_url = 'Auth URL'
-        username = 'User Name'
-        password = 'User Password'
-        os_options = dict()
+        auth_url = str(conf.block_storage_driver.swift.auth_url)
+        json_cred = open('storage_credentials.json')
+        cred = json.load(json_cred)
+        username = str(cred['username'])
+        password = str(cred['password'])
+        json_cred.close()
+
         self.mocking = False
         try:
             if conf.block_storage_driver.swift.is_mocking:
@@ -36,6 +39,7 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
 
         if not self.mocking:
             try:
+                os_options = dict()
                 storage_url, token = \
                     Conn.get_keystoneclient_2_0(
                         auth_url=auth_url,

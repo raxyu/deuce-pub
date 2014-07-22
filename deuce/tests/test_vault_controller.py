@@ -2,13 +2,23 @@ from unittest import TestCase
 from webtest import TestApp
 from deuce.tests import FunctionalTest
 
+import json
+
 
 class TestVaultController(FunctionalTest):
 
     def setUp(self):
         super(TestVaultController, self).setUp()
 
-        self._hdrs = {"X-Project-ID": "sample_project_id"}
+        json_cred = open('./storage_credentials.json')
+        cred = json.load(json_cred)
+        username = str(cred['username'])
+        password = str(cred['password'])
+        json_cred.close()
+
+        self._hdrs = {"X-Project-ID": "sample_project_id",
+            "X-Username": username,
+            "X-Password": password}
 
     def test_vault_leaf(self):
         response = self.app.get('/v1.0/', headers=self._hdrs,
