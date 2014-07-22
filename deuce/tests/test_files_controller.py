@@ -24,7 +24,7 @@ class TestFilesController(FunctionalTest):
         self.max_ret_num = conf.api_configuration.max_returned_num
         self.total_file_num = 0
 
-        json_cred = open('storage_credentials.json')
+        json_cred = open('./tests/storage_credentials.json')
         cred = json.load(json_cred)
         username = str(cred['username'])
         password = str(cred['password'])

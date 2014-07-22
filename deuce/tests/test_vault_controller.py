@@ -10,7 +10,7 @@ class TestVaultController(FunctionalTest):
     def setUp(self):
         super(TestVaultController, self).setUp()
 
-        json_cred = open('./storage_credentials.json')
+        json_cred = open('./tests/storage_credentials.json')
         cred = json.load(json_cred)
         username = str(cred['username'])
         password = str(cred['password'])
