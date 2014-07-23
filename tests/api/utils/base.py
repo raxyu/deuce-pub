@@ -88,7 +88,7 @@ class TestBase(fixtures.BaseTestFixture):
             return False
         return testMethodName == name
 
-    def validate_headers(self, headers, json=False, binary=False):
+    def assertHeaders(self, headers, json=False, binary=False):
         """Basic http header validation"""
 
         self.assertIsNotNone(headers['transaction-id'])
@@ -99,7 +99,7 @@ class TestBase(fixtures.BaseTestFixture):
         if binary:
             self.assertEqual('application/binary', headers['content-type'])
 
-    def validate_url(self, url, nextblocklist=False, filelocation=False,
+    def assertUrl(self, url, nextblocklist=False, filelocation=False,
                      nextfilelist=False, nextfileblocklist=False):
 
         u = urlparse.urlparse(url)
@@ -131,7 +131,7 @@ class TestBase(fixtures.BaseTestFixture):
             self.assertIn('marker', query, 'url: {0}'.format(url))
             self.assertIn('limit', query, 'url: {0}'.format(url))
 
-    def _createEmptyVault(self, vaultname=None, size=50):
+    def _create_empty_vault(self, vaultname=None, size=50):
         """
         Test Setup Helper: Creates an empty vault
         If vaultname is provided, the vault is created using that name.
@@ -145,7 +145,7 @@ class TestBase(fixtures.BaseTestFixture):
         resp = self.client.create_vault(self.vaultname)
         return 201 == resp.status_code
 
-    def createEmptyVault(self, vaultname=None, size=50):
+    def create_empty_vault(self, vaultname=None, size=50):
         """
         Test Setup Helper: Creates an empty vault
         If vaultname is provided, the vault is created using that name.
@@ -153,12 +153,12 @@ class TestBase(fixtures.BaseTestFixture):
 
         Exception is raised if the operation is not successful
         """
-        if not self._createEmptyVault(vaultname, size):
+        if not self._create_empty_vault(vaultname, size):
             raise Exception('Failed to create vault')
         self.blocks = []
         self.files = []
 
-    def generateBlockData(self, block_data=None, size=30720):
+    def generate_block_data(self, block_data=None, size=30720):
         """
         Test Setup Helper: Generates block data and adds it to the internal
         block list
@@ -171,18 +171,18 @@ class TestBase(fixtures.BaseTestFixture):
         self.blockid = sha.new(self.block_data).hexdigest()
         self.blocks.append(Block(Id=self.blockid, Data=self.block_data))
 
-    def _uploadBlock(self, block_data=None, size=30720):
+    def _upload_block(self, block_data=None, size=30720):
         """
         Test Setup Helper: Uploads a block
         If block_data is used if provided.
         If not, a random block of data of the specified size is used
         """
-        self.generateBlockData(block_data, size)
+        self.generate_block_data(block_data, size)
         resp = self.client.upload_block(self.vaultname, self.blockid,
                                         self.block_data)
         return 201 == resp.status_code
 
-    def uploadBlock(self, block_data=None, size=30720):
+    def upload_block(self, block_data=None, size=30720):
         """
         Test Setup Helper: Uploads a block
         If block_data is used if provided.
@@ -190,10 +190,10 @@ class TestBase(fixtures.BaseTestFixture):
 
         Exception is raised if the operation is not successful
         """
-        if not self._uploadBlock(block_data, size):
+        if not self._upload_block(block_data, size):
             raise Exception('Failed to upload block')
 
-    def _createNewFile(self):
+    def _create_new_file(self):
         """
         Test Setup Helper: Creates a file
         """
@@ -204,17 +204,17 @@ class TestBase(fixtures.BaseTestFixture):
         self.files.append(self.fileid)
         return 201 == resp.status_code
 
-    def createNewFile(self):
+    def create_new_file(self):
         """
         Test Setup Helper: Creates a file
 
         Exception is raised if the operation is not successful
         """
 
-        if not self._createNewFile():
+        if not self._create_new_file():
             raise Exception('Failed to create a file')
 
-    def _assignAllBlocksToFile(self):
+    def _assign_all_blocks_to_file(self):
         """
         Test Setup Helper: Assigns all blocks to the file
         """
@@ -229,17 +229,17 @@ class TestBase(fixtures.BaseTestFixture):
                                           alternate_url=self.fileurl)
         return 200 == resp.status_code
 
-    def assignAllBlocksToFile(self):
+    def assign_all_blocks_to_file(self):
         """
         Test Setup Helper: Assigns all blocks to the file
 
         Exception is raised if the operation is not successful
         """
 
-        if not self._assignAllBlocksToFile():
+        if not self._assign_all_blocks_to_file():
             raise Exception('Failed to assign blocks to file')
 
-    def _finalizeFile(self):
+    def _finalize_file(self):
         """
         Test Setup Helper: Finalizes the file
         """
@@ -247,12 +247,12 @@ class TestBase(fixtures.BaseTestFixture):
         resp = self.client.finalize_file(alternate_url=self.fileurl)
         return 200 == resp.status_code
 
-    def finalizeFile(self):
+    def finalize_file(self):
         """
         Test Setup Helper: Finalizes the file
 
         Exception is raised if the operation is not successful
         """
 
-        if not self._finalizeFile():
+        if not self._finalize_file():
             raise Exception('Failed to finalize file')

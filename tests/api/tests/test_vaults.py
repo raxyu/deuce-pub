@@ -17,7 +17,7 @@ class TestCreateVaults(base.TestBase):
         self.assertEqual(201, resp.status_code,
                          'Status code returned for Create Vault: {0} . '
                          'Expected 201'.format(resp.status_code))
-        self.validate_headers(resp.headers)
+        self.assertHeaders(resp.headers)
         self.assertEqual(0, len(resp.content),
                          'Response Content was not empty. Content: '
                          '{0}'.format(resp.content))
@@ -31,7 +31,7 @@ class TestDeleteVaults(base.TestBase):
 
     def setUp(self):
         super(TestDeleteVaults, self).setUp()
-        self.createEmptyVault()
+        self.create_empty_vault()
 
     def test_delete_vault(self):
         """Delete a Vault"""
@@ -40,7 +40,7 @@ class TestDeleteVaults(base.TestBase):
         self.assertEqual(204, resp.status_code,
                          'Status code returned for Delete Vault: {0} . '
                          'Expected 204'.format(resp.status_code))
-        self.validate_headers(resp.headers)
+        self.assertHeaders(resp.headers)
         self.assertEqual(0, len(resp.content),
                          'Response Content was not empty. Content: '
                          '{0}'.format(resp.content))
@@ -53,7 +53,7 @@ class TestGetVault(base.TestBase):
 
     def setUp(self):
         super(TestGetVault, self).setUp()
-        self.createEmptyVault()
+        self.create_empty_vault()
 
     def test_get_vault(self):
         """Get an individual vault"""
@@ -62,7 +62,7 @@ class TestGetVault(base.TestBase):
         self.assertEqual(204, resp.status_code,
                          'Status code returned for Get Vault: {0} . '
                          'Expected 204'.format(resp.status_code))
-        self.validate_headers(resp.headers)
+        self.assertHeaders(resp.headers)
         self.assertEqual(0, len(resp.content),
                          'Response Content was not empty. Content: '
                          '{0}'.format(resp.content))
@@ -76,7 +76,7 @@ class TestGetVault(base.TestBase):
         self.assertEqual(200, resp.status_code,
                          'Status code returned for Vault HEAD: {0} . '
                          'Expected 200'.format(resp.status_code))
-        self.validate_headers(resp.headers)
+        self.assertHeaders(resp.headers)
         self.assertIn('X-File-Count', resp.headers)
         self.assertEqual(0, resp.headers['X-File-Count'])
         self.assertIn('X-Unfinalized-Count', resp.headers)

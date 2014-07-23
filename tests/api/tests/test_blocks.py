@@ -9,7 +9,7 @@ class TestListBlock(base.TestBase):
 
     def setUp(self):
         super(TestListBlock, self).setUp()
-        self.createEmptyVault()
+        self.create_empty_vault()
 
     def test_list_blocks_empty_vault(self):
         """List blocks for an empty vault"""
@@ -18,7 +18,7 @@ class TestListBlock(base.TestBase):
         self.assertEqual(200, resp.status_code,
                          'Status code for listing all blocks is'
                          ' {0}'.format(resp.status_code))
-        self.validate_headers(resp.headers, json=True)
+        self.assertHeaders(resp.headers, json=True)
         self.assertListEqual([], resp.json(),
                              'Response to List Blocks for an empty vault '
                              'should be an empty list []')
@@ -33,7 +33,7 @@ class TestUploadBlocks(base.TestBase):
 
     def setUp(self):
         super(TestUploadBlocks, self).setUp()
-        self.createEmptyVault()
+        self.create_empty_vault()
 
     @ddt.data(1, 100, 10000, 30720, 61440)
     def test_upload_block(self, value):
@@ -46,7 +46,7 @@ class TestUploadBlocks(base.TestBase):
         self.assertEqual(201, resp.status_code,
                          'Status code for uploading a block is '
                          '{0}'.format(resp.status_code))
-        self.validate_headers(resp.headers)
+        self.assertHeaders(resp.headers)
         self.assertEqual(0, len(resp.content),
                          'Response Content was not empty. Content: '
                          '{0}'.format(resp.content))
@@ -60,8 +60,8 @@ class TestBlockUploaded(base.TestBase):
 
     def setUp(self):
         super(TestBlockUploaded, self).setUp()
-        self.createEmptyVault()
-        self.uploadBlock()
+        self.create_empty_vault()
+        self.upload_block()
 
     def test_list_one_block(self):
         """List a single block"""
@@ -70,7 +70,7 @@ class TestBlockUploaded(base.TestBase):
         self.assertEqual(200, resp.status_code,
                          'Status code for listing all blocks is '
                          '{0}'.format(resp.status_code))
-        self.validate_headers(resp.headers, json=True)
+        self.assertHeaders(resp.headers, json=True)
         self.assertListEqual([self.blockid], resp.json(),
                              'Response for List Blocks should have 1 item')
 
@@ -84,7 +84,7 @@ class TestBlockUploaded(base.TestBase):
         self.assertEqual(200, resp.status_code,
                          'Status code for getting data of a block is '
                          '{0}'.format(resp.status_code))
-        self.validate_headers(resp.headers, binary=True)
+        self.assertHeaders(resp.headers, binary=True)
         self.assertEqual(resp.content, self.block_data,
                          'Block data returned does not match block uploaded')
 
@@ -109,9 +109,9 @@ class TestListBlocks(base.TestBase):
 
     def setUp(self):
         super(TestListBlocks, self).setUp()
-        self.createEmptyVault()
+        self.create_empty_vault()
         for _ in range(20):
-            self.uploadBlock()
+            self.upload_block()
         self.blockids = []
         for block in self.blocks:
             self.blockids.append(block.Id)
@@ -123,7 +123,7 @@ class TestListBlocks(base.TestBase):
         self.assertEqual(200, resp.status_code,
                          'Status code for listing all blocks is '
                          '{0}'.format(resp.status_code))
-        self.validate_headers(resp.headers, json=True)
+        self.assertHeaders(resp.headers, json=True)
         self.assertListEqual(sorted(self.blockids), sorted(resp.json()),
                              'Response for List Blocks'
                              ' {0} {1}'.format(self.blockids, resp.json()))
@@ -141,11 +141,11 @@ class TestListBlocks(base.TestBase):
             self.assertEqual(200, resp.status_code,
                              'Status code for listing all blocks is '
                              '{0}'.format(resp.status_code))
-            self.validate_headers(resp.headers, json=True)
+            self.assertHeaders(resp.headers, json=True)
             if i < 20 / value - 1:
                 self.assertIn('x-next-batch', resp.headers)
                 url = resp.headers['x-next-batch']
-                self.validate_url(url, nextblocklist=True)
+                self.assertUrl(url, nextblocklist=True)
             else:
                 self.assertNotIn('x-next-batch', resp.headers)
             self.assertEqual(value, len(resp.json()),
@@ -175,11 +175,11 @@ class TestListBlocks(base.TestBase):
             self.assertEqual(200, resp.status_code,
                              'Status code for listing all blocks is '
                              '{0}'.format(resp.status_code))
-            self.validate_headers(resp.headers, json=True)
+            self.assertHeaders(resp.headers, json=True)
             if i < 20 / value - 2:
                 self.assertIn('x-next-batch', resp.headers)
                 url = resp.headers['x-next-batch']
-                self.validate_url(url, nextblocklist=True)
+                self.assertUrl(url, nextblocklist=True)
             else:
                 self.assertNotIn('x-next-batch', resp.headers)
             self.assertEqual(value, len(resp.json()),

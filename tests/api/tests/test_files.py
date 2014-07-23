@@ -10,7 +10,7 @@ class TestCreateFile(base.TestBase):
 
     def setUp(self):
         super(TestCreateFile, self).setUp()
-        self.createEmptyVault()
+        self.create_empty_vault()
 
     def test_create_file(self):
         """Create a file"""
@@ -19,9 +19,9 @@ class TestCreateFile(base.TestBase):
         self.assertEqual(201, resp.status_code,
                          'Status code for creating a file is '
                          '{0}'.format(resp.status_code))
-        self.validate_headers(resp.headers, json=True)
+        self.assertHeaders(resp.headers, json=True)
         self.assertIn('location', resp.headers)
-        self.validate_url(resp.headers['location'], filelocation=True)
+        self.assertUrl(resp.headers['location'], filelocation=True)
         # TODO
         if "null" == resp.content:
             self.skipTest("Skipping because the response is null")
@@ -36,9 +36,9 @@ class TestFileBlockUploaded(base.TestBase):
 
     def setUp(self):
         super(TestFileBlockUploaded, self).setUp()
-        self.createEmptyVault()
-        self.uploadBlock()
-        self.createNewFile()
+        self.create_empty_vault()
+        self.upload_block()
+        self.create_new_file()
 
     def test_assign_block_to_file(self):
         """Assign an uploaded block to a file"""
@@ -54,7 +54,7 @@ class TestFileBlockUploaded(base.TestBase):
         self.assertEqual(200, resp.status_code,
                          'Status code for assigning blocks to files '
                          '{0}'.format(resp.status_code))
-        self.validate_headers(resp.headers, json=True)
+        self.assertHeaders(resp.headers, json=True)
         resp_body = json.loads(resp.content)
         self.assertListEqual([], resp_body)
 
@@ -73,7 +73,7 @@ class TestFileBlockUploaded(base.TestBase):
         self.assertEqual(200, resp.status_code,
                          'Status code for assigning blocks to files '
                          '{0}'.format(resp.status_code))
-        self.validate_headers(resp.headers, json=True)
+        self.assertHeaders(resp.headers, json=True)
         resp_body = json.loads(resp.content)
         self.assertListEqual([blockid], resp_body)
 
@@ -86,8 +86,8 @@ class TestEmptyFile(base.TestBase):
 
     def setUp(self):
         super(TestEmptyFile, self).setUp()
-        self.createEmptyVault()
-        self.createNewFile()
+        self.create_empty_vault()
+        self.create_new_file()
 
     def test_finalize_empty_file(self):
         """Finalize an empty file"""
@@ -96,7 +96,7 @@ class TestEmptyFile(base.TestBase):
         self.assertEqual(200, resp.status_code,
                          'Status code for finalizing file '
                          '{0}'.format(resp.status_code))
-        self.validate_headers(resp.headers, json=True)
+        self.assertHeaders(resp.headers, json=True)
         # TODO
         if "null" == resp.content:
             self.skipTest("Skipping because the response is null")
@@ -110,7 +110,7 @@ class TestEmptyFile(base.TestBase):
         self.assertEqual(200, resp.status_code,
                          'Status code for getting the list of all files '
                          '{0}'.format(resp.status_code))
-        self.validate_headers(resp.headers, json=True)
+        self.assertHeaders(resp.headers, json=True)
         self.assertListEqual([], resp.json())
 
     def tearDown(self):
@@ -122,11 +122,11 @@ class TestFileAssignedBlocks(base.TestBase):
 
     def setUp(self):
         super(TestFileAssignedBlocks, self).setUp()
-        self.createEmptyVault()
+        self.create_empty_vault()
         for _ in range(3):
-            self.uploadBlock()
-        self.createNewFile()
-        self.assignAllBlocksToFile()
+            self.upload_block()
+        self.create_new_file()
+        self.assign_all_blocks_to_file()
 
     def test_finalize_file(self):
         """Finalize a file with some blocks assigned"""
@@ -135,7 +135,7 @@ class TestFileAssignedBlocks(base.TestBase):
         self.assertEqual(200, resp.status_code,
                          'Status code for finalizing file '
                          '{0}'.format(resp.status_code))
-        self.validate_headers(resp.headers, json=True)
+        self.assertHeaders(resp.headers, json=True)
         # TODO
         if "null" == resp.content:
             self.skipTest("Skipping because the response is null")
@@ -150,14 +150,14 @@ class TestFileMissingBlock(base.TestBase):
 
     def setUp(self):
         super(TestFileMissingBlock, self).setUp()
-        self.createEmptyVault()
-        self.uploadBlock()
-        self.generateBlockData()
-        self.uploadBlock()
-        self.generateBlockData()
-        self.uploadBlock()
-        self.createNewFile()
-        self.assignAllBlocksToFile()
+        self.create_empty_vault()
+        self.upload_block()
+        self.generate_block_data()
+        self.upload_block()
+        self.generate_block_data()
+        self.upload_block()
+        self.create_new_file()
+        self.assign_all_blocks_to_file()
 
     def test_finalize_file_missing_block(self):
         """Finalize a file with some blocks missing"""
@@ -166,7 +166,7 @@ class TestFileMissingBlock(base.TestBase):
         self.assertEqual(413, resp.status_code,
                          'Status code for finalizing file '
                          '{0}'.format(resp.status_code))
-        self.validate_headers(resp.headers, json=True)
+        self.assertHeaders(resp.headers, json=True)
         # resp_body = json.loads(resp.content)
         # TODO: Add additional validation of the response content
 
@@ -180,9 +180,9 @@ class TestListBlocksOfFile(base.TestBase):
 
     def setUp(self):
         super(TestListBlocksOfFile, self).setUp()
-        self.createEmptyVault()
+        self.create_empty_vault()
         for _ in range(20):
-            self.uploadBlock()
+            self.upload_block()
         self.blockids = []
         self.blockids_offsets = []
         offset = 0
@@ -190,8 +190,8 @@ class TestListBlocksOfFile(base.TestBase):
             self.blockids.append(block.Id)
             self.blockids_offsets.append((block.Id, offset))
             offset += len(block.Data)
-        self.createNewFile()
-        self.assignAllBlocksToFile()
+        self.create_new_file()
+        self.assign_all_blocks_to_file()
 
     def test_list_blocks_file(self):
         """List multiple blocks (20) assigned to the file"""
@@ -200,7 +200,7 @@ class TestListBlocksOfFile(base.TestBase):
         self.assertEqual(200, resp.status_code,
                          'Status code for getting the list of blocks of a '
                          'file {0}'.format(resp.status_code))
-        self.validate_headers(resp.headers, json=True)
+        self.assertHeaders(resp.headers, json=True)
         for t in resp.json():
             self.assertIn(t[0], self.blockids)
             i = self.blockids.index(t[0])
@@ -227,11 +227,11 @@ class TestListBlocksOfFile(base.TestBase):
             self.assertEqual(200, resp.status_code,
                              'Status code for getting the list of blocks of '
                              'a file {0}'.format(resp.status_code))
-            self.validate_headers(resp.headers, json=True)
+            self.assertHeaders(resp.headers, json=True)
             if i < 20 / value - 1:
                 self.assertIn('x-next-batch', resp.headers)
                 url = resp.headers['x-next-batch']
-                self.validate_url(url, nextfileblocklist=True)
+                self.assertUrl(url, nextfileblocklist=True)
             else:
                 self.assertNotIn('x-next-batch', resp.headers)
             self.assertEqual(value, len(resp.json()),
@@ -270,11 +270,11 @@ class TestListBlocksOfFile(base.TestBase):
             self.assertEqual(200, resp.status_code,
                              'Status code for getting the list of blocks of '
                              'a file {0}'.format(resp.status_code))
-            self.validate_headers(resp.headers, json=True)
+            self.assertHeaders(resp.headers, json=True)
             if i < 20 / value - 2:
                 self.assertIn('x-next-batch', resp.headers)
                 url = resp.headers['x-next-batch']
-                self.validate_url(url, nextfileblocklist=True)
+                self.assertUrl(url, nextfileblocklist=True)
             else:
                 self.assertNotIn('x-next-batch', resp.headers)
             self.assertEqual(value, len(resp.json()),
@@ -300,12 +300,12 @@ class TestFinalizedFile(base.TestBase):
 
     def setUp(self):
         super(TestFinalizedFile, self).setUp()
-        self.createEmptyVault()
+        self.create_empty_vault()
         for _ in range(3):
-            self.uploadBlock()
-        self.createNewFile()
-        self.assignAllBlocksToFile()
-        self.finalizeFile()
+            self.upload_block()
+        self.create_new_file()
+        self.assign_all_blocks_to_file()
+        self.finalize_file()
 
     def test_get_file(self):
         """Get a (finalized) file"""
@@ -317,7 +317,7 @@ class TestFinalizedFile(base.TestBase):
         self.assertEqual(200, resp.status_code,
                          'Status code for getting a file is '
                          '{0}'.format(resp.status_code))
-        self.validate_headers(resp.headers, binary=True)
+        self.assertHeaders(resp.headers, binary=True)
         filedata = ''
         for block in self.blocks:
             filedata += block.Data
@@ -342,7 +342,7 @@ class TestFinalizedFile(base.TestBase):
         self.assertEqual(200, resp.status_code,
                          'Status code for getting the list of all files '
                          '{0}'.format(resp.status_code))
-        self.validate_headers(resp.headers, json=True)
+        self.assertHeaders(resp.headers, json=True)
         self.assertListEqual([self.fileid], resp.json())
 
     def tearDown(self):
@@ -355,15 +355,15 @@ class TestMultipleFinalizedFiles(base.TestBase):
 
     def setUp(self):
         super(TestMultipleFinalizedFiles, self).setUp()
-        self.createEmptyVault()
+        self.create_empty_vault()
         self.blocks_file = []
         for _ in range(20):
             self.blocks = []
-            self.createNewFile()
-            self.uploadBlock()
-            self.assignAllBlocksToFile()
+            self.create_new_file()
+            self.upload_block()
+            self.assign_all_blocks_to_file()
             self.blocks_file.append(self.blocks)
-            self.finalizeFile()
+            self.finalize_file()
 
     def test_list_multiple_files(self):
         """List multiple files (20)"""
@@ -372,7 +372,7 @@ class TestMultipleFinalizedFiles(base.TestBase):
         self.assertEqual(200, resp.status_code,
                          'Status code for getting the list of all files '
                          '{0}'.format(resp.status_code))
-        self.validate_headers(resp.headers, json=True)
+        self.assertHeaders(resp.headers, json=True)
         self.assertListEqual(sorted(self.files), resp.json())
 
     @ddt.data(2, 4, 5, 10)
@@ -388,11 +388,11 @@ class TestMultipleFinalizedFiles(base.TestBase):
             self.assertEqual(200, resp.status_code,
                              'Status code for listing all files is '
                              '{0}'.format(resp.status_code))
-            self.validate_headers(resp.headers, json=True)
+            self.assertHeaders(resp.headers, json=True)
             if i < 20 / value - 1:
                 self.assertIn('x-next-batch', resp.headers)
                 url = resp.headers['x-next-batch']
-                self.validate_url(url, nextfilelist=True)
+                self.assertUrl(url, nextfilelist=True)
             else:
                 self.assertNotIn('x-next-batch', resp.headers)
             self.assertEqual(value, len(resp.json()),
@@ -422,11 +422,11 @@ class TestMultipleFinalizedFiles(base.TestBase):
             self.assertEqual(200, resp.status_code,
                              'Status code for listing all files is '
                              '{0}'.format(resp.status_code))
-            self.validate_headers(resp.headers, json=True)
+            self.assertHeaders(resp.headers, json=True)
             if i < 20 / value - 2:
                 self.assertIn('x-next-batch', resp.headers)
                 url = resp.headers['x-next-batch']
-                self.validate_url(url, nextfilelist=True)
+                self.assertUrl(url, nextfilelist=True)
             else:
                 self.assertNotIn('x-next-batch', resp.headers)
             self.assertEqual(value, len(resp.json()),
