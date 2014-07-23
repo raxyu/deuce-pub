@@ -1,4 +1,12 @@
 
+# TODO:
+# 1. We will use patched Repose to authenticate a user and return
+#    the credentials/token of the user in x-project-id header.
+# 2. Users do not provide or be aware of their project-ids.
+# 3. After patched Repose is deployed for Deuce, this authhook.py
+#    should be entirely removed.
+
+
 from pecan.hooks import PecanHook
 from pecan.core import abort
 from pecan import conf
@@ -17,7 +25,8 @@ class AuthHook(PecanHook):
             self.Conn = getattr(self.lib_pack, 'client')
 
             # TODO: before hook up with patched Repose:
-            if 'x-username' in state.request.headers \
+            if 'x-project-id' not in state.request.headers \
+                    and 'x-username' in state.request.headers \
                     and 'x-password' in state.request.headers:
                 auth_url = conf.block_storage_driver.swift.auth_url
                 os_options = dict()
@@ -33,10 +42,6 @@ class AuthHook(PecanHook):
                 state.request.headers['x-project-id'] = \
                     storage_url.rsplit('/')[-1]
                 return
-
-            # TODO: hook up patched Repose.
-
-            # TODO: validate the project_id
 
         except (KeyError, ClientException):
             # Invalid request

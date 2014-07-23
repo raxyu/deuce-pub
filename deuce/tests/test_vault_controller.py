@@ -16,8 +16,7 @@ class TestVaultController(FunctionalTest):
         password = str(cred['password'])
         json_cred.close()
 
-        self._hdrs = {"X-Project-ID": "sample_project_id",
-            "X-Username": username,
+        self._hdrs = {"X-Username": username,
             "X-Password": password}
 
     def test_vault_leaf(self):

@@ -26,8 +26,7 @@ class TestBlocksController(FunctionalTest):
         password = str(cred['password'])
         json_cred.close()
 
-        self._hdrs = {"X-Project-ID": "sample_project_id",
-            "X-Username": username,
+        self._hdrs = {"X-Username": username,
             "X-Password": password}
 
         response = self.app.put(self._vault_path,
@@ -42,7 +41,6 @@ class TestBlocksController(FunctionalTest):
         assert response.json_body == []
 
         response = self.app.get(self._blocks_path, headers={
-            "X-Project-ID": "failing_auth_hook",
             "X-Username": "failing_auth_hook",
             "X-Password": "failing_auth_hook"},
             expect_errors=True)
