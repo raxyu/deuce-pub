@@ -132,31 +132,7 @@ class TestListBlocks(base.TestBase):
     def test_list_blocks_limit(self, value):
         """List multiple blocks, setting the limit to value"""
 
-        url = None
-        for i in range(20 / value):
-            if not url:
-                resp = self.client.list_of_blocks(self.vaultname, limit=value)
-            else:
-                resp = self.client.list_of_blocks(alternate_url=url)
-            self.assertEqual(200, resp.status_code,
-                             'Status code for listing all blocks is '
-                             '{0}'.format(resp.status_code))
-            self.assertHeaders(resp.headers, json=True)
-            if i < 20 / value - 1:
-                self.assertIn('x-next-batch', resp.headers)
-                url = resp.headers['x-next-batch']
-                self.assertUrl(url, nextblocklist=True)
-            else:
-                self.assertNotIn('x-next-batch', resp.headers)
-            self.assertEqual(value, len(resp.json()),
-                             'Number of block ids returned is not {0} . '
-                             'Returned {1}'.format(value, len(resp.json())))
-            for blockid in resp.json():
-                self.assertIn(blockid, self.blockids)
-                self.blockids.remove(blockid)
-        self.assertEqual(0, len(self.blockids),
-                         'Discrepancy between the list of blocks returned '
-                         'and the blocks uploaded')
+        self.assertBlocksPerPage(value)
 
     @ddt.data(2, 4, 5, 10)
     def test_list_blocks_limit_marker(self, value):
@@ -164,19 +140,26 @@ class TestListBlocks(base.TestBase):
         marker"""
 
         markerid = sorted(self.blockids)[value]
+        self.assertBlocksPerPage(value, marker=markerid, pages=1)
+
+    def assertBlocksPerPage(self, value, marker=None, pages=0):
+        """
+        Helper function to check the blocks returned per request
+        Also verifies that the marker, if provided, is used
+        """
 
         url = None
-        for i in range(20 / value - 1):
+        for i in range(20 / value - pages):
             if not url:
                 resp = self.client.list_of_blocks(self.vaultname,
-                                                  marker=markerid, limit=value)
+                                                  marker=marker, limit=value)
             else:
                 resp = self.client.list_of_blocks(alternate_url=url)
             self.assertEqual(200, resp.status_code,
                              'Status code for listing all blocks is '
                              '{0}'.format(resp.status_code))
             self.assertHeaders(resp.headers, json=True)
-            if i < 20 / value - 2:
+            if i < 20 / value - (1 + pages):
                 self.assertIn('x-next-batch', resp.headers)
                 url = resp.headers['x-next-batch']
                 self.assertUrl(url, nextblocklist=True)
@@ -188,7 +171,7 @@ class TestListBlocks(base.TestBase):
             for blockid in resp.json():
                 self.assertIn(blockid, self.blockids)
                 self.blockids.remove(blockid)
-        self.assertEqual(value, len(self.blockids),
+        self.assertEqual(value * pages, len(self.blockids),
                          'Discrepancy between the list of blocks returned '
                          'and the blocks uploaded')
 

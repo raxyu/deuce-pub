@@ -201,13 +201,7 @@ class TestListBlocksOfFile(base.TestBase):
                          'Status code for getting the list of blocks of a '
                          'file {0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
-        for t in resp.json():
-            self.assertIn(t[0], self.blockids)
-            i = self.blockids.index(t[0])
-            self.assertEqual(t[0], self.blockids_offsets[i][0])
-            self.assertEqual(t[1], self.blockids_offsets[i][1])
-            del self.blockids[i]
-            del self.blockids_offsets[i]
+        self.assertBlocksInResponse(resp)
         self.assertEqual(0, len(self.blockids_offsets),
                          'Discrepancy between the list of blocks returned '
                          'and the blocks associated to the file')
@@ -216,37 +210,7 @@ class TestListBlocksOfFile(base.TestBase):
     def test_list_blocks_file_limit(self, value):
         """List multiple blocks in the file, setting the limit to value"""
 
-        url = None
-        for i in range(20 / value):
-            if not url:
-                resp = self.client.list_of_blocks_in_file(self.vaultname,
-                                                          self.fileid,
-                                                          limit=value)
-            else:
-                resp = self.client.list_of_blocks_in_file(alternate_url=url)
-            self.assertEqual(200, resp.status_code,
-                             'Status code for getting the list of blocks of '
-                             'a file {0}'.format(resp.status_code))
-            self.assertHeaders(resp.headers, json=True)
-            if i < 20 / value - 1:
-                self.assertIn('x-next-batch', resp.headers)
-                url = resp.headers['x-next-batch']
-                self.assertUrl(url, nextfileblocklist=True)
-            else:
-                self.assertNotIn('x-next-batch', resp.headers)
-            self.assertEqual(value, len(resp.json()),
-                             'Number of block ids returned is not {0} . '
-                             'Returned {1}'.format(value, len(resp.json())))
-            for t in resp.json():
-                self.assertIn(t[0], self.blockids)
-                i = self.blockids.index(t[0])
-                self.assertEqual(t[0], self.blockids_offsets[i][0])
-                self.assertEqual(t[1], self.blockids_offsets[i][1])
-                del self.blockids[i]
-                del self.blockids_offsets[i]
-        self.assertEqual(0, len(self.blockids_offsets),
-                         'Discrepancy between the list of blocks returned '
-                         'and the blocks associated to the file')
+        self.assertBlocksInFilePerPage(value)
 
     @ddt.data(2, 4, 5, 10)
     def test_list_blocks_file_limit_marker(self, value):
@@ -257,13 +221,20 @@ class TestListBlocksOfFile(base.TestBase):
         self.skipTest('Skipping. Currently fails because the '
                       'resp.status_code==404 due to the marker')
         markerid = self.blockids[value]
+        self.assertBlocksInFilePerPage(value, marker=markerid, pages=1)
+
+    def assertBlocksInFilePerPage(self, value, marker=None, pages=0):
+        """
+        Helper function to check the blocks in a file returned per request
+        Also verifies that the marker, if provided, is used
+        """
 
         url = None
-        for i in range(20 / value - 1):
+        for i in range(20 / value - pages):
             if not url:
                 resp = self.client.list_of_blocks_in_file(self.vaultname,
                                                           self.fileid,
-                                                          marker=markerid,
+                                                          marker=marker,
                                                           limit=value)
             else:
                 resp = self.client.list_of_blocks_in_file(alternate_url=url)
@@ -271,7 +242,7 @@ class TestListBlocksOfFile(base.TestBase):
                              'Status code for getting the list of blocks of '
                              'a file {0}'.format(resp.status_code))
             self.assertHeaders(resp.headers, json=True)
-            if i < 20 / value - 2:
+            if i < 20 / value - (1 + pages):
                 self.assertIn('x-next-batch', resp.headers)
                 url = resp.headers['x-next-batch']
                 self.assertUrl(url, nextfileblocklist=True)
@@ -280,16 +251,21 @@ class TestListBlocksOfFile(base.TestBase):
             self.assertEqual(value, len(resp.json()),
                              'Number of block ids returned is not {0} . '
                              'Returned {1}'.format(value, len(resp.json())))
-            for t in resp.json():
-                self.assertIn(t[0], self.blockids)
-                i = self.blockids.index(t[0])
-                self.assertEqual(t[0], self.blockids_offsets[i][0])
-                self.assertEqual(t[1], self.blockids_offsets[i][1])
-                del self.blockids[i]
-                del self.blockids_offsets[i]
-        self.assertEqual(value, len(self.blockids_offsets),
+            self.assertBlocksInResponse(resp)
+        self.assertEqual(value * pages, len(self.blockids_offsets),
                          'Discrepancy between the list of blocks returned '
                          'and the blocks associated to the file')
+
+    def assertBlocksInResponse(self, response):
+        """Check the block information returned in the response"""
+
+        for t in response.json():
+            self.assertIn(t[0], self.blockids)
+            i = self.blockids.index(t[0])
+            self.assertEqual(t[0], self.blockids_offsets[i][0])
+            self.assertEqual(t[1], self.blockids_offsets[i][1])
+            del self.blockids[i]
+            del self.blockids_offsets[i]
 
     def tearDown(self):
         super(TestListBlocksOfFile, self).tearDown()
@@ -379,31 +355,7 @@ class TestMultipleFinalizedFiles(base.TestBase):
     def test_list_files_limit(self, value):
         """List multiple files, setting the limit to value"""
 
-        url = None
-        for i in range(20 / value):
-            if not url:
-                resp = self.client.list_of_files(self.vaultname, limit=value)
-            else:
-                resp = self.client.list_of_files(alternate_url=url)
-            self.assertEqual(200, resp.status_code,
-                             'Status code for listing all files is '
-                             '{0}'.format(resp.status_code))
-            self.assertHeaders(resp.headers, json=True)
-            if i < 20 / value - 1:
-                self.assertIn('x-next-batch', resp.headers)
-                url = resp.headers['x-next-batch']
-                self.assertUrl(url, nextfilelist=True)
-            else:
-                self.assertNotIn('x-next-batch', resp.headers)
-            self.assertEqual(value, len(resp.json()),
-                             'Number of file ids returned is not {0} . '
-                             'Returned {1}'.format(value, len(resp.json())))
-            for fileid in resp.json():
-                self.assertIn(fileid, self.files)
-                self.files.remove(fileid)
-        self.assertEqual(0, len(self.files),
-                         'Discrepancy between the list of files returned '
-                         'and the files created/finalized')
+        self.assertFilesPerPage(value)
 
     @ddt.data(2, 4, 5, 10)
     def test_list_files_limit_marker(self, value):
@@ -411,19 +363,26 @@ class TestMultipleFinalizedFiles(base.TestBase):
         marker"""
 
         markerid = sorted(self.files)[value]
+        self.assertFilesPerPage(value, marker=markerid, pages=1)
+
+    def assertFilesPerPage(self, value, marker=None, pages=0):
+        """
+        Helper function to check the files returned per request
+        Also verifies that the marker, if provided, is used
+        """
 
         url = None
-        for i in range(20 / value - 1):
+        for i in range(20 / value - pages):
             if not url:
                 resp = self.client.list_of_files(self.vaultname,
-                                                 marker=markerid, limit=value)
+                                                 marker=marker, limit=value)
             else:
                 resp = self.client.list_of_files(alternate_url=url)
             self.assertEqual(200, resp.status_code,
                              'Status code for listing all files is '
                              '{0}'.format(resp.status_code))
             self.assertHeaders(resp.headers, json=True)
-            if i < 20 / value - 2:
+            if i < 20 / value - (1 + pages):
                 self.assertIn('x-next-batch', resp.headers)
                 url = resp.headers['x-next-batch']
                 self.assertUrl(url, nextfilelist=True)
@@ -435,9 +394,9 @@ class TestMultipleFinalizedFiles(base.TestBase):
             for fileid in resp.json():
                 self.assertIn(fileid, self.files)
                 self.files.remove(fileid)
-        self.assertEqual(value, len(self.files),
+        self.assertEqual(value * pages, len(self.files),
                          'Discrepancy between the list of files returned '
-                         'and the files uploaded')
+                         'and the files created/finalilzed')
 
     def tearDown(self):
         super(TestMultipleFinalizedFiles, self).tearDown()
