@@ -18,7 +18,7 @@ II.  Swift/Cloud Files Driver Testing Instructions
 
     auth_url = 'Auth URL'
 
-2. In deuce/tests/storage_credentials.json, replace username and password with the correct values of the Deuce user.
+2. Copy deuce/tests/storage_credentials_template.json to $HOME directory, rename it to storage_credentials.json, replace username and password with the correct values of the Deuce user.
 
     "username": "Your user name",
     "password": "your password"

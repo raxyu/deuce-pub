@@ -12,6 +12,7 @@ from swiftclient.exceptions import ClientException
 from pecan import conf
 
 import sys
+import os
 import json
 
 
@@ -24,7 +25,7 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
     def get_Auth_Token(self):
 
         auth_url = str(conf.block_storage_driver.swift.auth_url)
-        json_cred = open('./tests/storage_credentials.json')
+        json_cred = open(os.getenv("HOME")+'/storage_credentials.json')
         cred = json.load(json_cred)
         username = str(cred['username'])
         password = str(cred['password'])

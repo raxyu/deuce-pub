@@ -20,7 +20,7 @@ class TestBlocksController(FunctionalTest):
         self._vault_path = '/v1.0/{0}'.format(vault_name)
         self._blocks_path = '{0}/blocks'.format(self._vault_path)
 
-        json_cred = open('./tests/storage_credentials.json')
+        json_cred = open(os.getenv("HOME")+'/storage_credentials.json')
         cred = json.load(json_cred)
         username = str(cred['username'])
         password = str(cred['password'])

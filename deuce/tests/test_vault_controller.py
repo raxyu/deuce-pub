@@ -1,6 +1,7 @@
 from unittest import TestCase
 from webtest import TestApp
 from deuce.tests import FunctionalTest
+import os
 
 import json
 
@@ -10,7 +11,7 @@ class TestVaultController(FunctionalTest):
     def setUp(self):
         super(TestVaultController, self).setUp()
 
-        json_cred = open('./tests/storage_credentials.json')
+        json_cred = open(os.getenv("HOME")+'/storage_credentials.json')
         cred = json.load(json_cred)
         username = str(cred['username'])
         password = str(cred['password'])
