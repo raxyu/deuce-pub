@@ -100,7 +100,7 @@ class TestBase(fixtures.BaseTestFixture):
             self.assertEqual('application/binary', headers['content-type'])
 
     def assertUrl(self, url, nextblocklist=False, filelocation=False,
-                     nextfilelist=False, nextfileblocklist=False):
+                  nextfilelist=False, nextfileblocklist=False):
 
         u = urlparse.urlparse(url)
         self.assertIn(u.scheme, ['http', 'https'])
