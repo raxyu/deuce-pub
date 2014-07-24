@@ -31,7 +31,7 @@ class VaultController(RestController):
 
     @expose()
     @validate(vault_id=VaultGetRule)
-    def get_one(self, vault_id):
+    def head(self, vault_id):
         """Returns the vault controller object"""
         response.headers["Transaction-ID"] = request.context.request_id
         if Vault.get(request.project_id, vault_id):
