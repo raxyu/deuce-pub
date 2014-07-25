@@ -26,15 +26,8 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
 
         auth_url = str(conf.block_storage_driver.swift.auth_url)
 
-        username = ''
-        password = ''
-        cred_file = os.getenv("HOME") + '/storage_credentials.json'
-        if os.path.exists(cred_file):
-            json_cred = open(cred_file)
-            cred = json.load(json_cred)
-            username = str(cred['username'])
-            password = str(cred['password'])
-            json_cred.close()
+        username = 'User Name'
+        password = 'Password'
 
         self.mocking = False
         try:
@@ -56,9 +49,11 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
                 sys.exit(str(e))
 
         else:
-            storage_url = 'mocking_url'
+            storage_url = conf.block_storage_driver.swift.storage_url
             token = 'mocking_token'
 
+        self._hdrs = {"x-project-id": 'testswfitstoragedrv',
+            "x-auth-token": token}
         return storage_url, token
 
     def test_basic_construction(self):
@@ -91,14 +86,14 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
         projectid = 'notmatter'
         vaultid = 'notmatter'
         blockid = 'notmatter'
-        driver.create_vault(projectid, vaultid, failed_token, storage_url)
-        driver.vault_exists(projectid, vaultid, failed_token, storage_url)
-        driver.delete_vault(projectid, vaultid, failed_token, storage_url)
+        driver.create_vault(projectid, vaultid, failed_token)
+        driver.vault_exists(projectid, vaultid, failed_token)
+        driver.delete_vault(projectid, vaultid, failed_token)
         driver.store_block(projectid, vaultid, blockid,
-            str('').encode('utf-8'), failed_token, storage_url)
+            str('').encode('utf-8'), failed_token)
         driver.block_exists(projectid, vaultid, blockid,
-            failed_token, storage_url)
+            failed_token)
         driver.delete_block(projectid, vaultid, blockid,
-            failed_token, storage_url)
+            failed_token)
         driver.get_block_obj(projectid, vaultid, blockid,
-            failed_token, storage_url)
+            failed_token)

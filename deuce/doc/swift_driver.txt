@@ -2,9 +2,12 @@
 
 I.  Swift/Cloud Files Driver Production Setup Instructions
 
-1. In deuce/tests/test_swift_storage_driver.py, replace auth_url with the correct value.
+1. In deuce/tests/test_swift_storage_driver.py, replace auth_url, username, and password with the correct values.
 
-    auth_url = 'Auth URL'
+    auth_url =  str(conf.block_storage_driver.swift.auth_url)
+    username = 'User Name'
+    password = 'Password'
+
 
 2. Run Pecan command to start the service.
 
@@ -14,16 +17,13 @@ I.  Swift/Cloud Files Driver Production Setup Instructions
 
 II.  Swift/Cloud Files Driver Testing Instructions
 
-1. In deuce/tests/test_swift_storage_driver.py, replace auth_url with the correct value.
+1. In deuce/tests/test_swift_storage_driver.py, replace auth_url, username, and password with the correct values.
 
-    auth_url = 'Auth URL'
+    auth_url =  str(conf.block_storage_driver.swift.auth_url)
+    username = 'User Name'
+    password = 'Password'
 
-2. Copy deuce/tests/storage_credentials_template.json to $HOME directory, rename it to storage_credentials.json, replace username and password with the correct values of the Deuce user.
-
-    "username": "Your user name",
-    "password": "your password"
-
-3. In deuce/tests/__init__.py, replace these 3 lines, to active the real swiftclient module.
+2. In deuce/tests/__init__.py, replace these 3 lines, to active the real swiftclient module.
 
 Before
 
@@ -38,7 +38,7 @@ After
     conf_dict['block_storage_driver']['swift']['is_mocking'] = False
 
 
-4. Run tests with the storage in Rackspace Cloud Files.
+3. Run tests with the storage in Rackspace Cloud Files.
 
 
 ** If tests fail with driver.delete_vault(), the problematic vault and the garbage inside it need to be deleted manually from the control panel. 

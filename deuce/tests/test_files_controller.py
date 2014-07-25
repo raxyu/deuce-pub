@@ -24,18 +24,8 @@ class TestFilesController(FunctionalTest):
         self.max_ret_num = conf.api_configuration.max_returned_num
         self.total_file_num = 0
 
-        username = ''
-        password = ''
-        cred_file = os.getenv("HOME") + '/storage_credentials.json'
-        if os.path.exists(cred_file):
-            json_cred = open(cred_file)
-            cred = json.load(json_cred)
-            username = str(cred['username'])
-            password = str(cred['password'])
-            json_cred.close()
-
-        self._hdrs = {"X-Username": username,
-            "X-Password": password}
+        self._hdrs = {"x-project-id": 'testfilectrl',
+            "x-auth-token": ''}
 
         # Create a vault and a file for us to work with
         self.project_id = 'test_project_id'

@@ -25,7 +25,7 @@ class VaultController(RestController):
     def put(self, vault_name):
         response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.create(request.project_id, vault_name,
-                request.auth_token, request.storage_url)
+                request.auth_token)
         # TODO: Need check and monitor failed vault.
         logger.info('Vault [{0}] created'.format(vault_name))
         response.status_code = 201 if vault else 500
@@ -36,7 +36,7 @@ class VaultController(RestController):
         """Returns the vault controller object"""
         response.headers["Transaction-ID"] = request.context.request_id
         if Vault.get(request.project_id, vault_id,
-                request.auth_token, request.storage_url):
+                request.auth_token):
             response.status_code = 204
         else:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
@@ -49,11 +49,11 @@ class VaultController(RestController):
     def delete(self, vault_id):
         response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(request.project_id, vault_id,
-                request.auth_token, request.storage_url)
+                request.auth_token)
 
         if vault:
             vault.delete(
-                request.auth_token, request.storage_url)
+                request.auth_token)
             logger.info('Vault [{0}] deleted'.format(vault_id))
             response.status_code = 204
         else:

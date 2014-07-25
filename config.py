@@ -6,10 +6,9 @@ server = {
 
 
 def get_hooks():
-    from deuce.hooks import AuthHook
     from deuce.hooks import ProjectIDHook
     from deuce.hooks import TransactionIDHook
-    return [TransactionIDHook(), AuthHook(), ProjectIDHook()]
+    return [TransactionIDHook(), ProjectIDHook()]
 
 # Pecan Application Configurations
 app = {
@@ -84,7 +83,8 @@ block_storage_driver = {
     'swift': {
         'driver': 'deuce.drivers.swift.SwiftStorageDriver',
         'swift_module': 'swiftclient',
-        'auth_url': 'Auth Url'
+        'auth_url': 'Auth Url',
+        'storage_url': 'Storage Url'
         # Example:
         # 'auth_url': 'https://identity.api.rackspacecloud.com/v2.0/'
     }

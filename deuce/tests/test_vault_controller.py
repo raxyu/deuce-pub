@@ -10,19 +10,8 @@ class TestVaultController(FunctionalTest):
 
     def setUp(self):
         super(TestVaultController, self).setUp()
-
-        username = ''
-        password = ''
-        cred_file = os.getenv("HOME") + '/storage_credentials.json'
-        if os.path.exists(cred_file):
-            json_cred = open(cred_file)
-            cred = json.load(json_cred)
-            username = str(cred['username'])
-            password = str(cred['password'])
-            json_cred.close()
-
-        self._hdrs = {"X-Username": username,
-            "X-Password": password}
+        self._hdrs = {"x-project-id": 'testvaultctrl',
+            "x-auth-token": ''}
 
     def test_vault_leaf(self):
         response = self.app.get('/v1.0/', headers=self._hdrs,

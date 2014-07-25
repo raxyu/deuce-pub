@@ -14,7 +14,7 @@ class BlockStorageDriver(object):
 
     @abstractmethod
     def block_exists(self, project_id, vault_id, block_id,
-            auth_token=None, storage_url=None):
+            auth_token=None):
         """Determines if the specified block exists in the vault.
 
         :param project_id: The Project ID for this block
@@ -24,7 +24,7 @@ class BlockStorageDriver(object):
 
     @abstractmethod
     def create_vault(self, project_id, vault_id,
-            auth_token=None, storage_url=None):
+            auth_token=None):
         """Allocates space in the storage backend for the specified
         vault ID
 
@@ -33,7 +33,7 @@ class BlockStorageDriver(object):
 
     @abstractmethod
     def delete_vault(self, project_id, vault_id,
-            auth_token=None, storage_url=None):
+            auth_token=None):
         """Deletes the storage allocation for this vault.
 
         :param vault_id: The ID of the vault to delete
@@ -43,7 +43,7 @@ class BlockStorageDriver(object):
 
     @abstractmethod
     def vault_exists(self, project_id, vault_id,
-            auth_token=None, storage_url=None):
+            auth_token=None):
         """Determines if block space has been allocated for the
         specified vault_id
 
@@ -52,13 +52,13 @@ class BlockStorageDriver(object):
 
     @abstractmethod
     def get_block_obj(self, project_id, vault_id, block_id,
-            auth_token=None, storage_url=None):
+            auth_token=None):
         """Returns a single file-like object"""
         raise NotImplementedError
 
     @abstractmethod
     def store_block(self, project_id, vault_id, block_id, block_data,
-            auth_token=None, storage_url=None):
+            auth_token=None):
         """Stores the block into the specified vault
 
         :param block_id: The ID of the block"""
@@ -66,19 +66,19 @@ class BlockStorageDriver(object):
 
     @abstractmethod
     def block_exists(self, project_id, vault_id, block_id,
-            auth_token=None, storage_url=None):
+            auth_token=None):
         """Determines if the specified block exists in the
         vault."""
         raise NotImplementedError
 
     @abstractmethod
     def delete_block(self, project_id, vault_id, block_id,
-            auth_token=None, storage_url=None):
+            auth_token=None):
         """Deletes the specified block from storage"""
         raise NotImplementedError
 
     def create_blocks_generator(self, project_id, vault_id, block_gen,
-            auth_token=None, storage_url=None):
+            auth_token=None):
         """Returns a generator of file-like objects that are
         ready to read. These objects will get closed
         individually."""
