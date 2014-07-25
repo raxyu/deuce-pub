@@ -8,13 +8,11 @@ _loggers = {}
 class ContextAdapter(logging.LoggerAdapter):
 
     def process(self, msg, kwargs):
-        try:
-            context = getattr(local.store, 'context', None)
+        context = getattr(local.store, 'context', None)
+        if context is not None:
             kwargs['extra'] = {'request_id': context.request_id}
             self.extra = kwargs['extra']
-            return msg, kwargs
-        except:
-            return msg, kwargs
+        return msg, kwargs
 
 
 def getLogger(name):
