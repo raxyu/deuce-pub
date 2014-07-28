@@ -51,6 +51,7 @@ class TestFileBlockUploaded(base.TestBase):
 
         resp = self.client.assign_to_file(json.dumps(block_dict),
                                           alternate_url=self.fileurl)
+
         self.assertEqual(200, resp.status_code,
                          'Status code for assigning blocks to files '
                          '{0}'.format(resp.status_code))
@@ -70,6 +71,7 @@ class TestFileBlockUploaded(base.TestBase):
 
         resp = self.client.assign_to_file(json.dumps(block_dict),
                                           alternate_url=self.fileurl)
+
         self.assertEqual(200, resp.status_code,
                          'Status code for assigning blocks to files '
                          '{0}'.format(resp.status_code))
@@ -123,8 +125,7 @@ class TestFileAssignedBlocks(base.TestBase):
     def setUp(self):
         super(TestFileAssignedBlocks, self).setUp()
         self.create_empty_vault()
-        for _ in range(3):
-            self.upload_block()
+        [self.upload_block() for _ in range(3)]
         self.create_new_file()
         self.assign_all_blocks_to_file()
 
@@ -181,8 +182,7 @@ class TestListBlocksOfFile(base.TestBase):
     def setUp(self):
         super(TestListBlocksOfFile, self).setUp()
         self.create_empty_vault()
-        for _ in range(20):
-            self.upload_block()
+        [self.upload_block() for _ in range(20)]
         self.blockids = []
         self.blockids_offsets = []
         offset = 0
@@ -238,6 +238,7 @@ class TestListBlocksOfFile(base.TestBase):
                                                           limit=value)
             else:
                 resp = self.client.list_of_blocks_in_file(alternate_url=url)
+
             self.assertEqual(200, resp.status_code,
                              'Status code for getting the list of blocks of '
                              'a file {0}'.format(resp.status_code))
@@ -259,11 +260,11 @@ class TestListBlocksOfFile(base.TestBase):
     def assertBlocksInResponse(self, response):
         """Check the block information returned in the response"""
 
-        for t in response.json():
-            self.assertIn(t[0], self.blockids)
-            i = self.blockids.index(t[0])
-            self.assertEqual(t[0], self.blockids_offsets[i][0])
-            self.assertEqual(t[1], self.blockids_offsets[i][1])
+        for id_offset in response.json():
+            self.assertIn(id_offset[0], self.blockids)
+            i = self.blockids.index(id_offset[0])
+            self.assertEqual(id_offset[0], self.blockids_offsets[i][0])
+            self.assertEqual(id_offset[1], self.blockids_offsets[i][1])
             del self.blockids[i]
             del self.blockids_offsets[i]
 
@@ -277,8 +278,7 @@ class TestFinalizedFile(base.TestBase):
     def setUp(self):
         super(TestFinalizedFile, self).setUp()
         self.create_empty_vault()
-        for _ in range(3):
-            self.upload_block()
+        [self.upload_block() for _ in range(3)]
         self.create_new_file()
         self.assign_all_blocks_to_file()
         self.finalize_file()
@@ -378,6 +378,7 @@ class TestMultipleFinalizedFiles(base.TestBase):
                                                  marker=marker, limit=value)
             else:
                 resp = self.client.list_of_files(alternate_url=url)
+
             self.assertEqual(200, resp.status_code,
                              'Status code for listing all files is '
                              '{0}'.format(resp.status_code))

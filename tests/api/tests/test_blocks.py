@@ -155,6 +155,7 @@ class TestListBlocks(base.TestBase):
                                                   marker=marker, limit=value)
             else:
                 resp = self.client.list_of_blocks(alternate_url=url)
+
             self.assertEqual(200, resp.status_code,
                              'Status code for listing all blocks is '
                              '{0}'.format(resp.status_code))
