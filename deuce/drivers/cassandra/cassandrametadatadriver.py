@@ -158,6 +158,26 @@ class CassandraStorageDriver(MetadataStorageDriver):
 
         return res
 
+    def get_vault_statistics(self, project_id, vault_id):
+        """Return the statistics on the vault.
+
+        "param vault_id: The ID of the vault to gather statistics for"""
+        res = {}
+
+        # TODO: Add any statistics regarding files
+        res['files'] = {}
+        res['files']['count'] = 0
+
+        # TODO: Add any statistics regarding blocks
+        res['blocks'] = {}
+        res['blocks']['count'] = 0
+
+        # TODO: Add any statistics specific to the Cassandra backend
+        res['internal'] = {}
+        # res['internal']
+
+        return res
+
     def create_file(self, project_id, vault_id, file_id):
         """Creates a new file with no blocks and no files"""
         args = (project_id, vault_id, uuid.UUID(file_id))

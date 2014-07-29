@@ -36,6 +36,26 @@ class DiskStorageDriver(BlockStorageDriver):
         path = self._get_vault_path(project_id, vault_id)
         return os.path.exists(path)
 
+    def get_vault_statistics(self, project_id, vault_id):
+        """Return the statistics on the vault.
+
+        "param vault_id: The ID of the vault to gather statistics for"""
+        res = {}
+
+        # TODO: Add any statistics regarding files
+        res['files'] = {}
+        res['files']['count'] = 0
+
+        # TODO: Add any statistics regarding blocks
+        res['blocks'] = {}
+        res['blocks']['count'] = 0
+
+        # TODO: Add any statistics specific to the Disk backend
+        res['internal'] = {}
+        # res['internal']
+
+        return res
+
     def delete_vault(self, project_id, vault_id):
         path = self._get_vault_path(project_id, vault_id)
         try:

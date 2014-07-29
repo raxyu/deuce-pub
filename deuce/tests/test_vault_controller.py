@@ -24,7 +24,7 @@ class TestVaultController(FunctionalTest):
                 expect_errors=True)
         self.assertEqual(response.status_int, 400)
 
-        response = self.app.get(vault_path, headers=self._hdrs,
+        response = self.app.head(vault_path, headers=self._hdrs,
                 expect_errors=True)
         self.assertEqual(response.status_int, 404)
 
@@ -32,8 +32,15 @@ class TestVaultController(FunctionalTest):
         vault_name = 'my_new_vault'
         vault_path = '/v1.0/{0}'.format(vault_name)
 
-        # If we try to get the vault before it exists, it should
+        # If we try to head the vault before it exists, it should
         # return a 404
+        response = self.app.head(vault_path,
+            headers=self._hdrs, expect_errors=True)
+
+        assert response.status_code == 404
+
+        # If we try to get the statistics on the vault before it
+        # exists, it should return a 404
         response = self.app.get(vault_path,
             headers=self._hdrs, expect_errors=True)
 
@@ -43,11 +50,19 @@ class TestVaultController(FunctionalTest):
         response = self.app.put(vault_path, headers=self._hdrs)
         assert response.status_code == 201
 
-        # Now if we get the vault, what do we get? For now,
-        # let's enforce that we get a 204 (No Content)
-        response = self.app.get(vault_path, headers=self._hdrs)
+        # Now verify the vault exists
+        response = self.app.head(vault_path, headers=self._hdrs)
 
         assert response.status_code == 204
+
+        # Now get the statistics, what do we get?
+        # Base statistics:
+        #   metadata (file count = 0, file-block count = 0, blocks = 0)
+        #   storage (size = 0,...)
+        # For now, just enforce we get a 200
+        response = self.app.get(vault_path, headers=self._hdrs)
+
+        assert response.status_code == 200
 
         # Now delete the vault (this should be OK since it
         # contains nothing in it.
@@ -56,8 +71,8 @@ class TestVaultController(FunctionalTest):
 
         assert response.status_code == 204
 
-        # Now we should get a 404 when trying to get the vault
-        response = self.app.get(vault_path, headers=self._hdrs,
+        # Now we should get a 404 when trying to head the vault
+        response = self.app.head(vault_path, headers=self._hdrs,
             expect_errors=True)
 
         assert response.status_code == 404

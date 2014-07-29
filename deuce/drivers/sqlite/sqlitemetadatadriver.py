@@ -87,6 +87,13 @@ SQL_GET_ALL_FILE_BLOCKS = '''
     ORDER BY offset
 '''
 
+SQL_GET_COUNT_ALL_FILE_BLOCKS = '''
+    SELECT COUNT(DISTINCT(blockid))
+    FROM fileblocks
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+'''
+
 SQL_GET_FILE_BLOCKS = '''
     SELECT blockid, offset
     FROM fileblocks
@@ -108,6 +115,13 @@ SQL_GET_ALL_BLOCKS = '''
     LIMIT :limit
 '''
 
+SQL_GET_COUNT_ALL_BLOCKS = '''
+    SELECT COUNT(DISTINCT(blockid))
+    FROM blocks
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+'''
+
 SQL_GET_ALL_FILES = '''
     SELECT fileid
     FROM files
@@ -118,6 +132,14 @@ SQL_GET_ALL_FILES = '''
     order by fileid
     LIMIT :limit
 '''
+
+SQL_GET_COUNT_ALL_FILES = '''
+    SELECT COUNT(DISTINCT(fileid))
+    FROM files
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+'''
+
 
 SQL_CREATE_FILEBLOCK_LIST = '''
     SELECT blocks.blockid, fileblocks.offset, blocks.size
@@ -217,6 +239,53 @@ class SqliteStorageDriver(MetadataStorageDriver):
         the passed marker is None, empty string, etc
         """
         return marker or ''
+
+    def get_vault_statistics(self, project_id, vault_id):
+        """Return the statistics on the vault.
+
+        "param vault_id: The ID of the vault to gather statistics for"""
+        res = {}
+
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id
+        }
+
+        def __stats_query(sql_statement, default_value):
+            result = self._conn.execute(sql_statement, args)
+            try:
+                return next(result)[0]
+
+            except StopIteration:
+                return default_value
+
+            except IndexError:
+                return default_value
+
+        def __stats_get_vault_file_block_count():
+            return __stats_query(SQL_GET_COUNT_ALL_FILE_BLOCKS, 0)
+
+        def __stats_get_vault_file_count():
+            return __stats_query(SQL_GET_COUNT_ALL_FILES, 0)
+
+        def __stats_get_vault_block_count():
+            return __stats_query(SQL_GET_COUNT_ALL_BLOCKS, 0)
+
+        res['file-blocks'] = {}
+        res['file-blocks']['count'] = __stats_get_vault_file_block_count()
+
+        # Add any statistics regarding files
+        res['files'] = {}
+        res['files']['count'] = __stats_get_vault_file_count()
+
+        # Add any statistics regarding blocks
+        res['blocks'] = {}
+        res['blocks']['count'] = __stats_get_vault_block_count()
+
+        # Add any statistics specific to the MongoDB backend
+        res['internal'] = {}
+
+        return res
 
     def create_file(self, project_id, vault_id, file_id):
         """Creates a new file with no blocks and no files"""

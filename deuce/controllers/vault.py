@@ -2,6 +2,9 @@ from deuce.util import log as logging
 
 from pecan import expose, response, request
 from pecan.rest import RestController
+
+import deuce
+
 from deuce.controllers.blocks import BlocksController
 from deuce.controllers.files import FilesController
 from deuce.controllers.validation import *
@@ -33,9 +36,42 @@ class VaultController(RestController):
     @validate(vault_id=VaultGetRule)
     def head(self, vault_id):
         """Returns the vault controller object"""
+
         response.headers["Transaction-ID"] = request.context.request_id
         if Vault.get(request.project_id, vault_id):
             response.status_code = 204
+        else:
+            logger.error('Vault [{0}] does not exist'.format(vault_id))
+            response.status_code = 404
+
+        return None
+
+    @expose('json')
+    @validate(vault_id=VaultGetRule)
+    def get_one(self, vault_id):
+        """Returns the statistics on vault controller object"""
+        response.headers["Transaction-ID"] = request.context.request_id
+
+        if Vault.get(request.project_id, vault_id):
+            # Get information about the vault
+            # - number of files
+            # - number of blocks
+            # - number of file-blocks
+            # - total size
+            # - etc
+            # Return as JSON data
+            vault_stats = {}
+
+            metadata_info = deuce.metadata_driver
+            storage_info = deuce.storage_driver
+
+            vault_stats['metadata'] = metadata_info.get_vault_statistics(
+                request.project_id, vault_id)
+            vault_stats['storage'] = storage_info.get_vault_statistics(
+                request.project_id, vault_id)
+
+            response.body_file = vault_stats
+            response.status_code = 200
         else:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
             response.status_code = 404
