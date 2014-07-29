@@ -1,22 +1,3 @@
-======================================================
-Swift/Cloud Files Driver Production Setup Instructions
-======================================================
-
-1)  In deuce/tests/test_swift_storage_driver.py, replace auth_url, username, and password with the correct values.
-.. code-block:: python
-
-    auth_url =  str(conf.block_storage_driver.swift.auth_url)
-    username = 'User Name'
-    password = 'Password'
-
-
-2)  Run Pecan command to start the service.
-.. code-block:: python
-
-    pecan serve config.py
-
-
-
 =============================================
 Swift/Cloud Files Driver Testing Instructions
 =============================================
