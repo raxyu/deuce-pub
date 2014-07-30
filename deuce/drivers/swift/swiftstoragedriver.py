@@ -68,7 +68,7 @@ class SwiftStorageDriver(BlockStorageDriver):
                 container=vault_id)
 
             if container_metadata is not None:
-                statistics['total-size'] = container_metadta['x-container-bytes-used']
+                statistics['total-size'] = container_metadata['x-container-bytes-used']
                 statistics['block-count'] = container_metadata['x-container-object-count']
                 statistics['internal']['last-modification-time'] = container_metadata['x-timestamp']
 

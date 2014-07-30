@@ -254,7 +254,8 @@ class SqliteStorageDriver(MetadataStorageDriver):
         def __stats_query(sql_statement, default_value):
             result = self._conn.execute(sql_statement, args)
             try:
-                return next(result)[0]
+                row = next(result)
+                return row[0]
 
             except StopIteration:
                 return default_value

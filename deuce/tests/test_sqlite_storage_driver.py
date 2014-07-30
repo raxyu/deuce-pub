@@ -36,20 +36,20 @@ class SqliteStorageDriverTest(FunctionalTest):
         assert isinstance(driver, MetadataStorageDriver)
         assert isinstance(driver, object)
 
-    def test_vault_crud(self):
+    def test_vault_statistics(self):
         driver = self.create_driver()
 
         project_id = 'project_id'
         vault_id = self._create_vault_id()
 
         # empty vault stats
-        stats = driver.get_vault_statistics(project_id, vault_id)
+        statistics = driver.get_vault_statistics(project_id, vault_id)
 
         main_keys = ('file-blocks', 'files', 'blocks')
         for key in main_keys:
-            assert key in stats.keys()
-            assert 'count' in stats[key].keys()
-            assert stats[key]['count'] == 0
+            assert key in statistics.keys()
+            assert 'count' in statistics[key].keys()
+            assert statistics[key]['count'] == 0
 
         # TODO: Add files and check that founds match as expected
 

@@ -193,7 +193,7 @@ class CassandraStorageDriver(MetadataStorageDriver):
         def __stats_query(cql_statement, default_value):
             result = self._session.execute(cql_statement, args)
             try:
-                return result[0]
+                return result[0][0]
 
             except IndexError:
                 return default_value

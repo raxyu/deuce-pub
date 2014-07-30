@@ -71,7 +71,7 @@ class VaultController(RestController):
             storage_info = deuce.storage_driver
 
             vault_stats['metadata'] = metadata_info.get_vault_statistics(
-                request.project_id, vault_id, request.auth_token)
+                request.project_id, vault_id)
             vault_stats['storage'] = storage_info.get_vault_statistics(
                 request.project_id, vault_id, request.auth_token)
 

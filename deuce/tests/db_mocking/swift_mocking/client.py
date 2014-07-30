@@ -41,7 +41,20 @@ def head_container(url,
             container):
     path = _get_vault_path(container)
     if os.path.exists(path):
-        return 'mocking_ret'
+        response_headers = {}
+        response_headers['content-type'] = 'mocking_ret'
+        response_headers['x-container-bytes-used'] = 0
+        response_headers['x-container-object-count'] = 0
+        # If we really wanted to be pendantic about this field
+        # then we'd set this to zero and find the epoch to 5 decimals
+        # on each file below and take the latest (max) value between them all
+        response_headers['x-timestamp'] = 987654321.12345
+
+        for root, dirs, files in os.walk(path):
+            response_headers['x-container-bytes-used'] = response_headers['x-container-bytes-used'] + sum(os.path.getsize(os.path.join(root, name)) for name in files)
+            response_headers['x-container-object-count'] = response_headers['x-container-object-count'] + len(files)
+
+        return response_headers
     else:
         raise ClientException('mocking')
 
