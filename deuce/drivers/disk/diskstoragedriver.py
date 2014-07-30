@@ -54,9 +54,16 @@ class DiskStorageDriver(BlockStorageDriver):
 
         path = self._get_vault_path(project_id, vault_id)
 
+        total_size = 0
+        object_count = 0
         for root, dirs, files in os.walk(path):
-            statistics['total-size'] = statistics['total-size'] + sum(os.path.getsize(os.path.join(root, name)) for name in files)
-            statistics['block-count'] = statistics['block-count'] + len(files)
+            total_size = total_size + sum(
+                os.path.getsize(
+                    os.path.join(root, name)) for name in files)
+            object_count = object_count + len(files)
+
+        statistics['total-size'] = total_size
+        statistics['block-count'] = object_count
 
         return statistics
 

@@ -40,9 +40,10 @@ class VaultController(RestController):
 
         response.headers["Transaction-ID"] = request.context.request_id
         if Vault.get(request.project_id, vault_id,
-            request.auth_token):
-            # weblint complains about the content-type header being present
-            # as pecan doesn't intelligently add it or remove it.
+                request.auth_token):
+            # weblint complains about the content-type header being
+            # present as pecan doesn't intelligently add it or remove
+            # it.
             del response.headers["Content-Type"]
             response.status_code = 204
             return response
@@ -57,7 +58,7 @@ class VaultController(RestController):
         response.headers["Transaction-ID"] = request.context.request_id
 
         if Vault.get(request.project_id, vault_id,
-            request.auth_token):
+                request.auth_token):
             # Get information about the vault
             # - number of files
             # - number of blocks

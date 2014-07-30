@@ -47,12 +47,20 @@ def head_container(url,
         response_headers['x-container-object-count'] = 0
         # If we really wanted to be pendantic about this field
         # then we'd set this to zero and find the epoch to 5 decimals
-        # on each file below and take the latest (max) value between them all
+        # on each file below and take the latest (max) value between
+        # them all
         response_headers['x-timestamp'] = 987654321.12345
 
+        total_size = 0
+        object_count = 0
         for root, dirs, files in os.walk(path):
-            response_headers['x-container-bytes-used'] = response_headers['x-container-bytes-used'] + sum(os.path.getsize(os.path.join(root, name)) for name in files)
-            response_headers['x-container-object-count'] = response_headers['x-container-object-count'] + len(files)
+            total_size = total_size + sum(
+                os.path.getsize(
+                    os.path.join(root, name)) for name in files)
+            object_count = object_count + len(files)
+
+        response_headers['x-container-bytes-used'] = total_size
+        response_headers['x-container-object-count'] = object_count
 
         return response_headers
     else:
