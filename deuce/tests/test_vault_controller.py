@@ -66,8 +66,7 @@ class TestVaultController(FunctionalTest):
 
         # Now delete the vault (this should be OK since it
         # contains nothing in it.
-        response = self.app.delete(vault_path, headers=self._hdrs,
-            expect_errors=True)
+        response = self.app.delete(vault_path, headers=self._hdrs)
 
         assert response.status_code == 204
 

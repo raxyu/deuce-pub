@@ -39,12 +39,14 @@ class VaultController(RestController):
 
         response.headers["Transaction-ID"] = request.context.request_id
         if Vault.get(request.project_id, vault_id):
+            # weblint complains about the content-type header being present
+            # as pecan doesn't intelligently add it or remove it.
+            del response.headers["Content-Type"]
             response.status_code = 204
+            return response
         else:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
             response.status_code = 404
-
-        return None
 
     @expose('json')
     @validate(vault_id=VaultGetRule)
@@ -87,6 +89,9 @@ class VaultController(RestController):
         if vault:
             vault.delete()
             logger.info('Vault [{0}] deleted'.format(vault_id))
+            # weblint complains about the content-type header being present
+            # as pecan doesn't intelligently add it or remove it.
+            del response.headers["Content-Type"]
             response.status_code = 204
         else:
             logger.error('Vault [{0}] deletion failed; '

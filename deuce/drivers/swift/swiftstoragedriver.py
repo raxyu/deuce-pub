@@ -54,21 +54,27 @@ class SwiftStorageDriver(BlockStorageDriver):
         """Return the statistics on the vault.
 
         "param vault_id: The ID of the vault to gather statistics for"""
-        res = {}
 
-        # TODO: Add any statistics regarding files
-        res['files'] = {}
-        res['files']['count'] = 0
+        statistics = dict()
+        statistics['internal'] = {}
+        statistics['total-size'] = 0
+        statistics['block-count'] = 0
 
-        # TODO: Add any statistics regarding blocks
-        res['blocks'] = {}
-        res['blocks']['count'] = 0
+        try:
+            container_metadata = self.Conn.head_container(
+                url=self._storage_url,
+                token=self._token,
+                container=vault_id)
 
-        # TODO: Add any statistics specific to the Swift backend
-        res['internal'] = {}
-        # res['internal']
+            if container_metadata is not None:
+                statistics['total-size'] = container_metadta['x-container-bytes-used']
+                statistics['block-count'] = container_metadata['x-container-object-count']
+                statistics['internal']['last-modification-time'] = container_metadata['x-timestamp']
 
-        return res
+        except ClientException as e:
+            pass
+
+        return statistics
 
     def delete_vault(self, project_id, vault_id):
         response = dict()

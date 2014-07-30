@@ -2,6 +2,7 @@ from pecan import conf
 from deuce.drivers.blockstoragedriver import BlockStorageDriver
 
 import os
+import os.path
 import io
 import shutil
 
@@ -40,21 +41,19 @@ class DiskStorageDriver(BlockStorageDriver):
         """Return the statistics on the vault.
 
         "param vault_id: The ID of the vault to gather statistics for"""
-        res = {}
 
-        # TODO: Add any statistics regarding files
-        res['files'] = {}
-        res['files']['count'] = 0
+        statistics = dict()
+        statistics['internal'] = {}
+        statistics['total-size'] = 0
+        statistics['block-count'] = 0
 
-        # TODO: Add any statistics regarding blocks
-        res['blocks'] = {}
-        res['blocks']['count'] = 0
+        path = self._get_vault_path(project_id, vault_id)
 
-        # TODO: Add any statistics specific to the Disk backend
-        res['internal'] = {}
-        # res['internal']
+        for root, dirs, file in os.walk(path):
+            statistics['total-size'] = statistics['total-size'] + sum(os.path.getsize(os.path.join(root, name)) for name in files)
+            statistics['block-count'] = statistics['block-count'] + len(files)
 
-        return res
+        return statistics
 
     def delete_vault(self, project_id, vault_id):
         path = self._get_vault_path(project_id, vault_id)
