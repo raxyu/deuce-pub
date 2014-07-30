@@ -27,7 +27,8 @@ class VaultController(RestController):
     @validate(vault_name=VaultPutRule)
     def put(self, vault_name):
         response.headers["Transaction-ID"] = request.context.request_id
-        vault = Vault.create(request.project_id, vault_name)
+        vault = Vault.create(request.project_id, vault_name,
+                request.auth_token)
         # TODO: Need check and monitor failed vault.
         logger.info('Vault [{0}] created'.format(vault_name))
         response.status_code = 201 if vault else 500
@@ -38,7 +39,8 @@ class VaultController(RestController):
         """Returns the vault controller object"""
 
         response.headers["Transaction-ID"] = request.context.request_id
-        if Vault.get(request.project_id, vault_id):
+        if Vault.get(request.project_id, vault_id,
+            request.auth_token):
             # weblint complains about the content-type header being present
             # as pecan doesn't intelligently add it or remove it.
             del response.headers["Content-Type"]
@@ -54,7 +56,8 @@ class VaultController(RestController):
         """Returns the statistics on vault controller object"""
         response.headers["Transaction-ID"] = request.context.request_id
 
-        if Vault.get(request.project_id, vault_id):
+        if Vault.get(request.project_id, vault_id,
+            request.auth_token):
             # Get information about the vault
             # - number of files
             # - number of blocks
@@ -68,9 +71,9 @@ class VaultController(RestController):
             storage_info = deuce.storage_driver
 
             vault_stats['metadata'] = metadata_info.get_vault_statistics(
-                request.project_id, vault_id)
+                request.project_id, vault_id, request.auth_token)
             vault_stats['storage'] = storage_info.get_vault_statistics(
-                request.project_id, vault_id)
+                request.project_id, vault_id, request.auth_token)
 
             response.body_file = vault_stats
             response.status_code = 200
@@ -84,10 +87,12 @@ class VaultController(RestController):
     @validate(vault_id=VaultPutRule)
     def delete(self, vault_id):
         response.headers["Transaction-ID"] = request.context.request_id
-        vault = Vault.get(request.project_id, vault_id)
+        vault = Vault.get(request.project_id, vault_id,
+                request.auth_token)
 
         if vault:
-            vault.delete()
+            vault.delete(
+                request.auth_token)
             logger.info('Vault [{0}] deleted'.format(vault_id))
             # weblint complains about the content-type header being present
             # as pecan doesn't intelligently add it or remove it.
