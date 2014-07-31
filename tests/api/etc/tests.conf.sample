@@ -6,4 +6,4 @@ base_url=https://identity.api.rackspacecloud.com/v2.0
 [deuce]
 base_url={deuce url}
 use_auth=False
-version=1.0
+version=v1.0
