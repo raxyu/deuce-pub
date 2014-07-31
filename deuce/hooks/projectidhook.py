@@ -26,7 +26,7 @@ class ProjectIDHook(PecanHook):
             if 'x-auth-token' not in state.request.headers.keys():
                 abort(400, comment="Missing Header : X-Auth-Token",
                       headers={'Transaction-ID': state.request.context.request_id})
-            
+
             # Do we have the project id?
             if 'x-project-id' not in state.request.headers.keys():
                 abort(400, comment="Missing Header : X-Project-ID",
