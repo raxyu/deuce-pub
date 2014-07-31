@@ -27,32 +27,10 @@ class TestCreateVaults(base.TestBase):
         self.client.delete_vault(self.vaultname)
 
 
-class TestDeleteVaults(base.TestBase):
+class TestEmptyVault(base.TestBase):
 
     def setUp(self):
-        super(TestDeleteVaults, self).setUp()
-        self.create_empty_vault()
-
-    def test_delete_vault(self):
-        """Delete a Vault"""
-
-        resp = self.client.delete_vault(self.vaultname)
-        self.assertEqual(204, resp.status_code,
-                         'Status code returned for Delete Vault: {0} . '
-                         'Expected 204'.format(resp.status_code))
-        self.assertHeaders(resp.headers)
-        self.assertEqual(0, len(resp.content),
-                         'Response Content was not empty. Content: '
-                         '{0}'.format(resp.content))
-
-    def tearDown(self):
-        super(TestDeleteVaults, self).tearDown()
-
-
-class TestGetVault(base.TestBase):
-
-    def setUp(self):
-        super(TestGetVault, self).setUp()
+        super(TestEmptyVault, self).setUp()
         self.create_empty_vault()
 
     def test_get_vault(self):
@@ -61,6 +39,18 @@ class TestGetVault(base.TestBase):
         resp = self.client.get_vault(self.vaultname)
         self.assertEqual(204, resp.status_code,
                          'Status code returned for Get Vault: {0} . '
+                         'Expected 204'.format(resp.status_code))
+        self.assertHeaders(resp.headers)
+        self.assertEqual(0, len(resp.content),
+                         'Response Content was not empty. Content: '
+                         '{0}'.format(resp.content))
+
+    def test_delete_vault(self):
+        """Delete a Vault"""
+
+        resp = self.client.delete_vault(self.vaultname)
+        self.assertEqual(204, resp.status_code,
+                         'Status code returned for Delete Vault: {0} . '
                          'Expected 204'.format(resp.status_code))
         self.assertHeaders(resp.headers)
         self.assertEqual(0, len(resp.content),
@@ -87,5 +77,5 @@ class TestGetVault(base.TestBase):
         self.assertEqual(0, resp.headers['X-Byte-Count'])
 
     def tearDown(self):
-        super(TestGetVault, self).tearDown()
+        super(TestEmptyVault, self).tearDown()
         self.client.delete_vault(self.vaultname)
