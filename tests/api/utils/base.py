@@ -94,10 +94,10 @@ class TestBase(fixtures.BaseTestFixture):
         self.assertIsNotNone(headers['transaction-id'])
         self.assertIsNotNone(headers['content-length'])
         if json:
-            self.assertEqual('application/json; charset=UTF-8',
-                             headers['content-type'])
+            self.assertEqual(headers['content-type'],
+                             'application/json; charset=UTF-8')
         if binary:
-            self.assertEqual('application/binary', headers['content-type'])
+            self.assertEqual(headers['content-type'], 'application/binary')
 
     def assertUrl(self, url, nextblocklist=False, filelocation=False,
                   nextfilelist=False, nextfileblocklist=False):

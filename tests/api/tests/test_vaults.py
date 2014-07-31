@@ -14,11 +14,11 @@ class TestCreateVaults(base.TestBase):
 
         self.vaultname = self.id_generator(size)
         resp = self.client.create_vault(self.vaultname)
-        self.assertEqual(201, resp.status_code,
+        self.assertEqual(resp.status_code, 201,
                          'Status code returned for Create Vault: {0} . '
                          'Expected 201'.format(resp.status_code))
         self.assertHeaders(resp.headers)
-        self.assertEqual(0, len(resp.content),
+        self.assertEqual(len(resp.content), 0,
                          'Response Content was not empty. Content: '
                          '{0}'.format(resp.content))
 
@@ -37,11 +37,11 @@ class TestEmptyVault(base.TestBase):
         """Get an individual vault"""
 
         resp = self.client.get_vault(self.vaultname)
-        self.assertEqual(204, resp.status_code,
+        self.assertEqual(resp.status_code, 204,
                          'Status code returned for Get Vault: {0} . '
                          'Expected 204'.format(resp.status_code))
         self.assertHeaders(resp.headers)
-        self.assertEqual(0, len(resp.content),
+        self.assertEqual(len(resp.content), 0,
                          'Response Content was not empty. Content: '
                          '{0}'.format(resp.content))
 
@@ -49,11 +49,11 @@ class TestEmptyVault(base.TestBase):
         """Delete a Vault"""
 
         resp = self.client.delete_vault(self.vaultname)
-        self.assertEqual(204, resp.status_code,
+        self.assertEqual(resp.status_code, 204,
                          'Status code returned for Delete Vault: {0} . '
                          'Expected 204'.format(resp.status_code))
         self.assertHeaders(resp.headers)
-        self.assertEqual(0, len(resp.content),
+        self.assertEqual(len(resp.content), 0,
                          'Response Content was not empty. Content: '
                          '{0}'.format(resp.content))
 
@@ -63,18 +63,18 @@ class TestEmptyVault(base.TestBase):
         # TODO
         self.skipTest('HEAD Vault functionality not implemented')
         resp = self.client.vault_head(self.vaultname)
-        self.assertEqual(200, resp.status_code,
+        self.assertEqual(resp.status_code, 200,
                          'Status code returned for Vault HEAD: {0} . '
                          'Expected 200'.format(resp.status_code))
         self.assertHeaders(resp.headers)
         self.assertIn('X-File-Count', resp.headers)
-        self.assertEqual(0, resp.headers['X-File-Count'])
+        self.assertEqual(resp.headers['X-File-Count'], 0)
         self.assertIn('X-Unfinalized-Count', resp.headers)
-        self.assertEqual(0, resp.headers['X-Unfinalized-Count'])
+        self.assertEqual(resp.headers['X-Unfinalized-Count'], 0)
         self.assertIn('X-Block-Count', resp.headers)
-        self.assertEqual(0, resp.headers['X-Block-Count'])
+        self.assertEqual(resp.headers['X-Block-Count'], 0)
         self.assertIn('X-Byte-Count', resp.headers)
-        self.assertEqual(0, resp.headers['X-Byte-Count'])
+        self.assertEqual(resp.headers['X-Byte-Count'], 0)
 
     def tearDown(self):
         super(TestEmptyVault, self).tearDown()

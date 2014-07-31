@@ -15,7 +15,7 @@ class TestListBlock(base.TestBase):
         """List blocks for an empty vault"""
 
         resp = self.client.list_of_blocks(self.vaultname)
-        self.assertEqual(200, resp.status_code,
+        self.assertEqual(resp.status_code, 200,
                          'Status code for listing all blocks is'
                          ' {0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
@@ -43,11 +43,11 @@ class TestUploadBlocks(base.TestBase):
         self.blockid = sha.new(block_data).hexdigest()
         resp = self.client.upload_block(self.vaultname, self.blockid,
                                         block_data)
-        self.assertEqual(201, resp.status_code,
+        self.assertEqual(resp.status_code, 201,
                          'Status code for uploading a block is '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers)
-        self.assertEqual(0, len(resp.content),
+        self.assertEqual(len(resp.content), 0,
                          'Response Content was not empty. Content: '
                          '{0}'.format(resp.content))
 
@@ -67,7 +67,7 @@ class TestBlockUploaded(base.TestBase):
         """List a single block"""
 
         resp = self.client.list_of_blocks(self.vaultname)
-        self.assertEqual(200, resp.status_code,
+        self.assertEqual(resp.status_code, 200,
                          'Status code for listing all blocks is '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
@@ -81,7 +81,7 @@ class TestBlockUploaded(base.TestBase):
         self.skipTest('Skipping. Currently fails because content-type '
                       'header returned is text/html')
         resp = self.client.get_block(self.vaultname, self.blockid)
-        self.assertEqual(200, resp.status_code,
+        self.assertEqual(resp.status_code, 200,
                          'Status code for getting data of a block is '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, binary=True)
@@ -94,10 +94,10 @@ class TestBlockUploaded(base.TestBase):
         # TODO
         self.skipTest('Skipping. Functionality not implemented')
         resp = self.client.delete_block(self.vaultname, self.blockid)
-        self.assertEqual(204, resp.status_code,
+        self.assertEqual(resp.status_code, 204,
                          'Status code for deleting a block is '
                          '{0}'.format(resp.status_code))
-        self.assertEqual(0, len(resp.content))
+        self.assertEqual(len(resp.content), 0)
 
     def tearDown(self):
         super(TestBlockUploaded, self).tearDown()
@@ -120,7 +120,7 @@ class TestListBlocks(base.TestBase):
         """List multiple blocks (20)"""
 
         resp = self.client.list_of_blocks(self.vaultname)
-        self.assertEqual(200, resp.status_code,
+        self.assertEqual(resp.status_code, 200,
                          'Status code for listing all blocks is '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
@@ -156,7 +156,7 @@ class TestListBlocks(base.TestBase):
             else:
                 resp = self.client.list_of_blocks(alternate_url=url)
 
-            self.assertEqual(200, resp.status_code,
+            self.assertEqual(resp.status_code, 200,
                              'Status code for listing all blocks is '
                              '{0}'.format(resp.status_code))
             self.assertHeaders(resp.headers, json=True)
@@ -166,13 +166,13 @@ class TestListBlocks(base.TestBase):
                 self.assertUrl(url, nextblocklist=True)
             else:
                 self.assertNotIn('x-next-batch', resp.headers)
-            self.assertEqual(value, len(resp.json()),
+            self.assertEqual(len(resp.json()), value,
                              'Number of block ids returned is not {0} . '
                              'Returned {1}'.format(value, len(resp.json())))
             for blockid in resp.json():
                 self.assertIn(blockid, self.blockids)
                 self.blockids.remove(blockid)
-        self.assertEqual(value * pages, len(self.blockids),
+        self.assertEqual(len(self.blockids), value * pages,
                          'Discrepancy between the list of blocks returned '
                          'and the blocks uploaded')
 

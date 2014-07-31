@@ -16,7 +16,7 @@ class TestCreateFile(base.TestBase):
         """Create a file"""
 
         resp = self.client.create_file(self.vaultname)
-        self.assertEqual(201, resp.status_code,
+        self.assertEqual(resp.status_code, 201,
                          'Status code for creating a file is '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
@@ -25,7 +25,7 @@ class TestCreateFile(base.TestBase):
         # TODO
         if "null" == resp.content:
             self.skipTest("Skipping because the response is null")
-        self.assertEqual(0, len(resp.content))
+        self.assertEqual(len(resp.content), 0)
 
     def tearDown(self):
         super(TestCreateFile, self).tearDown()
@@ -52,7 +52,7 @@ class TestFileBlockUploaded(base.TestBase):
         resp = self.client.assign_to_file(json.dumps(block_dict),
                                           alternate_url=self.fileurl)
 
-        self.assertEqual(200, resp.status_code,
+        self.assertEqual(resp.status_code, 200,
                          'Status code for assigning blocks to files '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
@@ -72,7 +72,7 @@ class TestFileBlockUploaded(base.TestBase):
         resp = self.client.assign_to_file(json.dumps(block_dict),
                                           alternate_url=self.fileurl)
 
-        self.assertEqual(200, resp.status_code,
+        self.assertEqual(resp.status_code, 200,
                          'Status code for assigning blocks to files '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
@@ -95,21 +95,21 @@ class TestEmptyFile(base.TestBase):
         """Finalize an empty file"""
 
         resp = self.client.finalize_file(alternate_url=self.fileurl)
-        self.assertEqual(200, resp.status_code,
+        self.assertEqual(resp.status_code, 200,
                          'Status code for finalizing file '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
         # TODO
         if "null" == resp.content:
             self.skipTest("Skipping because the response is null")
-        self.assertEqual(0, len(resp.content))
+        self.assertEqual(len(resp.content), 0)
 
     def test_list_empty_file(self):
         """Get list of files with only one file that is empty and not
         finalized"""
 
         resp = self.client.list_of_files(vaultname=self.vaultname)
-        self.assertEqual(200, resp.status_code,
+        self.assertEqual(resp.status_code, 200,
                          'Status code for getting the list of all files '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
@@ -133,14 +133,14 @@ class TestFileAssignedBlocks(base.TestBase):
         """Finalize a file with some blocks assigned"""
 
         resp = self.client.finalize_file(alternate_url=self.fileurl)
-        self.assertEqual(200, resp.status_code,
+        self.assertEqual(resp.status_code, 200,
                          'Status code for finalizing file '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
         # TODO
         if "null" == resp.content:
             self.skipTest("Skipping because the response is null")
-        self.assertEqual(0, len(resp.content))
+        self.assertEqual(len(resp.content), 0)
 
     def tearDown(self):
         super(TestFileAssignedBlocks, self).tearDown()
@@ -164,7 +164,7 @@ class TestFileMissingBlock(base.TestBase):
         """Finalize a file with some blocks missing"""
 
         resp = self.client.finalize_file(alternate_url=self.fileurl)
-        self.assertEqual(413, resp.status_code,
+        self.assertEqual(resp.status_code, 413,
                          'Status code for finalizing file '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
@@ -197,12 +197,12 @@ class TestListBlocksOfFile(base.TestBase):
         """List multiple blocks (20) assigned to the file"""
 
         resp = self.client.list_of_blocks_in_file(self.vaultname, self.fileid)
-        self.assertEqual(200, resp.status_code,
+        self.assertEqual(resp.status_code, 200,
                          'Status code for getting the list of blocks of a '
                          'file {0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
         self.assertBlocksInResponse(resp)
-        self.assertEqual(0, len(self.blockids_offsets),
+        self.assertEqual(len(self.blockids_offsets), 0,
                          'Discrepancy between the list of blocks returned '
                          'and the blocks associated to the file')
 
@@ -239,7 +239,7 @@ class TestListBlocksOfFile(base.TestBase):
             else:
                 resp = self.client.list_of_blocks_in_file(alternate_url=url)
 
-            self.assertEqual(200, resp.status_code,
+            self.assertEqual(resp.status_code, 200,
                              'Status code for getting the list of blocks of '
                              'a file {0}'.format(resp.status_code))
             self.assertHeaders(resp.headers, json=True)
@@ -249,11 +249,11 @@ class TestListBlocksOfFile(base.TestBase):
                 self.assertUrl(url, nextfileblocklist=True)
             else:
                 self.assertNotIn('x-next-batch', resp.headers)
-            self.assertEqual(value, len(resp.json()),
+            self.assertEqual(len(resp.json()), value,
                              'Number of block ids returned is not {0} . '
                              'Returned {1}'.format(value, len(resp.json())))
             self.assertBlocksInResponse(resp)
-        self.assertEqual(value * pages, len(self.blockids_offsets),
+        self.assertEqual(len(self.blockids_offsets), value * pages,
                          'Discrepancy between the list of blocks returned '
                          'and the blocks associated to the file')
 
@@ -290,14 +290,14 @@ class TestFinalizedFile(base.TestBase):
         self.skipTest('Skipping. Currently fails because content-type header '
                       'returned is text/html')
         resp = self.client.get_file(self.vaultname, self.fileid)
-        self.assertEqual(200, resp.status_code,
+        self.assertEqual(resp.status_code, 200,
                          'Status code for getting a file is '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, binary=True)
         filedata = ''
         for block in self.blocks:
             filedata += block.Data
-        self.assertEqual(filedata, resp.content,
+        self.assertEqual(resp.content, filedata,
                          'Content of the file does not match was was expected')
 
     def test_delete_file(self):
@@ -306,16 +306,16 @@ class TestFinalizedFile(base.TestBase):
         # TODO
         self.skipTest('Skipping. Functionality not implemented')
         resp = self.client.delete_file(self.vaultname, self.fileid)
-        self.assertEqual(204, resp.status_code,
+        self.assertEqual(resp.status_code, 204,
                          'Status code for deleting a file is '
                          '{0}'.format(resp.status_code))
-        self.assertEqual(0, len(resp.content))
+        self.assertEqual(len(resp.content), 0)
 
     def test_list_finalized_file(self):
         """Get list of files with only one file that is finalized"""
 
         resp = self.client.list_of_files(vaultname=self.vaultname)
-        self.assertEqual(200, resp.status_code,
+        self.assertEqual(resp.status_code, 200,
                          'Status code for getting the list of all files '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
@@ -345,7 +345,7 @@ class TestMultipleFinalizedFiles(base.TestBase):
         """List multiple files (20)"""
 
         resp = self.client.list_of_files(vaultname=self.vaultname)
-        self.assertEqual(200, resp.status_code,
+        self.assertEqual(resp.status_code, 200,
                          'Status code for getting the list of all files '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
@@ -379,7 +379,7 @@ class TestMultipleFinalizedFiles(base.TestBase):
             else:
                 resp = self.client.list_of_files(alternate_url=url)
 
-            self.assertEqual(200, resp.status_code,
+            self.assertEqual(resp.status_code, 200,
                              'Status code for listing all files is '
                              '{0}'.format(resp.status_code))
             self.assertHeaders(resp.headers, json=True)
@@ -389,13 +389,13 @@ class TestMultipleFinalizedFiles(base.TestBase):
                 self.assertUrl(url, nextfilelist=True)
             else:
                 self.assertNotIn('x-next-batch', resp.headers)
-            self.assertEqual(value, len(resp.json()),
+            self.assertEqual(len(resp.json()), value,
                              'Number of file ids returned is not {0} . '
                              'Returned {1}'.format(value, len(resp.json())))
             for fileid in resp.json():
                 self.assertIn(fileid, self.files)
                 self.files.remove(fileid)
-        self.assertEqual(value * pages, len(self.files),
+        self.assertEqual(len(self.files), value * pages,
                          'Discrepancy between the list of files returned '
                          'and the files created/finalilzed')
 
