@@ -82,5 +82,5 @@ class BlockStorageDriver(object):
         """Returns a generator of file-like objects that are
         ready to read. These objects will get closed
         individually."""
-        return (self.get_block_obj(project_id, vault_id, block_id)
+        return (self.get_block_obj(project_id, vault_id, block_id, auth_token)
             for block_id in block_gen)
