@@ -215,12 +215,9 @@ class TestListBlocksOfFile(base.TestBase):
     @ddt.data(2, 4, 5, 10)
     def test_list_blocks_file_limit_marker(self, value):
         """List multiple blocks in the file, setting the limit to value and
-        using a marker"""
+        using a marker. The marker is an offset"""
 
-        # TODO
-        self.skipTest('Skipping. Currently fails because the '
-                      'resp.status_code==404 due to the marker')
-        markerid = self.blockids[value]
+        markerid = self.blockids_offsets[value][1]
         self.assertBlocksInFilePerPage(value, marker=markerid, pages=1)
 
     def assertBlocksInFilePerPage(self, value, marker=None, pages=0):
