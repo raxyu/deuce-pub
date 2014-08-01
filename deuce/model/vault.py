@@ -97,11 +97,8 @@ class Vault(object):
         return File(self.project_id, self.id, file_id, finalized=data[0])
 
     def get_file_length(self, file_id):
-        try:
-            return deuce.metadata_driver.file_length(self.project_id,
-                self.id, file_id)
-        except:
-            return 0
+        return deuce.metadata_driver.file_length(self.project_id,
+            self.id, file_id)
 
     def delete(self, auth_token=None):
         return deuce.storage_driver.delete_vault(self.project_id, self.id,
