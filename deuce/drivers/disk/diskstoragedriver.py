@@ -28,6 +28,10 @@ class DiskStorageDriver(BlockStorageDriver):
         vault_path = self._get_vault_path(project_id, vault_id)
         return os.path.join(vault_path, str(block_id))
 
+    def create_vaults_generator(self, project_id,
+            marker=None, limit=None, auth_token=None):
+        return dict(), ''
+
     def create_vault(self, project_id, vault_id,
             auth_token=None):
         path = self._get_vault_path(project_id, vault_id)

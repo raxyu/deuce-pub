@@ -14,10 +14,7 @@ class TestVaultController(FunctionalTest):
             "x-auth-token": ''}
 
     def test_vault_leaf(self):
-        response = self.app.get('/v1.0/', headers=self._hdrs,
-            expect_errors=True)
-
-        assert response.status_int == 404
+        response = self.app.get('/v1.0/', headers=self._hdrs)
 
     def test_invalid_vault_id(self):
         vault_name = '@#$@#$@$'

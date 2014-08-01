@@ -21,6 +21,12 @@ class Vault(object):
         return None
 
     @staticmethod
+    def get_vaults_generator(project_id, marker, limit,
+            auth_token=None):
+        return deuce.storage_driver.create_vaults_generator(project_id,
+            marker, limit, auth_token)
+
+    @staticmethod
     def create(project_id, vault_id, auth_token=None):
         """Creates the vault with the specified vault_id"""
         deuce.storage_driver.create_vault(project_id, vault_id,
