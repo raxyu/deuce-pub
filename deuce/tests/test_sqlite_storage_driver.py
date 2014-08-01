@@ -45,6 +45,10 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         assert not driver.has_file(project_id, vault_id, file_id)
 
+        # Length of Non-existent file is 0
+        file_length = driver.file_length(project_id, vault_id, file_id)
+        assert (file_length == 0)
+
         driver.create_file(project_id, vault_id, file_id)
 
         assert driver.has_file(project_id, vault_id, file_id)
