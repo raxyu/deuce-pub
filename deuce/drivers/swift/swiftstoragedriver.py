@@ -58,7 +58,7 @@ class SwiftStorageDriver(BlockStorageDriver):
                 token=auth_token,
                 container=vault_id,
                 response_dict=response)
-            return response['status'] >= 200 and response['status'] < 300
+            return (response['status'] >= 200 and response['status'] < 300)
         except ClientException as e:
             return False
 
@@ -126,6 +126,22 @@ class SwiftStorageDriver(BlockStorageDriver):
             return buff
         except ClientException as e:
             return None
+
+    def get_block_object_length(self, project_id, vault_id, block_id,
+            auth_token):
+        """Returns the length of an object"""
+        response = dict()
+        try:
+            ret_hdr, ret_obj_body = \
+                self.Conn.get_object(
+                    url=self._storage_url,
+                    token=auth_token,
+                    container=vault_id,
+                    name='blocks/' + str(block_id),
+                    response_dict=response)
+            return ret_hdr['content-length']
+        except ClientException as e:
+            return 0
 
     def create_blocks_generator(self, project_id, vault_id, block_gen,
             auth_token):

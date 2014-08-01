@@ -22,6 +22,7 @@ schemas.append([
         vaultid TEXT NOT NULL,
         fileid TEXT NOT NULL,
         finalized INTEGER NOT NULL DEFAULT 0,
+        size INTEGER DEFAULT 0,
         PRIMARY KEY(projectid, vaultid, fileid)
     )
     """,
@@ -65,6 +66,14 @@ SQL_GET_BLOCK = '''
 
 SQL_GET_FILE = '''
     SELECT finalized
+    FROM files
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+    AND fileid = :fileid
+'''
+
+SQL_GET_FILE_SIZE = '''
+    SELECT size
     FROM files
     WHERE projectid = :projectid
     AND vaultid = :vaultid
@@ -131,7 +140,7 @@ SQL_CREATE_FILEBLOCK_LIST = '''
 
 SQL_FINALIZE_FILE = '''
     UPDATE files
-    SET finalized=1
+    SET finalized=1, size=:file_size
     WHERE projectid=:projectid
     AND fileid=:fileid
     AND vaultid=:vaultid
@@ -232,6 +241,22 @@ class SqliteStorageDriver(MetadataStorageDriver):
         # TODO: check that one row was inserted
         return file_id
 
+    def file_length(self, project_id, vault_id, file_id):
+        """Retrieve the of the file."""
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id,
+            'fileid': file_id
+        }
+
+        res = self._conn.execute(SQL_GET_FILE_SIZE, args)
+
+        try:
+            row = next(res)
+            return row[0]
+        except StopIteration:
+            return 0
+
     def has_file(self, project_id, vault_id, file_id):
         args = {
             'projectid': project_id,
@@ -273,13 +298,16 @@ class SqliteStorageDriver(MetadataStorageDriver):
         self._conn.commit()
 
     def finalize_file(self, project_id, vault_id, file_id, file_size=None):
-        """Updates the files table to set a file to finalized. This function
-        makes no assumptions about whether or not the file record actually
-        exists"""
+        """Updates the files table to set a file to finalized and record
+        its size. This function makes no assumptions about whether or not
+        the file record actually exists"""
+        if file_size is None:
+            file_size = 0
         args = {
             'projectid': project_id,
             'vaultid': vault_id,
-            'fileid': file_id
+            'fileid': file_id,
+            'file_size': file_size
         }
 
         # Check for gaps and overlaps.

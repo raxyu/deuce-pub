@@ -106,6 +106,7 @@ class FilesController(RestController):
         objs = vault.get_blocks_generator(block_ids,
             auth_token=request.auth_token)
 
+        response.content_length = vault.get_file_length(file_id)
         response.body_file = FileCat(objs)
         response.status_code = 200
 

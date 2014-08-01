@@ -129,7 +129,16 @@ def get_object(url,
     with open(path, 'rb') as infile:
         buff = infile.read()
 
-    return dict(), buff
+    mdhash = hashlib.md5()
+    mdhash.update(buff)
+    etag = mdhash.hexdigest()
+
+    hdrs = {}
+    hdrs['content-length'] = os.path.getsize(path)
+    hdrs['last-modified'] = os.path.getmtime(path)
+    hdrs['accept-ranges'] = 'bytes'
+    hdrs['etag'] = etag 
+    return hdrs, buff
 
 
 def get_keystoneclient_2_0(auth_url,

@@ -52,6 +52,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             'vaultid': vault_id,
             'fileid': file_id,
             'finalized': False,
+            'size': 0,
             'seq': 0,
             'blocks': []
         }
@@ -59,6 +60,25 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         self._files.insert(args)
 
         return file_id
+
+    def file_length(self, project_id, vault_id, file_id):
+        """Retrieve the of the file."""
+        self._files.ensure_index([('projectid', 1),
+            ('vaultid', 1), ('fileid', 1)])
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id,
+            'fileid': file_id
+        }
+        res = self._files.find_one(args)
+
+        if res is not None:
+            length = res.get('size')
+            if length is None:
+                return 0
+            else:
+                return length
+        return 0
 
     def has_file(self, project_id, vault_id, file_id):
         self._files.ensure_index([('projectid', 1),
@@ -86,7 +106,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         res = self._files.find_one(args)
 
         if res is not None:
-            return res.get("finalized")
+            return res.get('finalized')
         return False
 
     def delete_file(self, project_id, vault_id, file_id):
@@ -108,9 +128,9 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             ('vaultid', 1), ('fileid', 1)])
 
         find_args = {
-            "projectid": project_id,
-            "vaultid": vault_id,
-            "fileid": file_id
+            'projectid': project_id,
+            'vaultid': vault_id,
+            'fileid': file_id
         }
 
         # There could be multiple document for the same file.
@@ -156,8 +176,15 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         starts = 0
         pageseq = 0
         Finished = False
-        self._files.update({'_id': filerec_id},
-            {"$set": {"finalized": True}},
+        if file_size is None:
+            file_size = 0
+
+        self._files.update({'_id': filerec_id}, {
+            "$set": {
+                'finalized': True,
+                'size': file_size
+            }
+        },
             upsert=False)
 
         # This number is an arbitrary reading segment size defined
@@ -213,12 +240,12 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             # Add another document for more blocks.
             pageseq += 1
             ins_args = {
-                "projectid": project_id,
-                "vaultid": vault_id,
-                "fileid": file_id,
-                "finalized": True,
-                "seq": pageseq,
-                "blocks": [],
+                'projectid': project_id,
+                'vaultid': vault_id,
+                'fileid': file_id,
+                'finalized': True,
+                'seq': pageseq,
+                'blocks': [],
             }
             filerec_id = self._files.insert(ins_args)
 
@@ -238,9 +265,9 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         res = self._files.find_one(args)
 
         if res is None:
-            raise Exception("No such file: {0}".format(file_id))
+            raise Exception('No such file: {0}'.format(file_id))
 
-        return [res.get("finalized")]
+        return [res.get('finalized')]
 
     def has_block(self, project_id, vault_id, block_id):
         # Query BLOCKS for the block
@@ -275,11 +302,11 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         self._blocks.ensure_index([('projectid', 1),
             ('vaultid', 1), ('blockid', 1)])
         args = {
-            "projectid": project_id,
-            "vaultid": vault_id
+            'projectid': project_id,
+            'vaultid': vault_id
         }
         if marker is not None:
-            args["blockid"] = {"$gte": str(marker)}
+            args['blockid'] = {"$gte": str(marker)}
 
         limit = self._determine_limit(limit)
 
@@ -301,7 +328,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
                 'finalized': finalized}
 
         return list(retfile['fileid'] for retfile in
-            self._files.find(args).sort("fileid", 1).limit(limit))
+            self._files.find(args).sort('fileid', 1).limit(limit))
 
     def create_file_block_generator(self, project_id, vault_id, file_id,
             offset=None, limit=None):
@@ -328,11 +355,11 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             {'$match': {'blocks.offset': {"$gte": search_offset}}},
             {'$limit': limit},
             {'$group': {"_id": "$_id",
-                "blocks": {
+                'blocks': {
                     "$push": {
-                        "blockid": "$blocks.blockid",
-                        "offset": "$blocks.offset"}}}},
-            {'$sort': {"blocks.offset": 1}}])
+                        'blockid': "$blocks.blockid",
+                        'offset': "$blocks.offset"}}}},
+            {'$sort': {'blocks.offset': 1}}])
 
         resblocks = resblocks.get('result')
 
@@ -364,10 +391,10 @@ class MongoDbStorageDriver(MetadataStorageDriver):
 
         self._fileblocks.update(args, args, upsert=True)
         # Ordered in pymongo.ASCENDING.
-        self._fileblocks.ensure_index([("projectid", 1),
-            ("vaultid", 1),
-            ("fileid", 1),
-            ("blockid", 1)])
+        self._fileblocks.ensure_index([('projectid', 1),
+            ('vaultid', 1),
+            ('fileid', 1),
+            ('blockid', 1)])
 
     def register_block(self, project_id, vault_id, block_id, blocksize):
         if not self.has_block(project_id, vault_id, block_id):

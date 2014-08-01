@@ -76,6 +76,11 @@ class MetadataStorageDriver(object):
         raise NotImplementedError
 
     @abstractmethod
+    def file_length(self, project_id, vault_id, file_id):
+        """Retrieve the of the file."""
+        raise NotImplementedError
+
+    @abstractmethod
     def has_file(self, project_id, vault_id, file_id):
         """Determines if the specified file exists in the vault."""
         raise NotImplementedError

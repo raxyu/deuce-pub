@@ -48,6 +48,8 @@ class SqliteStorageDriverTest(FunctionalTest):
         driver.create_file(project_id, vault_id, file_id)
 
         assert driver.has_file(project_id, vault_id, file_id)
+        file_length = driver.file_length(project_id, vault_id, file_id)
+        assert (file_length == 0)
 
         data = driver.get_file_data(project_id, vault_id, file_id)
 
@@ -69,6 +71,8 @@ class SqliteStorageDriverTest(FunctionalTest):
         driver.finalize_file(project_id, vault_id, file_id)
 
         assert driver.is_finalized(project_id, vault_id, file_id)
+        file_length = driver.file_length(project_id, vault_id, file_id)
+        assert (file_length == 0)
 
     def test_finalize_nonexistent_file(self):
         driver = self.create_driver()
@@ -79,6 +83,9 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         assert not driver.has_file(project_id, vault_id, file_id)
         retval = driver.finalize_file(project_id, vault_id, file_id)
+
+        file_length = driver.file_length(project_id, vault_id, file_id)
+        assert (file_length == 0)
 
         try:
             data = driver.get_file_data(project_id, vault_id, file_id)
@@ -138,6 +145,9 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         # Create a file
         driver.create_file(project_id, vault_id, file_id)
+
+        file_length = driver.file_length(project_id, vault_id, file_id)
+        assert (file_length == 0)
 
         # Assign each block
         for bid, offset in blockpairs.items():
@@ -247,6 +257,8 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         assert not res
         assert driver.is_finalized(project_id, vault_id, file_id)
+        file_length = driver.file_length(project_id, vault_id, file_id)
+        assert (file_length == 13320)
 
         # Now create a generator of the files. The output
         # should be in the same order as block_ids
