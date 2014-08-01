@@ -137,7 +137,7 @@ def get_object(url,
     hdrs['content-length'] = os.path.getsize(path)
     hdrs['last-modified'] = os.path.getmtime(path)
     hdrs['accept-ranges'] = 'bytes'
-    hdrs['etag'] = etag 
+    hdrs['etag'] = etag
     return hdrs, buff
 
 
