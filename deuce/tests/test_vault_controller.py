@@ -13,8 +13,71 @@ class TestVaultController(FunctionalTest):
         self._hdrs = {"x-project-id": 'testvaultctrl',
             "x-auth-token": ''}
 
+    def helper_create_vault(self, vault_name, hdrs):
+        vault_path = '/v1.0/{0}'.format(vault_name)
+        response = self.app.put(vault_path, headers=hdrs)
+
+    def helper_delete_vault(self, vault_name, hdrs):
+        vault_path = '/v1.0/{0}'.format(vault_name)
+        response = self.app.delete(vault_path, headers=hdrs)
+
     def test_vault_leaf(self):
-        response = self.app.get('/v1.0/', headers=self._hdrs)
+        hdrs = {"x-project-id": 'test_list_vaults',
+            "x-auth-token": ''}
+        params = {}
+
+        # Create an empty root path in the storage.
+        self.helper_create_vault('vault_0', hdrs)
+        self.helper_delete_vault('vault_0', hdrs)
+
+        response = self.app.get('/v1.0/',
+            params=params,
+            headers=hdrs)
+        assert str(response.body) == str(b'[]')
+
+        # Prepare several vaults in the storage.
+        for cnt in range(5):
+            self.helper_create_vault('vault_{0}'.format(cnt), hdrs)
+
+        params['limit'] = 99
+        response = self.app.get('/v1.0/',
+            params=params,
+            headers=hdrs)
+        assert str(response.body) == str(
+            b'["vault_0", "vault_1", "vault_2", "vault_3", "vault_4"]')
+
+        params['limit'] = 1
+        response = self.app.get('/v1.0/',
+            params=params,
+            headers=hdrs)
+        assert str(response.body) == str(b'["vault_0"]')
+        assert response.headers["X-Next-Batch"] == 'vault_1'
+
+        params['marker'] = response.headers["X-Next-Batch"]
+        params['limit'] = 99  # More than what left in the list.
+        response = self.app.get('/v1.0/',
+            params=params,
+            headers=hdrs)
+        assert str(response.body) == str(
+            b'["vault_1", "vault_2", "vault_3", "vault_4"]')
+
+        params['limit'] = 1
+        response = self.app.get('/v1.0/',
+            params=params,
+            headers=hdrs)
+        assert str(response.body) == str(b'["vault_1"]')
+
+        params['marker'] = 'vault_not_exists'
+        params['limit'] = 99
+        response = self.app.get('/v1.0/',
+            params=params,
+            headers=hdrs,
+            expect_errors=True)
+        assert str(response.body) == str(b'[]')
+
+        # Cleanup
+        for cnt in range(5):
+            self.helper_delete_vault('vault_{0}'.format(cnt), hdrs)
 
     def test_invalid_vault_id(self):
         vault_name = '@#$@#$@$'

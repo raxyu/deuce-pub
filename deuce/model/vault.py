@@ -23,8 +23,14 @@ class Vault(object):
     @staticmethod
     def get_vaults_generator(project_id, marker, limit,
             auth_token=None):
-        return deuce.storage_driver.create_vaults_generator(project_id,
-            marker, limit, auth_token)
+        vault_list = deuce.storage_driver.create_vaults_generator(project_id,
+            marker, limit + 1, auth_token)
+        outmarker = None
+        if vault_list:
+            if len(vault_list) == limit + 1:
+                outmarker = vault_list[-1]
+                vault_list.pop()
+        return vault_list, outmarker
 
     @staticmethod
     def create(project_id, vault_id, auth_token=None):

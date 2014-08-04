@@ -30,7 +30,26 @@ class DiskStorageDriver(BlockStorageDriver):
 
     def create_vaults_generator(self, project_id,
             marker=None, limit=None, auth_token=None):
-        return dict(), ''
+        rootpath = os.path.join(self._path, str(project_id))
+        if os.path.exists(rootpath):
+            dirs = sorted([str(name) for
+                name in os.listdir(rootpath)
+                if os.path.isdir(os.path.join(rootpath, name))])
+            if dirs:
+                if marker:
+                    if marker in dirs:
+                        pos = dirs.index(marker)
+                        retval = dirs[pos:]
+                        if limit < len(retval):
+                            retval = retval[:limit]
+                        return retval
+                    else:
+                        return None
+                else:
+                    if limit < len(dirs):
+                        dirs = dirs[:limit]
+                    return dirs
+        return None
 
     def create_vault(self, project_id, vault_id,
             auth_token=None):

@@ -22,11 +22,13 @@ class VaultController(RestController):
         inmarker = request.params.get('marker')
         limit = int(request.params.get('limit', 0))
 
-        vaultlist, outmarker = Vault.get_vaults_generator(request.project_id,
-            inmarker, limit, request.auth_token)
-        if outmarker:
-            response.headers["X-Next-Batch"] = outmarker
-        return vaultlist
+        vaultlist, outmarker = Vault.get_vaults_generator(
+            request.project_id, inmarker, limit, request.auth_token)
+        if vaultlist:
+            if outmarker:
+                response.headers["X-Next-Batch"] = outmarker
+            return vaultlist
+        return list()
 
     @expose()
     @validate(vault_name=VaultPutRule)
