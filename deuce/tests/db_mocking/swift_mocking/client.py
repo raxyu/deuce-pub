@@ -5,8 +5,21 @@ import io
 import shutil
 from swiftclient.exceptions import ClientException
 import hashlib
+import uuid
+
+import datetime
+import atexit
 
 container_path = '/tmp/swift_mocking'
+
+
+def _clean_up_mocking():
+    import os.path
+
+    if os.path.exists(container_path):
+        shutil.rmtree(container_path)
+
+atexit.register(_clean_up_mocking)
 
 
 def _get_vault_path(vault_id):
@@ -52,15 +65,56 @@ def delete_container(url,
             container,
             response_dict):
     try:
+        # Basic response requirements
+        response_dict['content-length'] = 0
+        response_dict['content-type'] = 'text/html; charset=UTF-8'
+        response_dict['x-transaction-id'] = uuid.uuid4()
+        # Thu, 16 Jan 2014 18:04:04 GMT
+        response_dict['date'] = datetime.datetime.utcnow().strftime(
+            "%a, %d %b %Y %H:%M:%S %Z")
+
         path = _get_vault_path(container)
         blockpath = os.path.join(path, 'blocks')
-        if os.listdir(path) == [] or os.listdir(blockpath) == []:
-            shutil.rmtree(path)
-            response_dict['status'] = 201
+
+        response_dict['x-vault-path'] = path
+        response_dict['x-block-path'] = blockpath
+
+        if os.path.exists(path):
+
+            if os.path.exists(blockpath):
+                if os.listdir(blockpath) != []:
+                    # container not empty
+                    response_dict['x-error-message'] = 'container not empty'
+                    response_dict['status'] = 409
+                else:
+                    # no blocks we're okay
+
+                    # container exists and is empty (no blocks)
+                    shutil.rmtree(path)
+
+                    response_dict['status'] = 204
+
+            elif os.listdir(path) == []:
+                # container exists and is empty (no blocks)
+                shutil.rmtree(path)
+
+                response_dict['status'] = 204
+
+            else:
+                # else there is some other issue
+                response_dict['x-error-message'] = 'mocking: listing directory'
+                response_dict['status'] = 500
+                assert False
+
         else:
-            raise ClientException('mocking')
-    except:
-        raise ClientException('mocking')
+            # Container does not exist
+            response_dict['x-error-message'] = 'vault does not exist'
+            response_dict['status'] = 404
+
+    except Exception as ex:
+        response_dict['x-error-message'] = 'mocking error: {0:}'.format(ex)
+        response_dict['status'] = 500
+        raise ClientException('mocking error: {0:}'.format(ex))
 
 
 # Store Block

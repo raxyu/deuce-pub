@@ -109,7 +109,6 @@ class DiskStorageDriverTest(FunctionalTest):
         assert returned_data == block_data._content
 
         driver.delete_block(projectid, vault_id, block_id, token)
-        driver.delete_block(projectid, vault_id, block_id, token)
 
         assert not driver.block_exists(projectid, vault_id, block_id,
             token)
