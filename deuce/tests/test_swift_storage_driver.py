@@ -97,3 +97,49 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
             failed_token)
         driver.get_block_obj(projectid, vaultid, blockid,
             failed_token)
+
+    def test_network_drops(self):
+        """
+        This is only to exercise code that relies on network errors to occur
+        """
+        self.mocking = False
+        try:
+            if conf.block_storage_driver.swift.is_mocking:
+                self.mocking = True
+        except:
+            self.mocking = False
+
+        if self.mocking:
+
+            storage_url, token = self.get_Auth_Token()
+            project_id = 'notmatter'
+            vault_id = 'notmatter'
+            block_id = 'notmatter'
+
+            driver = SwiftStorageDriver(storage_url, token, project_id)
+            assert isinstance(driver, SwiftStorageDriver)
+            assert isinstance(driver, object)
+
+            # simulate swiftclient tossing exceptions
+            driver.Conn.mock_drop_connections(True)
+
+            self.assertFalse(driver.create_vault(project_id, vault_id, token))
+
+            self.assertFalse(driver.vault_exists(project_id, vault_id, token))
+
+            self.assertFalse(driver.delete_vault(project_id, vault_id, token))
+
+            self.assertFalse(driver.store_block(project_id, vault_id, block_id,
+                str('').encode('utf-8'), token))
+
+            self.assertFalse(driver.block_exists(project_id, vault_id, block_id,
+                token))
+
+            self.assertFalse(driver.delete_block(project_id, vault_id, block_id,
+                token))
+
+            self.assertIsNone(driver.get_block_obj(project_id, vault_id,
+                block_id, token))
+
+            # simulate swiftclient tossing exceptions
+            driver.Conn.mock_drop_connections(False)

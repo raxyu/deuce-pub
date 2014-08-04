@@ -11,6 +11,12 @@ import datetime
 import atexit
 
 container_path = '/tmp/swift_mocking'
+mock_drop_connection_status = False
+
+
+def mock_drop_connections(drop_status):
+    global mock_drop_connection_status
+    mock_drop_connection_status = drop_status
 
 
 def _clean_up_mocking():
@@ -36,6 +42,9 @@ def put_container(url,
             token,
             container,
             response_dict):
+    if mock_drop_connection_status:
+        raise ClientException('mocking network drop')
+
     path = _get_vault_path(container)
     if not os.path.exists(path):
         shutil.os.makedirs(path)
@@ -52,6 +61,9 @@ def put_container(url,
 def head_container(url,
             token,
             container):
+    if mock_drop_connection_status:
+        raise ClientException('mocking network drop')
+
     path = _get_vault_path(container)
     if os.path.exists(path):
         return 'mocking_ret'
@@ -64,6 +76,9 @@ def delete_container(url,
             token,
             container,
             response_dict):
+    if mock_drop_connection_status:
+        raise ClientException('mocking network drop')
+
     try:
         # Basic response requirements
         response_dict['content-length'] = 0
@@ -126,6 +141,8 @@ def put_object(url,
             content_length,
             response_dict,
             etag=None):
+    if mock_drop_connection_status:
+        raise ClientException('mocking network drop')
 
     blocks_path = os.path.join(_get_vault_path(container), 'blocks')
     if not os.path.exists(blocks_path):
@@ -147,6 +164,8 @@ def head_object(url,
             token,
             container,
             name):
+    if mock_drop_connection_status:
+        raise ClientException('mocking network drop')
 
     path = _get_block_path(container, name)
     if not os.path.exists(path):
@@ -160,6 +179,9 @@ def delete_object(url,
             container,
             name,
             response_dict):
+    if mock_drop_connection_status:
+        raise ClientException('mocking network drop')
+
     path = _get_block_path(container, name)
     if os.path.exists(path):
         os.remove(path)
@@ -174,6 +196,9 @@ def get_object(url,
             container,
             name,
             response_dict):
+    if mock_drop_connection_status:
+        raise ClientException('mocking network drop')
+
     path = _get_block_path(container, name)
 
     if not os.path.exists(path):
