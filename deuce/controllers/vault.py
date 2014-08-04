@@ -7,6 +7,11 @@ from deuce.controllers.files import FilesController
 from deuce.controllers.validation import *
 from deuce.model import Vault
 
+from deuce.util import set_qs
+import six
+from six.moves.urllib.parse import urlparse, parse_qs
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -25,9 +30,21 @@ class VaultController(RestController):
         vaultlist, outmarker = Vault.get_vaults_generator(
             request.project_id, inmarker, limit, request.auth_token)
         if vaultlist:
+            # Set x-next-batch resp header.
             if outmarker:
-                response.headers["X-Next-Batch"] = outmarker
-            return vaultlist
+                query_args = {'marker': outmarker}
+                query_args['limit'] = limit
+                returl = set_qs(request.url, query_args)
+                response.headers["X-Next-Batch"] = returl
+            # Set return json for vault URLs.
+            retval = list()
+            p = urlparse(request.url)
+
+            for vaultname in vaultlist:
+                vault = dict({vaultname: p.scheme +
+                    '://' + p.netloc + p.path + vaultname})
+                retval.append(vault)
+            return retval
         return list()
 
     @expose()

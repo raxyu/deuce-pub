@@ -44,28 +44,36 @@ class TestVaultController(FunctionalTest):
             params=params,
             headers=hdrs)
         assert str(response.body) == str(
-            b'["vault_0", "vault_1", "vault_2", "vault_3", "vault_4"]')
+            b'[{"vault_0": "http://localhost/v1.0/vault_0"}, '
+            b'{"vault_1": "http://localhost/v1.0/vault_1"}, '
+            b'{"vault_2": "http://localhost/v1.0/vault_2"}, '
+            b'{"vault_3": "http://localhost/v1.0/vault_3"}, '
+            b'{"vault_4": "http://localhost/v1.0/vault_4"}]')
 
         params['limit'] = 1
         response = self.app.get('/v1.0/',
             params=params,
             headers=hdrs)
-        assert str(response.body) == str(b'["vault_0"]')
-        assert response.headers["X-Next-Batch"] == 'vault_1'
+        assert str(response.body) == str(b'[{"vault_0": '
+            b'"http://localhost/v1.0/vault_0"}]')
 
-        params['marker'] = response.headers["X-Next-Batch"]
+        next_url = response.headers["X-Next-Batch"]
         params['limit'] = 99  # More than what left in the list.
-        response = self.app.get('/v1.0/',
+        response = self.app.get(next_url,
             params=params,
             headers=hdrs)
         assert str(response.body) == str(
-            b'["vault_1", "vault_2", "vault_3", "vault_4"]')
+            b'[{"vault_1": "http://localhost/v1.0/vault_1"}, '
+            b'{"vault_2": "http://localhost/v1.0/vault_2"}, '
+            b'{"vault_3": "http://localhost/v1.0/vault_3"}, '
+            b'{"vault_4": "http://localhost/v1.0/vault_4"}]')
 
         params['limit'] = 1
-        response = self.app.get('/v1.0/',
+        response = self.app.get(next_url,
             params=params,
             headers=hdrs)
-        assert str(response.body) == str(b'["vault_1"]')
+        assert str(response.body) == str(b'[{"vault_1": '
+            b'"http://localhost/v1.0/vault_1"}]')
 
         params['marker'] = 'vault_not_exists'
         params['limit'] = 99
