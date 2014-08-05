@@ -132,11 +132,11 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
             self.assertFalse(driver.store_block(project_id, vault_id, block_id,
                 str('').encode('utf-8'), token))
 
-            self.assertFalse(driver.block_exists(project_id, vault_id, block_id,
-                token))
+            self.assertFalse(driver.block_exists(project_id, vault_id,
+                block_id, token))
 
-            self.assertFalse(driver.delete_block(project_id, vault_id, block_id,
-                token))
+            self.assertFalse(driver.delete_block(project_id, vault_id,
+                block_id, token))
 
             self.assertIsNone(driver.get_block_obj(project_id, vault_id,
                 block_id, token))
