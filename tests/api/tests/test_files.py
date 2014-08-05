@@ -208,7 +208,7 @@ class TestListBlocksOfFile(base.TestBase):
 
     @ddt.data(2, 4, 5, 10)
     def test_list_blocks_file_marker(self, value):
-        """List multiple blocks (20) assigned to the file using a marker 
+        """List multiple blocks (20) assigned to the file using a marker
         (value)"""
 
         markerid = self.blockids_offsets[value][1]
