@@ -83,7 +83,7 @@ def delete_container(url,
         # Basic response requirements
         response_dict['content-length'] = 0
         response_dict['content-type'] = 'text/html; charset=UTF-8'
-        response_dict['x-transaction-id'] = uuid.uuid4()
+        response_dict['x-transaction-id'] = 'req-' + uuid.uuid4()
         # Thu, 16 Jan 2014 18:04:04 GMT
         response_dict['date'] = datetime.datetime.utcnow().strftime(
             "%a, %d %b %Y %H:%M:%S %Z")
