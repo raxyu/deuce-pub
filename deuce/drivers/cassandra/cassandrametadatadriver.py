@@ -175,7 +175,7 @@ class CassandraStorageDriver(MetadataStorageDriver):
         return file_id
 
     def file_length(self, project_id, vault_id, file_id):
-        """Retrieve the of the file."""
+        """Retrieve the length of the file."""
         args = (project_id, vault_id, uuid.UUID(file_id))
 
         res = self._session.execute(CQL_GET_FILE_SIZE, args)
