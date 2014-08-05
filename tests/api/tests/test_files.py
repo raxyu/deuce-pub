@@ -57,7 +57,7 @@ class TestFileBlockUploaded(base.TestBase):
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
         resp_body = json.loads(resp.content)
-        self.assertListEqual([], resp_body)
+        self.assertListEqual(resp_body, [])
 
     def test_assign_missing_block_to_file(self):
         """Assign a missing block to a file"""
@@ -77,7 +77,7 @@ class TestFileBlockUploaded(base.TestBase):
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
         resp_body = json.loads(resp.content)
-        self.assertListEqual([blockid], resp_body)
+        self.assertListEqual(resp_body, [blockid])
 
     def tearDown(self):
         super(TestFileBlockUploaded, self).tearDown()
@@ -113,7 +113,7 @@ class TestEmptyFile(base.TestBase):
                          'Status code for getting the list of all files '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
-        self.assertListEqual([], resp.json())
+        self.assertListEqual(resp.json(), [])
 
     def tearDown(self):
         super(TestEmptyFile, self).tearDown()
@@ -203,6 +203,24 @@ class TestListBlocksOfFile(base.TestBase):
         self.assertHeaders(resp.headers, json=True)
         self.assertBlocksInResponse(resp)
         self.assertEqual(len(self.blockids_offsets), 0,
+                         'Discrepancy between the list of blocks returned '
+                         'and the blocks associated to the file')
+
+    @ddt.data(2, 4, 5, 10)
+    def test_list_blocks_file_marker(self, value):
+        """List multiple blocks (20) assigned to the file using a marker 
+        (value)"""
+
+        markerid = self.blockids_offsets[value][1]
+        skipped_blockids_offsets = self.blockids_offsets[:value]
+        resp = self.client.list_of_blocks_in_file(self.vaultname, self.fileid,
+                                                  marker=markerid)
+        self.assertEqual(resp.status_code, 200,
+                         'Status code for getting the list of blocks of a '
+                         'file {0}'.format(resp.status_code))
+        self.assertHeaders(resp.headers, json=True)
+        self.assertBlocksInResponse(resp)
+        self.assertEqual(self.blockids_offsets, skipped_blockids_offsets,
                          'Discrepancy between the list of blocks returned '
                          'and the blocks associated to the file')
 
@@ -346,7 +364,22 @@ class TestMultipleFinalizedFiles(base.TestBase):
                          'Status code for getting the list of all files '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
-        self.assertListEqual(sorted(self.files), resp.json())
+        self.assertListEqual(resp.json(), sorted(self.files))
+
+    @ddt.data(2, 4, 5, 10)
+    def test_list_multiple_files_marker(self, value):
+        """List multiple files (20) using a marker (value)"""
+
+        sorted_list_files = sorted(self.files)
+        markerid = sorted_list_files[value]
+        requested_list_files = sorted_list_files[value:]
+        resp = self.client.list_of_files(vaultname=self.vaultname,
+                                         marker=markerid)
+        self.assertEqual(resp.status_code, 200,
+                         'Status code for getting the list of all files '
+                         '{0}'.format(resp.status_code))
+        self.assertHeaders(resp.headers, json=True)
+        self.assertListEqual(resp.json(), requested_list_files)
 
     @ddt.data(2, 4, 5, 10)
     def test_list_files_limit(self, value):

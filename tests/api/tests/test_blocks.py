@@ -5,10 +5,10 @@ import os
 import sha
 
 
-class TestListBlock(base.TestBase):
+class TestNoBlocksUploaded(base.TestBase):
 
     def setUp(self):
-        super(TestListBlock, self).setUp()
+        super(TestNoBlocksUploaded, self).setUp()
         self.create_empty_vault()
 
     def test_list_blocks_empty_vault(self):
@@ -19,12 +19,12 @@ class TestListBlock(base.TestBase):
                          'Status code for listing all blocks is'
                          ' {0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
-        self.assertListEqual([], resp.json(),
+        self.assertListEqual(resp.json(), [],
                              'Response to List Blocks for an empty vault '
                              'should be an empty list []')
 
     def tearDown(self):
-        super(TestListBlock, self).tearDown()
+        super(TestNoBlocksUploaded, self).tearDown()
         self.client.delete_vault(self.vaultname)
 
 
@@ -71,7 +71,7 @@ class TestBlockUploaded(base.TestBase):
                          'Status code for listing all blocks is '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
-        self.assertListEqual([self.blockid], resp.json(),
+        self.assertListEqual(resp.json(), [self.blockid],
                              'Response for List Blocks should have 1 item')
 
     def test_get_one_block(self):
@@ -110,8 +110,7 @@ class TestListBlocks(base.TestBase):
     def setUp(self):
         super(TestListBlocks, self).setUp()
         self.create_empty_vault()
-        for _ in range(20):
-            self.upload_block()
+        [self.upload_block() for _ in range(20)]
         self.blockids = []
         for block in self.blocks:
             self.blockids.append(block.Id)
@@ -124,7 +123,22 @@ class TestListBlocks(base.TestBase):
                          'Status code for listing all blocks is '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
-        self.assertListEqual(sorted(self.blockids), sorted(resp.json()),
+        self.assertListEqual(sorted(resp.json()), sorted(self.blockids),
+                             'Response for List Blocks'
+                             ' {0} {1}'.format(self.blockids, resp.json()))
+
+    @ddt.data(2, 4, 5, 10)
+    def test_list_multiple_blocks_marker(self, value):
+        """List multiple blocks (20) using a marker (value)"""
+
+        sorted_block_list = sorted(self.blockids)
+        markerid = sorted_block_list[value]
+        resp = self.client.list_of_blocks(self.vaultname, marker=markerid)
+        self.assertEqual(resp.status_code, 200,
+                         'Status code for listing all blocks is '
+                         '{0}'.format(resp.status_code))
+        self.assertHeaders(resp.headers, json=True)
+        self.assertListEqual(sorted(resp.json()), sorted_block_list[value:],
                              'Response for List Blocks'
                              ' {0} {1}'.format(self.blockids, resp.json()))
 

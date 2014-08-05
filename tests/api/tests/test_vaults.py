@@ -8,7 +8,7 @@ class TestCreateVaults(base.TestBase):
     def setUp(self):
         super(TestCreateVaults, self).setUp()
 
-    @ddt.data(1, 10, 100)
+    @ddt.data(1, 10, 100, 128)
     def test_create_vaults(self, size):
         """Create a Vault"""
 
