@@ -2,4 +2,4 @@
 nose
 ddt
 jsonschema
-git+https://github.com/stackforge/opencafe.git#egg=opencafe
+opencafe
