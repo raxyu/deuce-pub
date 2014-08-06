@@ -12,6 +12,13 @@ import collections
 
 MOCK_CASSANDRA_SCHEMA = [
     """
+CREATE TABLE vaults (
+  projectid TEXT,
+  vaultid TEXT,
+  PRIMARY KEY(projectid, vaultid)
+);
+""",
+    """
 CREATE TABLE blocks (
   projectid TEXT,
   vaultid TEXT,

@@ -1,3 +1,8 @@
+CREATE TABLE vaults(
+  projectid TEXT,
+  vaultid TEXT,
+  PRIMARY KEY(proectid, vaultid)
+);
 
 CREATE COLUMNFAMILY blocks (
   projectid TEXT,

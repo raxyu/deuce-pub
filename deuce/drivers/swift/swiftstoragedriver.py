@@ -62,10 +62,6 @@ class SwiftStorageDriver(BlockStorageDriver):
         except ClientException as e:
             return False
 
-    def create_vaults_generator(self, project_id,
-            marker=None, limit=None, auth_token=None):
-        return dict()
-
     # =========== BLOCKS ===============================
     def store_block(self, project_id, vault_id, block_id, blockdata,
             auth_token):

@@ -26,6 +26,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             conf.metadata_driver.mongodb.url)
 
         self._db = self.client[self._dbfile]
+        self._vaults = self._db.vaults
         self._blocks = self._db.blocks
         self._files = self._db.files
         self._fileblocks = self._db.fileblocks
@@ -44,6 +45,48 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             res = min(conf.api_configuration.max_returned_num + 1, limit)
 
         return res
+
+    def create_vaults_generator(self, project_id,
+            marker=None, limit=None):
+        """Creates and returns a generator that will return
+        the vault IDs.
+
+        :param project_id: The Project ID for this block
+        :param marker: The vault_id to start of the list
+        :param limit: Number of returned items
+        """
+        self._vaults.ensure_index([('projectid', 1),
+            ('vaultid', 1)])
+        args = {
+            "projectid": project_id
+        }
+        if marker is not None:
+            args["vaultid"] = {"$gte": str(marker)}
+
+        limit = self._determine_limit(limit)
+
+        return list(vault["vaultid"] for vault in
+            self._vaults.find(args).sort('vaultid', 1).limit(limit))
+
+    def create_vault(self, project_id, vault_id):
+        """Creates a representation of a vault."""
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id
+        }
+
+        self._vaults.insert(args)
+
+    def delete_vault(self, project_id, vault_id):
+        """Deletes the vault from metadata."""
+        self._vaults.ensure_index([('projectid', 1),
+            ('vaultid', 1)])
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id
+        }
+
+        self._vaults.remove(args)
 
     def create_file(self, project_id, vault_id, file_id):
         """Creates a new FILES with no blocks and no files"""

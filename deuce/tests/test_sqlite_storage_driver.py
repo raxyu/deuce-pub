@@ -356,3 +356,19 @@ class SqliteStorageDriverTest(FunctionalTest):
         target_list = sorted(file_ids)[2:5]
 
         self.assertEqual(target_list, output)
+
+    def test_vault_crud_and_generator(self):
+        driver = self.create_driver()
+        project_id = 'project_id'
+        vaultids = list()
+        for n in range(5):
+            vault_id = self._create_vault_id()
+            driver.create_vault(project_id, vault_id)
+            vaultids.append(vault_id)
+
+        driver.create_vaults_generator(project_id, marker=None, limit=99)
+        driver.create_vaults_generator(project_id,
+            marker=vaultids[0], limit=99)
+
+        for vault_id in vaultids:
+            driver.delete_vault(project_id, vault_id)

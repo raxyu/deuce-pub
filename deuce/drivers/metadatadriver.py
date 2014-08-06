@@ -66,6 +66,28 @@ class MetadataStorageDriver(object):
     """
 
     @abstractmethod
+    def create_vaults_generator(self, project_id,
+            marker=None, limit=None):
+        """Creates and returns a generator that will return
+        the vault IDs.
+
+        :param project_id: The Project ID for this block
+        :param marker: The vault_id to start of the list
+        :param limit: Number of returned items
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def create_vault(self, project_id, vault_id):
+        """Creates a representation of a vault."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def delete_vault(self, project_id, vault_id):
+        """Deletes the vault from metadata."""
+        raise NotImplementedError
+
+    @abstractmethod
     def create_file(self, project_id, vault_id, file_id):
         """Creates a representation of an empty file."""
         raise NotImplementedError

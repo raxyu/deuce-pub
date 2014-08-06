@@ -88,7 +88,6 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
         blockid = 'notmatter'
         driver.create_vault(projectid, vaultid, failed_token)
         driver.vault_exists(projectid, vaultid, failed_token)
-        driver.create_vaults_generator(projectid, failed_token)
         driver.delete_vault(projectid, vaultid, failed_token)
         driver.store_block(projectid, vaultid, blockid,
             str('').encode('utf-8'), failed_token)

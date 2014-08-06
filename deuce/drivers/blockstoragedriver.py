@@ -25,19 +25,6 @@ class BlockStorageDriver(object):
         raise NotImplementedError
 
     @abstractmethod
-    def create_vaults_generator(self, project_id,
-            marker=None, limit=None, auth_token=None):
-        """Creates and returns a generator that will return
-        the vault IDs.
-
-        :param project_id: The Project ID for this block
-        :param marker: The vault_id to start of the list
-        :param limit: Number of returned items
-        :param auth_token: The token for backend storage
-        """
-        raise NotImplementedError
-
-    @abstractmethod
     def create_vault(self, project_id, vault_id,
             auth_token=None):
         """Allocates space in the storage backend for the specified

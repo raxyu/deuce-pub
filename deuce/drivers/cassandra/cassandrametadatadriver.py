@@ -8,6 +8,26 @@ from deuce.drivers.metadatadriver import GapError, OverlapError
 from pecan import conf
 
 
+CQL_CREATE_VAULT = '''
+    INSERT INTO vaults (projectid, vaultid)
+    VALUES (%s, %s)
+'''
+
+CQL_DELETE_VAULT = '''
+    DELETE FROM vaults
+    where projectid = %s
+    AND vaultid = %s
+'''
+
+CQL_GET_ALL_VAULTS = '''
+    SELECT vaultid
+    FROM vaults
+    WHERE projectid = %s
+    AND vaultid >= %s
+    ORDER BY vaultid
+    LIMIT %s
+'''
+
 CQL_CREATE_FILE = '''
     INSERT INTO files (projectid, vaultid, fileid, finalized)
     VALUES (%s, %s, %s, false)
@@ -157,6 +177,26 @@ class CassandraStorageDriver(MetadataStorageDriver):
             res = min(conf.api_configuration.max_returned_num + 1, limit)
 
         return res
+
+    def create_vault(self, project_id, vault_id):
+        """Creates a vault"""
+        args = (project_id, vault_id)
+        res = self._session.execute(CQL_CREATE_VAULT, args)
+        return
+
+    def delete_vault(self, project_id, vault_id):
+        args = (project_id, vault_id)
+
+        self._session.execute(CQL_DELETE_VAULT, args)
+        return
+
+    def create_vaults_generator(self, project_id, marker=None, limit=None):
+        args = (project_id, marker or '0',
+                self._determine_limit(limit))
+
+        res = self._session.execute(CQL_GET_ALL_VAULTS, args)
+
+        return [row[0] for row in res]
 
     def create_file(self, project_id, vault_id, file_id):
         """Creates a new file with no blocks and no files"""
