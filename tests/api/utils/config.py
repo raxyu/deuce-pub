@@ -28,6 +28,13 @@ class deuceConfig(ConfigSectionInterface):
         """
         return self.get('version')
 
+    @property
+    def use_storage(self):
+        """
+        use the storage information
+        """
+        return self.get_boolean('use_storage')
+
 
 class authConfig(ConfigSectionInterface):
     """
@@ -62,3 +69,17 @@ class authConfig(ConfigSectionInterface):
         user's tenant id
         """
         return self.get('tenant_id')
+
+
+class storageConfig(ConfigSectionInterface):
+    """
+    Defines the storage config values
+    """
+    SECTION_NAME = 'storage'
+
+    @property
+    def base_url(self):
+        """
+        storage url
+        """
+        return self.get('base_url')

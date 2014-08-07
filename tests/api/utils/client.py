@@ -35,16 +35,19 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
     Client Objects for Deuce
     """
 
-    def __init__(self, url, version, auth_token=None, serialize_format='json',
-                 deserialize_format='json'):
+    def __init__(self, url, version, auth_token=None, storage_url=None,
+                 serialize_format='json', deserialize_format='json'):
         super(BaseDeuceClient, self).__init__(serialize_format,
                                               deserialize_format)
         self.url = url
         self.version = version
+        self.auth_token = ''
         if auth_token:
             self.auth_token = auth_token
-            self.default_headers['X-Auth-Token'] = self.auth_token
-        self.default_headers['x-project-id'] = str(uuid.uuid4()).replace('-',
+        if storage_url:
+            self.default_headers['X-Storage-Url'] = storage_url
+        self.default_headers['X-Auth-Token'] = self.auth_token
+        self.default_headers['X-Project-Id'] = str(uuid.uuid4()).replace('-',
                                                                          '')
 
     def create_vault(self, vaultname):

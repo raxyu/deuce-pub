@@ -31,15 +31,20 @@ class TestBase(fixtures.BaseTestFixture):
         cls.config = config.deuceConfig()
         cls.auth_config = config.authConfig()
         cls.auth_token = None
+        cls.storage_config = config.storageConfig()
+        cls.storage_url = None
         if cls.config.use_auth:
             cls.a_client = client.AuthClient(cls.auth_config.base_url)
             cls.a_resp = cls.a_client.get_auth_token(cls.auth_config.user_name,
                                                      cls.auth_config.api_key)
             jsonschema.validate(cls.a_resp.json(), auth.authentication)
             cls.auth_token = cls.a_resp.entity.token
+        if cls.config.use_storage:
+            cls.storage_url = cls.storage_config.base_url
         cls.client = client.BaseDeuceClient(cls.config.base_url,
                                             cls.config.version,
-                                            cls.auth_token)
+                                            cls.auth_token,
+                                            cls.storage_url)
 
         cls.blocks = []
         cls.api_version = cls.config.version
