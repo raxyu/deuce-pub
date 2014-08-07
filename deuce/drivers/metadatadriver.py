@@ -77,7 +77,7 @@ class MetadataStorageDriver(object):
 
     @abstractmethod
     def file_length(self, project_id, vault_id, file_id):
-        """Retrieve the of the file."""
+        """Retrieve length the of the file."""
         raise NotImplementedError
 
     @abstractmethod

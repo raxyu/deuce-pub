@@ -242,7 +242,7 @@ class SqliteStorageDriver(MetadataStorageDriver):
         return file_id
 
     def file_length(self, project_id, vault_id, file_id):
-        """Retrieve the of the file."""
+        """Retrieve length the of the file."""
         args = {
             'projectid': project_id,
             'vaultid': vault_id,
