@@ -55,7 +55,7 @@ class BlockStorageDriver(object):
         specified vault_id.
 
         :param project_id: The Project ID for this block
-        :param vault_id: The ID of the vault to delete
+        :param vault_id: The ID of the vault to check
         :param auth_token: The token for backend storage
         """
         raise NotImplementedError
@@ -66,7 +66,7 @@ class BlockStorageDriver(object):
         """Returns a single file-like object.
 
         :param project_id: The Project ID for this block
-        :param vault_id: The ID of the vault to delete
+        :param vault_id: The ID of the vault
         :param auth_token: The token for backend storage
         :param block_id: The ID of the block
         """
@@ -78,7 +78,7 @@ class BlockStorageDriver(object):
         """Stores the block into the specified vault.
 
         :param project_id: The Project ID for this block
-        :param vault_id: The ID of the vault to delete
+        :param vault_id: The ID of the vault
         :param block_id: The ID of the block
         :param block_data: The data body of the block
         :param auth_token: The token for backend storage
@@ -92,7 +92,7 @@ class BlockStorageDriver(object):
         vault.
 
         :param project_id: The Project ID for this block
-        :param vault_id: The ID of the vault to delete
+        :param vault_id: The ID of the vault
         :param block_id: The ID of the block
         :param auth_token: The token for backend storage
         """
@@ -104,7 +104,7 @@ class BlockStorageDriver(object):
         """Deletes the specified block from storage.
 
         :param project_id: The Project ID for this block
-        :param vault_id: The ID of the vault to delete
+        :param vault_id: The ID of the vault
         :param block_id: The ID of the block
         :param auth_token: The token for backend storage
         """
@@ -117,7 +117,7 @@ class BlockStorageDriver(object):
         individually.
 
         :param project_id: The Project ID for this block
-        :param vault_id: The ID of the vault to delete
+        :param vault_id: The ID of the vault
         :param block_gen: The list of blocks for downloading
         :param auth_token: The token for backend storage
         """
