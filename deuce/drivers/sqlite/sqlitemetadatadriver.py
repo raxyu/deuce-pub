@@ -253,14 +253,15 @@ class SqliteStorageDriver(MetadataStorageDriver):
 
         def __stats_query(sql_statement, default_value):
             result = self._conn.execute(sql_statement, args)
+
             try:
                 row = next(result)
                 return row[0]
 
-            except StopIteration:
+            except StopIteration:  # pragma: no cover
                 return default_value
 
-            except IndexError:
+            except IndexError:  # pragma: no cover
                 return default_value
 
         def __stats_get_vault_file_block_count():

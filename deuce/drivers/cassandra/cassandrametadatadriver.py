@@ -195,7 +195,7 @@ class CassandraStorageDriver(MetadataStorageDriver):
             try:
                 return result[0][0]
 
-            except IndexError:
+            except IndexError:  # pragma: no cover
                 return default_value
 
         def __stats_get_vault_file_block_count():

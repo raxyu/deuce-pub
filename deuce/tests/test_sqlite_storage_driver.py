@@ -43,6 +43,7 @@ class SqliteStorageDriverTest(FunctionalTest):
         vault_id = self._create_vault_id()
 
         # empty vault stats
+        # TODO ** Create Vault Here **
         statistics = driver.get_vault_statistics(project_id, vault_id)
 
         main_keys = ('file-blocks', 'files', 'blocks')

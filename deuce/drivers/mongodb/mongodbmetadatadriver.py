@@ -61,7 +61,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
                 ('vaultid', 1), ('fileid', 1), ('blockid', 1)])
             result = self._files.find(args)
             if result is None:
-                return 0
+                return 0  # pragma: no cover
             else:
                 return result.count()
 
@@ -70,7 +70,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
                 ('vaultid', 1), ('fileid', 1)])
             result = self._files.find(args)
             if result is None:
-                return 0
+                return 0  # pragma: no cover
             else:
                 return result.count()
 
@@ -79,7 +79,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
                 ('vaultid', 1), ('blockid', 1)])
             result = self._files.find(args)
             if result is None:
-                return 0
+                return 0  # pragma: no cover
             else:
                 return result.count()
 

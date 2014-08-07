@@ -70,8 +70,7 @@ class SwiftStorageDriver(BlockStorageDriver):
             if container_metadata is not None:
                 mapper = {
                     'total-size': 'x-container-bytes-used',
-                    'block-count': 'x-container-object-count',
-                    'total-size': 'x-container-bytes-used',
+                    'block-count': 'x-container-object-count'
                 }
                 mapper_internal = {
                     'last-modification-time': 'x-timestamp'
@@ -83,7 +82,7 @@ class SwiftStorageDriver(BlockStorageDriver):
                 for k, v in mapper_internal.items():
                     statistics['internal'][k] = container_metadata[v]
 
-        except ClientException as e:
+        except ClientException as e:  # pragma: no cover  **
             pass
 
         return statistics
