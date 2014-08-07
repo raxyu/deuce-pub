@@ -180,7 +180,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             file_size = 0
 
         self._files.update({'_id': filerec_id}, {
-            "$set": {
+            '$set': {
                 'finalized': True,
                 'size': file_size
             }
@@ -225,7 +225,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
                     block_cnt += blocks_len - 1
 
                 # Add the segment to the embedded document.
-                self._files.update({'_id': filerec_id}, {"$push":
+                self._files.update({'_id': filerec_id}, {'$push':
                     {'blocks': {'$each': blocks}}},
                     upsert=False)
 
@@ -306,7 +306,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             'vaultid': vault_id
         }
         if marker is not None:
-            args['blockid'] = {"$gte": str(marker)}
+            args['blockid'] = {'$gte': str(marker)}
 
         limit = self._determine_limit(limit)
 
@@ -322,7 +322,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         args = dict()
         if marker:
             args = {'projectid': project_id, 'vaultid': vault_id,
-                'fileid': {"$gte": marker}, 'finalized': finalized}
+                'fileid': {'$gte': marker}, 'finalized': finalized}
         else:
             args = {'projectid': project_id, 'vaultid': vault_id,
                 'finalized': finalized}
@@ -352,13 +352,13 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             [{'$match': args},
             {'$sort': {"seq": 1}},
             {'$unwind': '$blocks'},
-            {'$match': {'blocks.offset': {"$gte": search_offset}}},
+            {'$match': {'blocks.offset': {'$gte': search_offset}}},
             {'$limit': limit},
-            {'$group': {"_id": "$_id",
+            {'$group': {"_id": '$_id',
                 'blocks': {
-                    "$push": {
-                        'blockid': "$blocks.blockid",
-                        'offset': "$blocks.offset"}}}},
+                    '$push': {
+                        'blockid': '$blocks.blockid',
+                        'offset': '$blocks.offset'}}}},
             {'$sort': {'blocks.offset': 1}}])
 
         resblocks = resblocks.get('result')
