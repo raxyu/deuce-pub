@@ -34,8 +34,8 @@ class DiskStorageDriverTest(FunctionalTest):
 
         storage_url, auth_token = self.get_Auth_Token()
 
-        project_id = self.test_create_project_id()
-        vault_id = self.test_create_vault_id()
+        project_id = self.create_project_id()
+        vault_id = self.create_vault_id()
 
         driver.delete_vault(project_id, vault_id, token)
         assert not driver.vault_exists(project_id, vault_id, token)
@@ -70,8 +70,8 @@ class DiskStorageDriverTest(FunctionalTest):
         driver = self.create_driver()
 
         block_size = 3000
-        vault_id = self.test_create_vault_id()
-        project_id = self.test_create_project_id()
+        vault_id = self.create_vault_id()
+        project_id = self.create_project_id()
 
         driver.create_vault(project_id, vault_id, token)
 
@@ -124,8 +124,8 @@ class DiskStorageDriverTest(FunctionalTest):
         driver = self.create_driver()
 
         block_size = 3000
-        vault_id = self.test_create_vault_id()
-        project_id = self.test_create_project_id()
+        vault_id = self.create_vault_id()
+        project_id = self.create_project_id()
 
         driver.create_vault(project_id, vault_id, token)
 
