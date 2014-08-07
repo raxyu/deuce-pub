@@ -108,7 +108,8 @@ class Vault(object):
     def delete(self, auth_token=None):
         succ = deuce.storage_driver.delete_vault(self.project_id, self.id,
                 auth_token=auth_token)
-        deuce.metadata_driver.delete_vault(self.project_id, self.id)
+        if succ:
+            deuce.metadata_driver.delete_vault(self.project_id, self.id)
         return succ
 
     def delete_file(self, file_id):

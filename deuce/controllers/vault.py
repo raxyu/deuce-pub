@@ -79,10 +79,14 @@ class VaultController(RestController):
                 request.auth_token)
 
         if vault:
-            vault.delete(
-                request.auth_token)
-            logger.info('Vault [{0}] deleted'.format(vault_id))
-            response.status_code = 204
+            if vault.delete(request.auth_token):
+                logger.info('Vault [{0}] deleted'.format(vault_id))
+                response.status_code = 204
+            else:
+                logger.info('Vault [{0}] deletion failed; '
+                    'vault is not empty or storage error'.format(vault_id))
+                response.status_code = 409
+
         else:
             logger.error('Vault [{0}] deletion failed; '
                 'Vault does not exist'.format(vault_id))

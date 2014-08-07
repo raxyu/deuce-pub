@@ -2,8 +2,8 @@ from unittest import TestCase
 from webtest import TestApp
 from deuce.tests import FunctionalTest
 import os
-
 import json
+import hashlib
 
 
 class TestVaultController(FunctionalTest):
@@ -122,8 +122,7 @@ class TestVaultController(FunctionalTest):
 
         # Now delete the vault (this should be OK since it
         # contains nothing in it.
-        response = self.app.delete(vault_path, headers=self._hdrs,
-            expect_errors=True)
+        response = self.app.delete(vault_path, headers=self._hdrs)
 
         assert response.status_code == 204
 
@@ -138,3 +137,24 @@ class TestVaultController(FunctionalTest):
             expect_errors=True)
 
         assert response.status_code == 404
+
+        # Delete a non-empty vault.
+        response = self.app.put(vault_path, headers=self._hdrs)
+        # # Add a real block to it.
+        block_data = os.urandom(2000)  # Data size : 2000.
+        sha1 = hashlib.sha1()
+        sha1.update(block_data)
+        blockid = sha1.hexdigest()
+        block_path = '{0}/blocks/{1}'.format(vault_path, blockid)
+        block_headers = {
+            "Content-Type": "application/binary",
+            "Content-Length": "2000",
+        }
+        block_headers.update(self._hdrs)
+        response = self.app.put(block_path, headers=block_headers,
+                                params=block_data)
+
+        # # Delete should fail.
+        response = self.app.delete(vault_path, headers=self._hdrs,
+            expect_errors=True)
+        assert response.status_code == 409
