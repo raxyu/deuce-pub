@@ -82,7 +82,7 @@ class SwiftStorageDriver(BlockStorageDriver):
                 for k, v in mapper_internal.items():
                     statistics['internal'][k] = container_metadata[v]
 
-        except ClientException as e:  # pragma: no cover  **
+        except ClientException as e:
             pass
 
         return statistics
