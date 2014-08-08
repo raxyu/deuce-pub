@@ -58,7 +58,20 @@ class SwiftStorageDriver(BlockStorageDriver):
                 token=auth_token,
                 container=vault_id,
                 response_dict=response)
-            return (response['status'] >= 200 and response['status'] < 300)
+
+            # 204 - successfully deleted the vault
+            # 404 - vault did not exist to start with
+            if response['status'] in (204, 404):
+
+                # Successfully deleted the vault
+                return True
+
+            else:
+                # Vault was not empty so it was not deleted
+                # or
+                # Unknown error
+                return False
+
         except ClientException as e:
             return False
 
