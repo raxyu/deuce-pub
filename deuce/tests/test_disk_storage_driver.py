@@ -88,8 +88,8 @@ class DiskStorageDriverTest(FunctionalTest):
             token)
 
         # Test delete invalid block
-        driver.delete_block(projectid, vault_id, "test_invalid_block_deletion",
-            token)
+        driver.delete_block(project_id, vault_id,
+            "test_invalid_block_deletion", token)
 
         # Test valid block_id.
         block_id = block_data.sha1()
