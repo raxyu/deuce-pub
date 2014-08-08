@@ -37,14 +37,12 @@ class VaultController(RestController):
                 returl = set_qs(request.url, query_args)
                 response.headers["X-Next-Batch"] = returl
             # Set return json for vault URLs.
-            retval = list()
             p = urlparse(request.url)
 
-            for vaultname in vaultlist:
-                vault = dict({vaultname: p.scheme +
-                    '://' + p.netloc + p.path + vaultname})
-                retval.append(vault)
-            return retval
+            return list(map(lambda vaultname:
+                dict({vaultname: p.scheme +
+                    '://' + p.netloc + p.path + vaultname}), vaultlist))
+
         return list()
 
     @expose()
