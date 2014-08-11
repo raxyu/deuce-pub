@@ -49,12 +49,9 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
                 sys.exit(str(e))
 
         else:
-            storage_url = conf.block_storage_driver.swift.storage_url
+            storage_url = 'mocking_storage_url'
             token = 'mocking_token'
 
-        self._hdrs = {"x-project-id": 'testswfitstoragedrv',
-            "x-auth-token": token,
-            "x-storage-url": ''}
         return storage_url, token
 
     def test_basic_construction(self):
