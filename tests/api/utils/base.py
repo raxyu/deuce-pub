@@ -219,7 +219,7 @@ class TestBase(fixtures.BaseTestFixture):
         if not self._create_new_file():
             raise Exception('Failed to create a file')
 
-    def _assign_all_blocks_to_file(self):
+    def _assign_all_blocks_to_file(self, offset_divisor=None):
         """
         Test Setup Helper: Assigns all blocks to the file
         """
@@ -228,20 +228,23 @@ class TestBase(fixtures.BaseTestFixture):
         for block_info in self.blocks:
             block_list.append({'id': block_info.Id,
                                'size': len(block_info.Data), 'offset': offset})
-            offset += len(block_info.Data)
+            if offset_divisor:
+                offset += len(block_info.Data) / offset_divisor
+            else:
+                offset += len(block_info.Data)
         block_dict = {'blocks': block_list}
         resp = self.client.assign_to_file(json.dumps(block_dict),
                                           alternate_url=self.fileurl)
         return 200 == resp.status_code
 
-    def assign_all_blocks_to_file(self):
+    def assign_all_blocks_to_file(self, offset_divisor=None):
         """
         Test Setup Helper: Assigns all blocks to the file
 
         Exception is raised if the operation is not successful
         """
 
-        if not self._assign_all_blocks_to_file():
+        if not self._assign_all_blocks_to_file(offset_divisor):
             raise Exception('Failed to assign blocks to file')
 
     def _finalize_file(self):
