@@ -25,7 +25,8 @@ class TestFilesController(FunctionalTest):
         self.total_file_num = 0
 
         self._hdrs = {"x-project-id": 'testfilectrl',
-            "x-auth-token": ''}
+            "x-auth-token": '',
+            "x-storage-url": 'testfiles'}
 
         # Create a vault and a file for us to work with
         self.project_id = 'test_project_id'

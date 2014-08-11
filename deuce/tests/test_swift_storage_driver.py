@@ -53,7 +53,8 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
             token = 'mocking_token'
 
         self._hdrs = {"x-project-id": 'testswfitstoragedrv',
-            "x-auth-token": token}
+            "x-auth-token": token,
+            "x-storage-url": ''}
         return storage_url, token
 
     def test_basic_construction(self):
@@ -86,14 +87,14 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
         projectid = 'notmatter'
         vaultid = 'notmatter'
         blockid = 'notmatter'
-        driver.create_vault(projectid, vaultid, failed_token)
-        driver.vault_exists(projectid, vaultid, failed_token)
-        driver.delete_vault(projectid, vaultid, failed_token)
-        driver.store_block(projectid, vaultid, blockid,
+        driver.create_vault(storage_url, projectid, vaultid, failed_token)
+        driver.vault_exists(storage_url, projectid, vaultid, failed_token)
+        driver.delete_vault(storage_url, projectid, vaultid, failed_token)
+        driver.store_block(storage_url, projectid, vaultid, blockid,
             str('').encode('utf-8'), failed_token)
-        driver.block_exists(projectid, vaultid, blockid,
+        driver.block_exists(storage_url, projectid, vaultid, blockid,
             failed_token)
-        driver.delete_block(projectid, vaultid, blockid,
+        driver.delete_block(storage_url, projectid, vaultid, blockid,
             failed_token)
-        driver.get_block_obj(projectid, vaultid, blockid,
+        driver.get_block_obj(storage_url, projectid, vaultid, blockid,
             failed_token)

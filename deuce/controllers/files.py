@@ -27,8 +27,10 @@ class FilesController(RestController):
     @validate(vault_id=VaultGetRule, file_id=FileGetRule)
     def delete(self, vault_id, file_id):
 
-        vault = Vault.get(request.project_id, vault_id,
-                request.auth_token)
+        vault = Vault.get(
+            request.storage_url,
+            request.project_id, vault_id,
+            request.auth_token)
         if not vault:
             abort(404)
 
@@ -42,8 +44,10 @@ class FilesController(RestController):
     @validate(vault_id=VaultGetRule, marker=FileMarkerRule, limit=LimitRule)
     def get_all(self, vault_id):
         response.headers["Transaction-ID"] = request.context.request_id
-        vault = Vault.get(request.project_id, vault_id,
-                request.auth_token)
+        vault = Vault.get(
+            request.storage_url,
+            request.project_id, vault_id,
+            request.auth_token)
 
         if not vault:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
@@ -81,8 +85,10 @@ class FilesController(RestController):
         """Fetches, re-assembles and streams a single
         file out of Deuce"""
         response.headers["Transaction-ID"] = request.context.request_id
-        vault = Vault.get(request.project_id, vault_id,
-                request.auth_token)
+        vault = Vault.get(
+            request.storage_url,
+            request.project_id, vault_id,
+            request.auth_token)
 
         if not vault:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
@@ -117,8 +123,10 @@ class FilesController(RestController):
         header
         """
         response.headers["Transaction-ID"] = request.context.request_id
-        vault = Vault.get(request.project_id, vault_id,
-                request.auth_token)
+        vault = Vault.get(
+            request.storage_url,
+            request.project_id, vault_id,
+            request.auth_token)
 
         # caller tried to post to a vault that
         # does not exist
