@@ -2,6 +2,7 @@ from pecan import conf
 from deuce.drivers.blockstoragedriver import BlockStorageDriver
 
 import os
+import os.path
 import io
 import shutil
 
