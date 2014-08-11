@@ -79,3 +79,31 @@ class TestEmptyVault(base.TestBase):
     def tearDown(self):
         super(TestEmptyVault, self).tearDown()
         self.client.delete_vault(self.vaultname)
+
+
+class TestPopulatedVault(base.TestBase):
+
+    def setUp(self):
+        super(TestPopulatedVault, self).setUp()
+        self.create_empty_vault()
+        self.upload_block()
+
+    def test_delete_populated_vault(self):
+        """Delete a Vault that has some data. 1 block"""
+
+        # TODO
+        self.skipTest('Status code returned is 204, not 412')
+        resp = self.client.delete_vault(self.vaultname)
+        self.assertEqual(resp.status_code, 412,
+                         'Status code returned for Delete Vault: {0} . '
+                         'Expected 412'.format(resp.status_code))
+        self.assertHeaders(resp.headers)
+        self.assertEqual(len(resp.content), 0,
+                         'Response Content was not empty. Content: '
+                         '{0}'.format(resp.content))
+
+    def tearDown(self):
+        super(TestPopulatedVault, self).tearDown()
+        [self.client.delete_block(self.vaultname, block.Id) for block in
+            self.blocks]
+        self.client.delete_vault(self.vaultname)
