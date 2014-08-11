@@ -62,25 +62,33 @@ class SwiftStorageDriver(BlockStorageDriver):
         statistics['block-count'] = 0
 
         try:
+            # This will always return a dictionary
             container_metadata = self.Conn.head_container(
                 url=self._storage_url,
                 token=auth_token,
                 container=vault_id)
 
-            if container_metadata is not None:
-                mapper = {
-                    'total-size': 'x-container-bytes-used',
-                    'block-count': 'x-container-object-count'
-                }
-                mapper_internal = {
-                    'last-modification-time': 'x-timestamp'
-                }
+            mapper = {
+                'total-size': 'x-container-bytes-used',
+                'block-count': 'x-container-object-count'
+            }
+            mapper_internal = {
+                'last-modification-time': 'x-timestamp'
+            }
 
-                for k, v in mapper.items():
+            for k, v in mapper.items():
+                try:
                     statistics[k] = container_metadata[v]
 
-                for k, v in mapper_internal.items():
+                except KeyError:  # pragma: no cover
+                    statistics[k] = 0
+
+            for k, v in mapper_internal.items():
+                try:
                     statistics['internal'][k] = container_metadata[v]
+
+                except KeyError:  # pragma: no cover
+                    statistics['internal'][k] = 0
 
         except ClientException as e:
             pass
