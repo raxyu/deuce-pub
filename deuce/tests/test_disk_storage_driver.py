@@ -12,101 +12,145 @@ from hashlib import md5
 
 class DiskStorageDriverTest(FunctionalTest):
 
-    def create_driver(self):
+    def create_driver(self, hdrs):
         return DiskStorageDriver()
 
-    def get_Auth_Token(self):
-        return None, None
-
     def test_ancestry(self):
-        driver = self.create_driver()
+        hdrs = dict()
+        driver = self.create_driver(hdrs)
 
         assert isinstance(driver, BlockStorageDriver)
         assert isinstance(driver, object)
 
     def test_basic_construction(self):
-        driver = self.create_driver()
+        hdrs = dict()
+        driver = self.create_driver(hdrs)
+
+    def get_mock_hdrs(self):
+        hdrs = dict()
+        project_id = self.create_project_id()
+        hdrs['x-project-id'] = project_id
+        return hdrs
 
     def test_vault_crud(self):
-        storage_url, token = self.get_Auth_Token()
+        hdrs = self.get_mock_hdrs()
+        driver = self.create_driver(hdrs)
 
-        driver = self.create_driver()
-
-        storage_url, auth_token = self.get_Auth_Token()
-
-        project_id = self.create_project_id()
         vault_id = self.create_vault_id()
 
-        driver.delete_vault(storage_url, project_id, vault_id, token)
-        assert not driver.vault_exists(storage_url, project_id,
-            vault_id, token)
+        driver.delete_vault(
+            request_headers=hdrs,
+            vault_id=vault_id)
+        assert not driver.vault_exists(
+            request_headers=hdrs,
+            vault_id=vault_id)
 
         # delete a non-empty vault.
-        driver.create_vault(storage_url, project_id, vault_id, token)
-        block_id = 'baab'
-        driver.store_block(storage_url, project_id, vault_id, block_id, b' ',
-            token)
-        assert driver.block_exists(storage_url, project_id, vault_id, block_id,
-            token)
-        assert not driver.delete_vault(storage_url, project_id,
-            vault_id, token)
-        assert driver.vault_exists(storage_url, project_id, vault_id, token)
+        driver.create_vault(
+            request_headers=hdrs,
+            vault_id=vault_id)
+        block_id = self.create_block_id()
+        driver.store_block(
+            request_headers=hdrs,
+            vault_id=vault_id,
+            block_id=block_id,
+            block_data=b' ')
+        assert driver.block_exists(
+            request_headers=hdrs,
+            vault_id=vault_id,
+            block_id=block_id)
+        assert not driver.delete_vault(
+            request_headers=hdrs,
+            vault_id=vault_id)
+        assert driver.vault_exists(
+            request_headers=hdrs,
+            vault_id=vault_id)
         # Cleanup and delete again.
-        driver.delete_block(storage_url, project_id, vault_id, block_id, token)
-        assert driver.delete_vault(storage_url, project_id, vault_id, token)
-        assert not driver.vault_exists(storage_url, project_id,
-            vault_id, token)
+        driver.delete_block(
+            request_headers=hdrs,
+            vault_id=vault_id,
+            block_id=block_id)
+        assert driver.delete_vault(
+            request_headers=hdrs,
+            vault_id=vault_id)
+        assert not driver.vault_exists(
+            request_headers=hdrs,
+            vault_id=vault_id)
 
         # To create an existed vault.
-        driver.create_vault(storage_url, project_id, vault_id, token)
-        driver.create_vault(storage_url, project_id, vault_id, token)
+        driver.create_vault(
+            request_headers=hdrs,
+            vault_id=vault_id)
+        driver.create_vault(
+            request_headers=hdrs,
+            vault_id=vault_id)
 
-        assert driver.vault_exists(storage_url, project_id, vault_id, token)
+        assert driver.vault_exists(
+            request_headers=hdrs,
+            vault_id=vault_id)
 
-        driver.delete_vault(storage_url, project_id, vault_id, token)
+        driver.delete_vault(
+            request_headers=hdrs,
+            vault_id=vault_id)
 
-        assert not driver.vault_exists(storage_url, project_id,
-            vault_id, token)
+        assert not driver.vault_exists(
+            request_headers=hdrs,
+            vault_id=vault_id)
 
     def test_block_crud(self):
-        storage_url, token = self.get_Auth_Token()
 
-        driver = self.create_driver()
+        hdrs = self.get_mock_hdrs()
+        driver = self.create_driver(hdrs)
 
         block_size = 3000
         vault_id = self.create_vault_id()
-        project_id = self.create_project_id()
 
-        driver.create_vault(storage_url, project_id, vault_id, token)
+        driver.create_vault(
+            request_headers=hdrs,
+            vault_id=vault_id)
 
         # Create a file-like object
         block_data = MockFile(block_size)
 
         # Test Invalid block_id, ie, wrong sha1 hash.
         try:
-            driver.store_block(storage_url, project_id, vault_id,
-                "test_disk_trouble_file", os.urandom(10), token)
+            driver.store_block(
+                request_headers=hdrs,
+                vault_id=vault_id,
+                block_id="test_disk_trouble_file",
+                block_data=os.urandom(10))
         except:
             assert True
-        driver.delete_block(storage_url, project_id, vault_id,
-            "test_disk_trouble_file", token)
+        driver.delete_block(
+            request_headers=hdrs,
+            vault_id=vault_id,
+            block_id="test_disk_trouble_file")
 
         # Test delete invalid block
-        driver.delete_block(storage_url, project_id, vault_id,
-            "test_invalid_block_deletion", token)
+        driver.delete_block(
+            request_headers=hdrs,
+            vault_id=vault_id,
+            block_id="test_invalid_block_deletion")
 
         # Test valid block_id.
         block_id = block_data.sha1()
-        driver.store_block(storage_url, project_id, vault_id, block_id,
-            block_data.read(), token)
+        driver.store_block(
+            request_headers=hdrs,
+            vault_id=vault_id,
+            block_id=block_id,
+            block_data=block_data.read())
         block_data.seek(0)
 
-        assert driver.block_exists(storage_url, project_id, vault_id, block_id,
-            token)
+        assert driver.block_exists(
+            request_headers=hdrs,
+            vault_id=vault_id,
+            block_id=block_id)
 
         # Read back the block data and compare
-        file_obj = driver.get_block_obj(storage_url, project_id, vault_id,
-            block_id, token)
+        file_obj = driver.get_block_obj(
+            request_headers=hdrs,
+            vault_id=vault_id,
+            block_id=block_id)
 
         returned_data = file_obj.read()
 
@@ -115,29 +159,40 @@ class DiskStorageDriverTest(FunctionalTest):
         assert len(returned_data) == block_size
         assert returned_data == block_data._content
 
-        driver.delete_block(storage_url, project_id, vault_id, block_id, token)
+        driver.delete_block(
+            request_headers=hdrs,
+            vault_id=vault_id,
+            block_id=block_id)
 
-        assert not driver.block_exists(storage_url, project_id,
-            vault_id, block_id, token)
+        assert not driver.block_exists(
+            request_headers=hdrs,
+            vault_id=vault_id,
+            block_id=block_id)
 
-        assert None == driver.get_block_obj(storage_url, project_id,
-            vault_id, 'invalid_block_id', token)
+        assert None == driver.get_block_obj(
+            request_headers=hdrs,
+            vault_id=vault_id,
+            block_id='invalid_block_id')
 
-        assert driver.delete_vault(storage_url, project_id, vault_id, token)
+        assert driver.delete_vault(
+            request_headers=hdrs,
+            vault_id=vault_id)
 
     def test_block_generator(self):
-        storage_url, token = self.get_Auth_Token()
-
-        driver = self.create_driver()
+        hdrs = self.get_mock_hdrs()
+        driver = self.create_driver(hdrs)
 
         block_size = 3000
         vault_id = self.create_vault_id()
-        project_id = self.create_project_id()
 
-        driver.create_vault(storage_url, project_id, vault_id, token)
+        driver.create_vault(
+            request_headers=hdrs,
+            vault_id=vault_id)
 
         # Test re-entrance
-        driver.create_vault(storage_url, project_id, vault_id, token)
+        driver.create_vault(
+            request_headers=hdrs,
+            vault_id=vault_id)
 
         blocks = [MockFile(block_size) for x in range(0, 10)]
 
@@ -152,16 +207,21 @@ class DiskStorageDriverTest(FunctionalTest):
         for block_data in blocks:
             block_id = block_data.sha1()
             block_ids.append(block_id)
-            driver.store_block(storage_url, project_id, vault_id, block_id,
-                block_data.read(), token)
+            driver.store_block(
+                request_headers=hdrs,
+                vault_id=vault_id,
+                block_id=block_id,
+                block_data=block_data.read())
             block_data.seek(0)
 
         # Now call the block generator.
 
         blockid_gen = block_ids[:]
 
-        gen = driver.create_blocks_generator(storage_url, project_id,
-            vault_id, blockid_gen, token)
+        gen = driver.create_blocks_generator(
+            request_headers=hdrs,
+            vault_id=vault_id,
+            block_gen=blockid_gen)
 
         fetched_data = list(gen)
 
@@ -173,6 +233,10 @@ class DiskStorageDriverTest(FunctionalTest):
 
         # Clenaup.
         for block_id in block_ids[:]:
-            driver.delete_block(storage_url, project_id, vault_id,
-                block_id, token)
-        assert driver.delete_vault(storage_url, project_id, vault_id, token)
+            driver.delete_block(
+                request_headers=hdrs,
+                vault_id=vault_id,
+                block_id=block_id)
+        assert driver.delete_vault(
+            request_headers=hdrs,
+            vault_id=vault_id)

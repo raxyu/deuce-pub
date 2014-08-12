@@ -28,9 +28,8 @@ class BlocksController(RestController):
     def get_all(self, vault_id):
 
         vault = Vault.get(
-            request.storage_url,
-            request.project_id, vault_id,
-            request.auth_token)
+            request_headers=request.headers,
+            vault_id=vault_id)
         response.headers["Transaction-ID"] = request.context.request_id
         if not vault:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
@@ -72,16 +71,14 @@ class BlocksController(RestController):
         # Step 1: Is the block in our vault store?  If not, return 404
         # Step 2: Stream the block back to the user
         vault = Vault.get(
-            request.storage_url,
-            request.project_id, vault_id,
-            request.auth_token)
+            request_headers=request.headers,
+            vault_id=vault_id)
 
         # Existence of the vault should have been confirmed
         # in the vault controller
         assert vault is not None
 
-        block = vault.get_block(block_id,
-            request.auth_token)
+        block = vault.get_block(block_id)
 
         if block is None:
             logger.error('block [{0}] does not exist'.format(block_id))
@@ -99,14 +96,14 @@ class BlocksController(RestController):
 
         response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(
-            request.storage_url,
-            request.project_id, vault_id,
-            request.auth_token)
+            request_headers=request.headers,
+            vault_id=vault_id)
 
         try:
             retval = vault.put_block(
-                block_id, request.body, request.headers['content-length'],
-                request.auth_token)
+                block_id=block_id,
+                blockdata=request.body,
+                data_len=request.headers['content-length'])
             response.status_code = (201 if retval is True else 500)
             logger.info('block [{0}] added'.format(block_id))
         except ValueError as e:

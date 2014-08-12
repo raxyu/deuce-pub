@@ -54,47 +54,61 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
 
         return storage_url, token
 
-    def test_basic_construction(self):
+    def get_mock_hdrs(self):
         storage_url, token = self.get_Auth_Token()
         project_id = storage_url[storage_url.rfind("/") + 1:]
-        driver = SwiftStorageDriver(storage_url,
-            token, project_id)
+        hdrs = dict()
+        hdrs['x-storage-url'] = storage_url
+        hdrs['x-project-id'] = project_id
+        hdrs['x-auth-token'] = token
+        return hdrs
 
-    def create_driver(self):
-        storage_url, token = self.get_Auth_Token()
-        project_id = storage_url[storage_url.rfind("/") + 1:]
-        return SwiftStorageDriver(storage_url,
-            token, project_id)
+    def create_driver(self, hdrs):
+        return SwiftStorageDriver(hdrs)
+
+    def test_basic_construction(self):
+        hdrs = self.get_mock_hdrs()
+        driver = self.create_driver(hdrs)
 
     def test_ancestry(self):
-        storage_url, token = self.get_Auth_Token()
-        project_id = storage_url[storage_url.rfind("/") + 1:]
-
-        driver = SwiftStorageDriver(storage_url,
-            token, project_id)
+        hdrs = self.get_mock_hdrs()
+        driver = self.create_driver(hdrs)
         assert isinstance(driver, SwiftStorageDriver)
         assert isinstance(driver, object)
 
         # Test all exceptions
-        failed_token = token + '1'
-        driver = SwiftStorageDriver(
-            storage_url,
-            token + '1',
-            project_id)
-        projectid = 'notmatter'
-        vaultid = 'notmatter'
-        blockid = 'notmatter'
-        driver.create_vault(storage_url, projectid, vaultid, failed_token)
-        driver.vault_exists(storage_url, projectid, vaultid, failed_token)
-        driver.delete_vault(storage_url, projectid, vaultid, failed_token)
-        driver.store_block(storage_url, projectid, vaultid, blockid,
-            str('').encode('utf-8'), failed_token)
-        driver.block_exists(storage_url, projectid, vaultid, blockid,
-            failed_token)
-        driver.delete_block(storage_url, projectid, vaultid, blockid,
-            failed_token)
-        driver.get_block_obj(storage_url, projectid, vaultid, blockid,
-            failed_token)
+        failed_hdrs = hdrs.copy()
+        failed_hdrs['x-auth-token'] = failed_hdrs['x-auth-token'] + '1'
+        driver = SwiftStorageDriver(hdrs)
+        projectid = self.create_project_id()
+        vaultid = self.create_vault_id()
+        blockid = self.create_block_id()
+        driver.create_vault(
+            request_headers=failed_hdrs,
+            vault_id=vaultid)
+        driver.vault_exists(
+            request_headers=failed_hdrs,
+            vault_id=vaultid)
+        driver.delete_vault(
+            request_headers=failed_hdrs,
+            vault_id=vaultid)
+        driver.store_block(
+            request_headers=failed_hdrs,
+            vault_id=vaultid,
+            block_id=blockid,
+            block_data=str('').encode('utf-8'))
+        driver.block_exists(
+            request_headers=failed_hdrs,
+            vault_id=vaultid,
+            block_id=blockid)
+        driver.delete_block(
+            request_headers=failed_hdrs,
+            vault_id=vaultid,
+            block_id=blockid)
+        driver.get_block_obj(
+            request_headers=failed_hdrs,
+            vault_id=vaultid,
+            block_id=blockid)
 
     def test_network_drops(self):
         """
@@ -109,38 +123,49 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
 
         if self.mocking:
 
-            storage_url, token = self.get_Auth_Token()
-            project_id = 'notmatter'
-            vault_id = 'notmatter'
-            block_id = 'notmatter'
+            hdrs = self.get_mock_hdrs()
+            driver = self.create_driver(hdrs)
+            vault_id = self.create_vault_id()
+            block_id = self.create_block_id()
 
-            driver = SwiftStorageDriver(storage_url, token, project_id)
             assert isinstance(driver, SwiftStorageDriver)
             assert isinstance(driver, object)
 
             # simulate swiftclient tossing exceptions
             driver.Conn.mock_drop_connections(True)
 
-            self.assertFalse(driver.create_vault(storage_url, project_id,
-                vault_id, token))
+            self.assertFalse(driver.create_vault(
+                request_headers=hdrs,
+                vault_id=vault_id))
 
-            self.assertFalse(driver.vault_exists(storage_url, project_id,
-                vault_id, token))
+            self.assertFalse(driver.vault_exists(
+                request_headers=hdrs,
+                vault_id=vault_id))
 
-            self.assertFalse(driver.delete_vault(storage_url, project_id,
-                vault_id, token))
+            self.assertFalse(driver.delete_vault(
+                request_headers=hdrs,
+                vault_id=vault_id))
 
-            self.assertFalse(driver.store_block(storage_url, project_id,
-                vault_id, block_id, str('').encode('utf-8'), token))
+            self.assertFalse(driver.store_block(
+                request_headers=hdrs,
+                vault_id=vault_id,
+                block_id=block_id,
+                block_data=str('').encode('utf-8')))
 
-            self.assertFalse(driver.block_exists(storage_url, project_id,
-                vault_id, block_id, token))
+            self.assertFalse(driver.block_exists(
+                request_headers=hdrs,
+                vault_id=vault_id,
+                block_id=block_id))
 
-            self.assertFalse(driver.delete_block(storage_url, project_id,
-                vault_id, block_id, token))
+            self.assertFalse(driver.delete_block(
+                request_headers=hdrs,
+                vault_id=vault_id,
+                block_id=block_id))
 
-            self.assertIsNone(driver.get_block_obj(storage_url, project_id,
-                vault_id, block_id, token))
+            self.assertIsNone(driver.get_block_obj(
+                request_headers=hdrs,
+                vault_id=vault_id,
+                block_id=block_id))
 
             # simulate swiftclient tossing exceptions
             driver.Conn.mock_drop_connections(False)

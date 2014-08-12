@@ -17,8 +17,6 @@ class ProjectIDHook(PecanHook):
         # the value to the request project id.
         try:
             state.request.project_id = state.request.headers['x-project-id']
-            state.request.auth_token = state.request.headers['x-auth-token']
-            state.request.storage_url = state.request.headers['x-storage-url']
             # TODO: validate the project_id
         except KeyError:
             # Invalid request
