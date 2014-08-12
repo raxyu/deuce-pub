@@ -27,6 +27,7 @@ class VaultController(RestController):
         vault = Vault.create(
             request_headers=request.headers,
             vault_id=vault_id)
+        # TODO: Need check and monitor failed vault.
         logger.info('Vault [{0}] created'.format(vault_id))
         response.status_code = 201 if vault else 500
 
