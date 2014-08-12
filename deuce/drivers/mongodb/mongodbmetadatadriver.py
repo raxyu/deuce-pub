@@ -65,8 +65,8 @@ class MongoDbStorageDriver(MetadataStorageDriver):
 
         limit = self._determine_limit(limit)
 
-        return list(vault["vaultid"] for vault in
-            self._vaults.find(args).sort('vaultid', 1).limit(limit))
+        return [vault["vaultid"] for vault in
+            self._vaults.find(args).sort('vaultid', 1).limit(limit)]
 
     def create_vault(self, project_id, vault_id):
         """Creates a representation of a vault."""
