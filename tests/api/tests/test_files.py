@@ -178,6 +178,10 @@ class TestFileMissingBlock(base.TestBase):
 
     def tearDown(self):
         super(TestFileMissingBlock, self).tearDown()
+        [self.client.delete_file(vaultname=self.vaultname,
+                                 fileid=fileid) for fileid in self.files]
+        [self.client.delete_block(self.vaultname, block.Id) for block in
+            self.blocks]
         self.client.delete_vault(self.vaultname)
 
 
@@ -211,6 +215,10 @@ class TestFileOverlappingBlock(base.TestBase):
 
     def tearDown(self):
         super(TestFileOverlappingBlock, self).tearDown()
+        [self.client.delete_file(vaultname=self.vaultname,
+                                 fileid=fileid) for fileid in self.files]
+        [self.client.delete_block(self.vaultname, block.Id) for block in
+            self.blocks]
         self.client.delete_vault(self.vaultname)
 
 
