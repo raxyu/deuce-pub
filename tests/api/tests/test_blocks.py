@@ -193,3 +193,33 @@ class TestListBlocks(base.TestBase):
     def tearDown(self):
         super(TestListBlocks, self).tearDown()
         self.client.delete_vault(self.vaultname)
+
+
+class TestBlocksAssignedToFile(base.TestBase):
+
+    def setUp(self):
+        super(TestBlocksAssignedToFile, self).setUp()
+        self.create_empty_vault()
+        [self.upload_block() for _ in range(3)]
+        self.create_new_file()
+        self.assign_all_blocks_to_file()
+
+    def test_delete_assigned_block(self):
+        """Delete one block assigned to a file"""
+
+        # TODO
+        self.skipTest('Skipping. Functionality not implemented')
+        resp = self.client.delete_block(self.vaultname, self.blockid)
+        # Need to determine proper status code that gets returned
+        self.assertEqual(resp.status_code, 204,
+                         'Status code for deleting a block is '
+                         '{0}'.format(resp.status_code))
+        self.assertEqual(len(resp.content), 0)
+
+    def tearDown(self):
+        super(TestBlocksAssignedToFile, self).tearDown()
+        [self.client.delete_file(vaultname=self.vaultname,
+                                 fileid=fileid) for fileid in self.files]
+        [self.client.delete_block(self.vaultname, block.Id) for block in
+            self.blocks]
+        self.client.delete_vault(self.vaultname)
