@@ -1,7 +1,7 @@
 from cafe.drivers.unittest import fixtures
-from tests.api.utils import config
-from tests.api.utils import client
-from tests.api.utils.schema import auth
+from utils import config
+from utils import client
+from utils.schema import auth
 
 from collections import namedtuple
 
@@ -63,7 +63,7 @@ class TestBase(fixtures.BaseTestFixture):
         """
 
         return ''.join(random.choice(string.ascii_letters +
-            string.digits) for _ in range(size))
+            string.digits + '-_') for _ in range(size))
 
     def setUp(self):
         super(TestBase, self).setUp()

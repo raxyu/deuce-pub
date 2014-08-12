@@ -1,4 +1,4 @@
-from tests.api.utils import base
+from tests.api import base
 
 import ddt
 import os
@@ -53,6 +53,8 @@ class TestUploadBlocks(base.TestBase):
 
     def tearDown(self):
         super(TestUploadBlocks, self).tearDown()
+        if hasattr(self, 'blockid'):
+            self.client.delete_block(self.vaultname, self.blockid)
         self.client.delete_vault(self.vaultname)
 
 
@@ -101,6 +103,8 @@ class TestBlockUploaded(base.TestBase):
 
     def tearDown(self):
         super(TestBlockUploaded, self).tearDown()
+        if hasattr(self, 'blockid'):
+            self.client.delete_block(self.vaultname, self.blockid)
         self.client.delete_vault(self.vaultname)
 
 
@@ -192,4 +196,6 @@ class TestListBlocks(base.TestBase):
 
     def tearDown(self):
         super(TestListBlocks, self).tearDown()
+        [self.client.delete_block(self.vaultname, block.Id) for block in
+            self.blocks]
         self.client.delete_vault(self.vaultname)
