@@ -16,7 +16,8 @@ class BlockStorageDriver(object):
     def block_exists(self, request_headers, vault_id, block_id):
         """Determines if the specified block exists in the vault.
 
-        :param project_id: The Project ID for this block
+        :param request_headers: The HTTP request header,
+            may have project_id, storage URL and token
         :param vault_id: The ID of the vault to check
         :param block_id: The ID of the block to check"""
         raise NotImplementedError
@@ -26,6 +27,8 @@ class BlockStorageDriver(object):
         """Allocates space in the storage backend for the specified
         vault ID
 
+        :param request_headers: The HTTP request header,
+            may have project_id, storage URL and token
         :param vault_id: The ID of the vault"""
         raise NotImplementedError
 
@@ -33,6 +36,8 @@ class BlockStorageDriver(object):
     def delete_vault(self, request_headers, vault_id):
         """Deletes the storage allocation for this vault.
 
+        :param request_headers: The HTTP request header,
+            may have project_id, storage URL and token
         :param vault_id: The ID of the vault to delete
         :pre: The vault must be empty
         """
@@ -43,12 +48,20 @@ class BlockStorageDriver(object):
         """Determines if block space has been allocated for the
         specified vault_id
 
+        :param request_headers: The HTTP request header,
+            may have project_id, storage URL and token
         :param vault_id: The ID of the vault to check for"""
         raise NotImplementedError
 
     @abstractmethod
     def get_block_obj(self, request_headers, vault_id, block_id):
-        """Returns a single file-like object"""
+        """Returns a single file-like object
+
+        :param request_headers: The HTTP request header,
+            may have project_id, storage URL and token
+        :param vault_id: The ID of the vault
+        :param block_id: The ID of the block"""
+
         raise NotImplementedError
 
     @abstractmethod
@@ -56,23 +69,45 @@ class BlockStorageDriver(object):
             block_data):
         """Stores the block into the specified vault
 
-        :param block_id: The ID of the block"""
+        :param request_headers: The HTTP request header,
+            may have project_id, storage URL and token
+        :param vault_id: The ID of the vault
+        :param block_id: The ID of the block
+        :param block_data: The data body of the block"""
         raise NotImplementedError
 
     @abstractmethod
     def block_exists(self, request_headers, vault_id, block_id):
         """Determines if the specified block exists in the
-        vault."""
+        vault.
+
+        :param request_headers: The HTTP request header,
+            may have project_id, storage URL and token
+        :param vault_id: The ID of the vault
+        :param block_id: The ID of the block"""
+
         raise NotImplementedError
 
     @abstractmethod
     def delete_block(self, request_headers, vault_id, block_id):
-        """Deletes the specified block from storage"""
+        """Deletes the specified block from storage
+
+        :param request_headers: The HTTP request header,
+            may have project_id, storage URL and token
+        :param vault_id: The ID of the vault
+        :param block_id: The ID of the block"""
+
         raise NotImplementedError
 
     def create_blocks_generator(self, request_headers, vault_id, block_gen):
         """Returns a generator of file-like objects that are
         ready to read. These objects will get closed
-        individually."""
+        individually.
+
+        :param request_headers: The HTTP request header,
+            may have project_id, storage URL and token
+        :param vault_id: The ID of the vault
+        :param block_gen: The ID list of the blocks"""
+
         return (self.get_block_obj(request_headers, vault_id, block_id)
             for block_id in block_gen)
