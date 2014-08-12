@@ -112,3 +112,19 @@ class FunctionalTest(TestCase):
 
     def create_file_id(self):
         return str(uuid.uuid4())
+
+    def create_mock_hdrs(self,
+            project_id=None,
+            auth_token=None,
+            storage_url=None):
+        hdrs = dict()
+        if project_id:
+            hdrs['x-project-id'] = project_id
+        else:
+            project_id = self.create_project_id()
+            hdrs['x-project-id'] = project_id
+        if auth_token:
+            hdrs['x-auth-token'] = auth_token
+        if storage_url:
+            hdrs['x-storage-url'] = storage_url
+        return hdrs

@@ -12,29 +12,24 @@ from hashlib import md5
 
 class DiskStorageDriverTest(FunctionalTest):
 
-    def create_driver(self, hdrs):
+    def create_driver(self):
         return DiskStorageDriver()
 
     def test_ancestry(self):
-        hdrs = dict()
-        driver = self.create_driver(hdrs)
+        driver = self.create_driver()
 
         assert isinstance(driver, BlockStorageDriver)
         assert isinstance(driver, object)
 
     def test_basic_construction(self):
-        hdrs = dict()
-        driver = self.create_driver(hdrs)
+        driver = self.create_driver()
 
     def get_mock_hdrs(self):
-        hdrs = dict()
-        project_id = self.create_project_id()
-        hdrs['x-project-id'] = project_id
-        return hdrs
+        return self.create_mock_hdrs()
 
     def test_vault_crud(self):
         hdrs = self.get_mock_hdrs()
-        driver = self.create_driver(hdrs)
+        driver = self.create_driver()
 
         vault_id = self.create_vault_id()
 
@@ -100,7 +95,7 @@ class DiskStorageDriverTest(FunctionalTest):
     def test_block_crud(self):
 
         hdrs = self.get_mock_hdrs()
-        driver = self.create_driver(hdrs)
+        driver = self.create_driver()
 
         block_size = 3000
         vault_id = self.create_vault_id()
@@ -180,7 +175,7 @@ class DiskStorageDriverTest(FunctionalTest):
 
     def test_block_generator(self):
         hdrs = self.get_mock_hdrs()
-        driver = self.create_driver(hdrs)
+        driver = self.create_driver()
 
         block_size = 3000
         vault_id = self.create_vault_id()

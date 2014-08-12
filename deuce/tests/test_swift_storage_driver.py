@@ -57,26 +57,26 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
     def get_mock_hdrs(self):
         storage_url, token = self.get_Auth_Token()
         project_id = storage_url[storage_url.rfind("/") + 1:]
-        hdrs = dict()
-        hdrs['x-storage-url'] = storage_url
-        hdrs['x-project-id'] = project_id
-        hdrs['x-auth-token'] = token
+        hdrs = self.create_mock_hdrs(
+            project_id=project_id,
+            storage_url=storage_url,
+            auth_token=token)
         return hdrs
 
-    def create_driver(self, hdrs):
+    def create_driver(self):
+        hdrs = self.get_mock_hdrs()
         return SwiftStorageDriver(hdrs)
 
     def test_basic_construction(self):
-        hdrs = self.get_mock_hdrs()
-        driver = self.create_driver(hdrs)
+        driver = self.create_driver()
 
     def test_ancestry(self):
-        hdrs = self.get_mock_hdrs()
-        driver = self.create_driver(hdrs)
+        driver = self.create_driver()
         assert isinstance(driver, SwiftStorageDriver)
         assert isinstance(driver, object)
 
         # Test all exceptions
+        hdrs = self.get_mock_hdrs()
         failed_hdrs = hdrs.copy()
         failed_hdrs['x-auth-token'] = failed_hdrs['x-auth-token'] + '1'
         driver = SwiftStorageDriver(hdrs)
@@ -124,7 +124,7 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
         if self.mocking:
 
             hdrs = self.get_mock_hdrs()
-            driver = self.create_driver(hdrs)
+            driver = self.create_driver()
             vault_id = self.create_vault_id()
             block_id = self.create_block_id()
 
