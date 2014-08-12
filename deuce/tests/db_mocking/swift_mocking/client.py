@@ -38,8 +38,12 @@ def _get_vault_block_path(vault_id):
 
 
 def _get_block_path(vault_id, block_id):
-    vault_block_path = _get_vault_block_path(vault_id)
-    return os.path.join(vault_block_path, str(block_id))
+    if block_id.startswith('blocks/'):
+        vault_path = _get_vault_path(vault_id)
+        return os.path.join(vault_path, str(block_id))
+    else:
+        vault_block_path = _get_vault_block_path(vault_id)
+        return os.path.join(vault_block_path, str(block_id))
 
 
 # Create Vault
