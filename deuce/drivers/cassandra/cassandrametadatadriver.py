@@ -181,7 +181,7 @@ class CassandraStorageDriver(MetadataStorageDriver):
     def create_vault(self, project_id, vault_id):
         """Creates a vault"""
         args = (project_id, vault_id)
-        res = self._session.execute(CQL_CREATE_VAULT, args)
+        self._session.execute(CQL_CREATE_VAULT, args)
         return
 
     def delete_vault(self, project_id, vault_id):

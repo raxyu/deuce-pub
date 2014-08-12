@@ -350,7 +350,7 @@ class SqliteStorageDriverTest(FunctionalTest):
         project_id = 'project_id'
         vaultids = list()
         for n in range(5):
-            vault_id = self._create_vault_id()
+            vault_id = self.create_vault_id()
             driver.create_vault(project_id, vault_id)
             vaultids.append(vault_id)
 
