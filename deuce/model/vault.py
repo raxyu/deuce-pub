@@ -79,6 +79,10 @@ class Vault(object):
 
         return Block(self.project_id, self.id, block_id, obj) if obj else None
 
+    def get_block_length(self, block_id, auth_token=None):
+        return deuce.storage_driver.get_block_object_length(
+            self.project_id, self.id, block_id, auth_token=auth_token)
+
     def get_blocks_generator(self, block_ids, auth_token=None):
         return deuce.storage_driver.create_blocks_generator(
             self.project_id, self.id, block_ids,
@@ -110,6 +114,10 @@ class Vault(object):
             return None
 
         return File(self.project_id, self.id, file_id, finalized=data[0])
+
+    def get_file_length(self, file_id):
+        return deuce.metadata_driver.file_length(self.project_id,
+            self.id, file_id)
 
     def delete(self, auth_token=None):
         return deuce.storage_driver.delete_vault(self.project_id, self.id,
