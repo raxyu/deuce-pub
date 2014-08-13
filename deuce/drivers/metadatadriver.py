@@ -86,6 +86,11 @@ class MetadataStorageDriver(object):
         raise NotImplementedError
 
     @abstractmethod
+    def get_file_data(self, project_id, vault_id, file_id):
+        """Returns a tule representing data for this file"""
+        raise NotImplementedError
+
+    @abstractmethod
     def finalize_file(self, project_id, vault_id, file_id, file_size=None):
         """Finalizes a file that has been de-duped. This
         check ensures that all blocks have been marked have
