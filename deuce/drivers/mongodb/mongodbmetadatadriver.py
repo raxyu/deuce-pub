@@ -246,6 +246,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
                 'finalized': True,
                 'seq': pageseq,
                 'blocks': [],
+                'size': file_size
             }
             filerec_id = self._files.insert(ins_args)
 
