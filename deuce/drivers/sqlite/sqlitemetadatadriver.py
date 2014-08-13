@@ -22,6 +22,7 @@ schemas.append([
         vaultid TEXT NOT NULL,
         fileid TEXT NOT NULL,
         finalized INTEGER NOT NULL DEFAULT 0,
+        size INTEGER DEFAULT 0,
         PRIMARY KEY(projectid, vaultid, fileid)
     )
     """,
@@ -71,6 +72,14 @@ SQL_GET_FILE = '''
     AND fileid = :fileid
 '''
 
+SQL_GET_FILE_SIZE = '''
+    SELECT size
+    FROM files
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+    AND fileid = :fileid
+'''
+
 SQL_DELETE_FILE = '''
     DELETE FROM files
     where projectid=:projectid
@@ -85,6 +94,13 @@ SQL_GET_ALL_FILE_BLOCKS = '''
     AND vaultid = :vaultid
     AND fileid = :fileid
     ORDER BY offset
+'''
+
+SQL_GET_COUNT_ALL_FILE_BLOCKS = '''
+    SELECT COUNT(DISTINCT(blockid))
+    FROM fileblocks
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
 '''
 
 SQL_GET_FILE_BLOCKS = '''
@@ -108,6 +124,13 @@ SQL_GET_ALL_BLOCKS = '''
     LIMIT :limit
 '''
 
+SQL_GET_COUNT_ALL_BLOCKS = '''
+    SELECT COUNT(DISTINCT(blockid))
+    FROM blocks
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+'''
+
 SQL_GET_ALL_FILES = '''
     SELECT fileid
     FROM files
@@ -118,6 +141,14 @@ SQL_GET_ALL_FILES = '''
     order by fileid
     LIMIT :limit
 '''
+
+SQL_GET_COUNT_ALL_FILES = '''
+    SELECT COUNT(DISTINCT(fileid))
+    FROM files
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+'''
+
 
 SQL_CREATE_FILEBLOCK_LIST = '''
     SELECT blocks.blockid, fileblocks.offset, blocks.size
@@ -131,7 +162,7 @@ SQL_CREATE_FILEBLOCK_LIST = '''
 
 SQL_FINALIZE_FILE = '''
     UPDATE files
-    SET finalized=1
+    SET finalized=1, size=:file_size
     WHERE projectid=:projectid
     AND fileid=:fileid
     AND vaultid=:vaultid
@@ -218,6 +249,55 @@ class SqliteStorageDriver(MetadataStorageDriver):
         """
         return marker or ''
 
+    def get_vault_statistics(self, project_id, vault_id):
+        """Return the statistics on the vault.
+
+        "param vault_id: The ID of the vault to gather statistics for"""
+        res = {}
+
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id
+        }
+
+        def __stats_query(sql_statement, default_value):
+            result = self._conn.execute(sql_statement, args)
+
+            try:
+                row = next(result)
+                return row[0]
+
+            except StopIteration:  # pragma: no cover
+                return default_value
+
+            except IndexError:  # pragma: no cover
+                return default_value
+
+        def __stats_get_vault_file_block_count():
+            return __stats_query(SQL_GET_COUNT_ALL_FILE_BLOCKS, 0)
+
+        def __stats_get_vault_file_count():
+            return __stats_query(SQL_GET_COUNT_ALL_FILES, 0)
+
+        def __stats_get_vault_block_count():
+            return __stats_query(SQL_GET_COUNT_ALL_BLOCKS, 0)
+
+        res['file-blocks'] = {}
+        res['file-blocks']['count'] = __stats_get_vault_file_block_count()
+
+        # Add any statistics regarding files
+        res['files'] = {}
+        res['files']['count'] = __stats_get_vault_file_count()
+
+        # Add any statistics regarding blocks
+        res['blocks'] = {}
+        res['blocks']['count'] = __stats_get_vault_block_count()
+
+        # Add any statistics specific to the MongoDB backend
+        res['internal'] = {}
+
+        return res
+
     def create_file(self, project_id, vault_id, file_id):
         """Creates a new file with no blocks and no files"""
         args = {
@@ -231,6 +311,22 @@ class SqliteStorageDriver(MetadataStorageDriver):
 
         # TODO: check that one row was inserted
         return file_id
+
+    def file_length(self, project_id, vault_id, file_id):
+        """Retrieve length the of the file."""
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id,
+            'fileid': file_id
+        }
+
+        res = self._conn.execute(SQL_GET_FILE_SIZE, args)
+
+        try:
+            row = next(res)
+            return row[0]
+        except StopIteration:
+            return 0
 
     def has_file(self, project_id, vault_id, file_id):
         args = {
@@ -273,13 +369,16 @@ class SqliteStorageDriver(MetadataStorageDriver):
         self._conn.commit()
 
     def finalize_file(self, project_id, vault_id, file_id, file_size=None):
-        """Updates the files table to set a file to finalized. This function
-        makes no assumptions about whether or not the file record actually
-        exists"""
+        """Updates the files table to set a file to finalized and record
+        its size. This function makes no assumptions about whether or not
+        the file record actually exists"""
+        if file_size is None:
+            file_size = 0
         args = {
             'projectid': project_id,
             'vaultid': vault_id,
-            'fileid': file_id
+            'fileid': file_id,
+            'file_size': file_size
         }
 
         # Check for gaps and overlaps.

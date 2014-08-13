@@ -20,6 +20,24 @@ class SqliteStorageDriverTest(FunctionalTest):
         assert isinstance(driver, MetadataStorageDriver)
         assert isinstance(driver, object)
 
+    def test_vault_statistics(self):
+        driver = self.create_driver()
+
+        project_id = self.create_project_id()
+        vault_id = self.create_vault_id()
+
+        # empty vault stats
+        # TODO ** Create Vault Here **
+        statistics = driver.get_vault_statistics(project_id, vault_id)
+
+        main_keys = ('file-blocks', 'files', 'blocks')
+        for key in main_keys:
+            assert key in statistics.keys()
+            assert 'count' in statistics[key].keys()
+            assert statistics[key]['count'] == 0
+
+        # TODO: Add files and check that founds match as expected
+
     def test_file_crud(self):
         driver = self.create_driver()
 
@@ -29,9 +47,15 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         assert not driver.has_file(project_id, vault_id, file_id)
 
+        # Length of Non-existent file is 0
+        file_length = driver.file_length(project_id, vault_id, file_id)
+        assert (file_length == 0)
+
         driver.create_file(project_id, vault_id, file_id)
 
         assert driver.has_file(project_id, vault_id, file_id)
+        file_length = driver.file_length(project_id, vault_id, file_id)
+        assert (file_length == 0)
 
         data = driver.get_file_data(project_id, vault_id, file_id)
 
@@ -53,6 +77,8 @@ class SqliteStorageDriverTest(FunctionalTest):
         driver.finalize_file(project_id, vault_id, file_id)
 
         assert driver.is_finalized(project_id, vault_id, file_id)
+        file_length = driver.file_length(project_id, vault_id, file_id)
+        assert (file_length == 0)
 
     def test_finalize_nonexistent_file(self):
         driver = self.create_driver()
@@ -63,6 +89,9 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         assert not driver.has_file(project_id, vault_id, file_id)
         retval = driver.finalize_file(project_id, vault_id, file_id)
+
+        file_length = driver.file_length(project_id, vault_id, file_id)
+        assert (file_length == 0)
 
         try:
             data = driver.get_file_data(project_id, vault_id, file_id)
@@ -137,7 +166,7 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         driver = self.create_driver()
 
-        # So for some reason this fails on line 176 if
+        # So for some reason this fails on line 175 if
         # if project_id is set to a 'project_<UUID>' but
         # passes if set to 'project_id'.
         project_id = 'project_id'
@@ -158,6 +187,9 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         # Create a file
         driver.create_file(project_id, vault_id, file_id)
+
+        file_length = driver.file_length(project_id, vault_id, file_id)
+        assert (file_length == 0)
 
         # Assign each block
         for bid, offset in blockpairs.items():
@@ -268,6 +300,8 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         assert not res
         assert driver.is_finalized(project_id, vault_id, file_id)
+        file_length = driver.file_length(project_id, vault_id, file_id)
+        assert (file_length == 13320)
 
         # Now create a generator of the files. The output
         # should be in the same order as block_ids

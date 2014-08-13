@@ -64,6 +64,12 @@ class MetadataStorageDriver(object):
     defines all functions necessary for a Deuce metadata
     driver.
     """
+    @abstractmethod
+    def get_vault_statistics(self, project_id, vault_id):
+        """Return the statistics on the vault.
+
+        "param vault_id: The ID of the vault to gather statistics for"""
+        raise NotImplementedError
 
     @abstractmethod
     def create_file(self, project_id, vault_id, file_id):
@@ -76,8 +82,18 @@ class MetadataStorageDriver(object):
         raise NotImplementedError
 
     @abstractmethod
+    def file_length(self, project_id, vault_id, file_id):
+        """Retrieve length the of the file."""
+        raise NotImplementedError
+
+    @abstractmethod
     def has_file(self, project_id, vault_id, file_id):
         """Determines if the specified file exists in the vault."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_file_data(self, project_id, vault_id, file_id):
+        """Returns a tule representing data for this file"""
         raise NotImplementedError
 
     @abstractmethod

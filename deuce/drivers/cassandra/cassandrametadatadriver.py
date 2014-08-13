@@ -9,12 +9,20 @@ from pecan import conf
 
 
 CQL_CREATE_FILE = '''
-    INSERT INTO files (projectid, vaultid, fileid, finalized)
-    VALUES (%s, %s, %s, false)
+    INSERT INTO files (projectid, vaultid, fileid, finalized, size)
+    VALUES (%s, %s, %s, false, %s)
 '''
 
 CQL_GET_FILE = '''
     SELECT finalized
+    FROM files
+    WHERE projectid = %s
+    AND vaultid = %s
+    AND fileid = %s
+'''
+
+CQL_GET_FILE_SIZE = '''
+    SELECT size
     FROM files
     WHERE projectid = %s
     AND vaultid = %s
@@ -35,6 +43,13 @@ CQL_GET_ALL_FILE_BLOCKS = '''
     AND vaultid = %s
     AND fileid = %s
     ORDER BY offset
+'''
+
+CQL_GET_COUNT_ALL_FILE_BLOCKS = '''
+    SELECT COUNT(DISTINCT(blockid))
+    FROM fileblocks
+    WHERE projectid = %s
+    AND vaultid = %s
 '''
 
 CQL_GET_FILE_BLOCKS = '''
@@ -67,6 +82,13 @@ CQL_GET_ALL_BLOCKS = '''
     LIMIT %s
 '''
 
+CQL_GET_COUNT_ALL_BLOCKS = '''
+    SELECT COUNT(DISTINCT(blockid))
+    FROM blocks
+    WHERE projectid = %s
+    AND vaultid = %s
+'''
+
 CQL_GET_ALL_FILES_MARKER = '''
     SELECT fileid
     FROM files
@@ -86,9 +108,17 @@ CQL_GET_ALL_FILES = '''
     LIMIT %s
 '''
 
+CQL_GET_COUNT_ALL_FILES = '''
+    SELECT COUNT(DISTINCT(fileid))
+    FROM files
+    WHERE projectid=%s
+    AND vaultid = %s
+'''
+
 CQL_FINALIZE_FILE = '''
     UPDATE files
-    SET finalized=true
+    SET finalized=true,
+    size=%s
     WHERE projectid=%s
     AND vaultid=%s
     AND fileid=%s
@@ -164,12 +194,67 @@ class CassandraStorageDriver(MetadataStorageDriver):
 
         return res
 
+    def get_vault_statistics(self, project_id, vault_id):
+        """Return the statistics on the vault.
+
+        "param vault_id: The ID of the vault to gather statistics for"""
+        res = {}
+
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id
+        }
+
+        def __stats_query(cql_statement, default_value):
+            result = self._session.execute(cql_statement, args)
+            try:
+                return result[0][0]
+
+            except IndexError:  # pragma: no cover
+                return default_value
+
+        def __stats_get_vault_file_block_count():
+            return __stats_query(CQL_GET_COUNT_ALL_FILE_BLOCKS, 0)
+
+        def __stats_get_vault_file_count():
+            return __stats_query(CQL_GET_COUNT_ALL_FILES, 0)
+
+        def __stats_get_vault_block_count():
+            return __stats_query(CQL_GET_COUNT_ALL_BLOCKS, 0)
+
+        res['file-blocks'] = {}
+        res['file-blocks']['count'] = __stats_get_vault_file_block_count()
+
+        # Add any statistics regarding files
+        res['files'] = {}
+        res['files']['count'] = __stats_get_vault_file_count()
+
+        # Add any statistics regarding blocks
+        res['blocks'] = {}
+        res['blocks']['count'] = __stats_get_vault_block_count()
+
+        # Add any statistics specific to the Cassandra backend
+        res['internal'] = {}
+
+        return res
+
     def create_file(self, project_id, vault_id, file_id):
         """Creates a new file with no blocks and no files"""
-        args = (project_id, vault_id, uuid.UUID(file_id))
+        args = (project_id, vault_id, uuid.UUID(file_id), 0)
         res = self._session.execute(CQL_CREATE_FILE, args)
 
         return file_id
+
+    def file_length(self, project_id, vault_id, file_id):
+        """Retrieve the length of the file."""
+        args = (project_id, vault_id, uuid.UUID(file_id))
+
+        res = self._session.execute(CQL_GET_FILE_SIZE, args)
+
+        try:
+            return int(res[0][0])
+        except IndexError:
+            return 0
 
     def has_file(self, project_id, vault_id, file_id):
         args = (project_id, vault_id, uuid.UUID(file_id))
@@ -240,7 +325,10 @@ class CassandraStorageDriver(MetadataStorageDriver):
                     startpos=file_size, endpos=expected_offset)
 
         if self.has_file(project_id, vault_id, file_id):
-            args = (project_id, vault_id, uuid.UUID(file_id))
+            if file_size is None:
+                file_size = 0
+            args = (file_size, project_id, vault_id,
+                uuid.UUID(file_id))
             res = self._session.execute(CQL_FINALIZE_FILE, args)
 
     def get_block_data(self, project_id, vault_id, block_id):

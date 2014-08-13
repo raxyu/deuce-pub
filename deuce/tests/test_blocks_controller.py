@@ -79,7 +79,7 @@ class TestBlocksController(FunctionalTest):
         # Put a block with the invalid blockid/hash.
         path = self._get_block_path('1234567890123456789012345678901234567890')
         headers = {
-            "Content-Type": "application/binary",
+            "Content-Type": "application/octet-stream",
             "Content-Length": str(10),
         }
         headers.update(self._hdrs)
@@ -131,7 +131,7 @@ class TestBlocksController(FunctionalTest):
         path = '{0}/'.format(self._blocks_path)
         data = os.urandom(100)
         headers = {
-            "Content-Type": "application/binary",
+            "Content-Type": "application/octet-stream",
             "Content-Length": "100"
         }
         response = self.app.put(path, headers=headers,
@@ -207,7 +207,7 @@ class TestBlocksController(FunctionalTest):
             # NOTE: Very important to set the content-type
             # header. Otherwise pecan tries to do a UTF-8 test.
             headers = {
-                "Content-Type": "application/binary",
+                "Content-Type": "application/octet-stream",
                 "Content-Length": str(size),
             }
 
