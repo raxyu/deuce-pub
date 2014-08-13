@@ -54,6 +54,15 @@ class BlockStorageDriver(object):
         raise NotImplementedError
 
     @abstractmethod
+    def get_vault_statistics(self, request_headers, vault_id):
+        """Return the statistics on the vault.
+
+        :param request_headers: The HTTP request header,
+            may have project_id, storage URL and token
+        "param vault_id: The ID of the vault to gather statistics for"""
+        raise NotImplementedError
+
+    @abstractmethod
     def get_block_obj(self, request_headers, vault_id, block_id):
         """Returns a single file-like object
 

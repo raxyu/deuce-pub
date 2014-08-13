@@ -22,7 +22,7 @@ class DiskStorageDriver(BlockStorageDriver):
 
     def _get_vault_path(self, project_id, vault_id):
         return os.path.join(
-            self._path, str(project_id), vault_id)
+            self._path, str(project_id), str(vault_id))
 
     def _get_block_path(self, project_id, vault_id, block_id):
         vault_path = self._get_vault_path(project_id, vault_id)
@@ -37,6 +37,31 @@ class DiskStorageDriver(BlockStorageDriver):
     def vault_exists(self, request_headers, vault_id):
         path = self._get_vault_path(request_headers['x-project-id'], vault_id)
         return os.path.exists(path)
+
+    def get_vault_statistics(self, request_headers, vault_id):
+        """Return the statistics on the vault.
+
+        "param vault_id: The ID of the vault to gather statistics for"""
+
+        statistics = dict()
+        statistics['internal'] = {}
+        statistics['total-size'] = 0
+        statistics['block-count'] = 0
+
+        path = self._get_vault_path(request_headers['x-project-id'], vault_id)
+
+        total_size = 0
+        object_count = 0
+        for root, dirs, files in os.walk(path):
+            total_size = total_size + sum(
+                os.path.getsize(
+                    os.path.join(root, name)) for name in files)
+            object_count = object_count + len(files)
+
+        statistics['total-size'] = total_size
+        statistics['block-count'] = object_count
+
+        return statistics
 
     def delete_vault(self, request_headers, vault_id):
         path = self._get_vault_path(request_headers['x-project-id'], vault_id)

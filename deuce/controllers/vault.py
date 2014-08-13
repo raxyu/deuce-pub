@@ -2,6 +2,9 @@ from deuce.util import log as logging
 
 from pecan import expose, response, request
 from pecan.rest import RestController
+
+import deuce
+
 from deuce.controllers.blocks import BlocksController
 from deuce.controllers.files import FilesController
 from deuce.controllers.validation import *
@@ -33,13 +36,36 @@ class VaultController(RestController):
 
     @expose()
     @validate(vault_id=VaultGetRule)
-    def get_one(self, vault_id):
+    def head(self, vault_id):
         """Returns the vault controller object"""
+
         response.headers["Transaction-ID"] = request.context.request_id
         if Vault.get(
                 request_headers=request.storage_hdrs,
                 vault_id=vault_id):
+            # weblint complains about the content-type header being
+            # present as pecan doesn't intelligently add it or remove
+            # it.
+            del response.headers["Content-Type"]
             response.status_code = 204
+            return response
+        else:
+            logger.error('Vault [{0}] does not exist'.format(vault_id))
+            response.status_code = 404
+
+    @expose('json')
+    @validate(vault_id=VaultGetRule)
+    def get_one(self, vault_id):
+        """Returns the statistics on vault controller object"""
+        response.headers["Transaction-ID"] = request.context.request_id
+
+        vault = Vault.get(
+            request_headers=request.storage_hdrs,
+            vault_id=vault_id)
+
+        if vault:
+            response.body_file = vault.get_vault_statistics()
+            response.status_code = 200
         else:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
             response.status_code = 404
@@ -57,6 +83,9 @@ class VaultController(RestController):
         if vault:
             vault.delete()
             logger.info('Vault [{0}] deleted'.format(vault_id))
+            # weblint complains about the content-type header being present
+            # as pecan doesn't intelligently add it or remove it.
+            del response.headers["Content-Type"]
             response.status_code = 204
         else:
             logger.error('Vault [{0}] deletion failed; '

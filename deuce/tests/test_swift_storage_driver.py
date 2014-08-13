@@ -167,5 +167,16 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
                 vault_id=vault_id,
                 block_id=block_id))
 
+            # Stats should come back as zero even though the connection
+            # "dropped"
+            bad_vault_stats = driver.get_vault_statistics(
+                request_headers=hdrs,
+                vault_id=vault_id)
+
+            main_keys = ('total-size', 'block-count')
+            for key in main_keys:
+                assert key in bad_vault_stats.keys()
+                assert bad_vault_stats[key] == 0
+
             # simulate swiftclient tossing exceptions
             driver.Conn.mock_drop_connections(False)

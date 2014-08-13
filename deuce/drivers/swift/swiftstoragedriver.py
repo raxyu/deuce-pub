@@ -46,6 +46,50 @@ class SwiftStorageDriver(BlockStorageDriver):
         except (KeyError, ClientException) as e:
             return False
 
+    def get_vault_statistics(self, request_headers, vault_id):
+        """Return the statistics on the vault.
+
+        "param vault_id: The ID of the vault to gather statistics for"""
+
+        statistics = dict()
+        statistics['internal'] = {}
+        statistics['total-size'] = 0
+        statistics['block-count'] = 0
+
+        try:
+            # This will always return a dictionary
+            container_metadata = self.Conn.head_container(
+                url=request_headers['x-storage-url'],
+                token=request_headers['x-auth-token'],
+                container=vault_id)
+
+            mapper = {
+                'total-size': 'x-container-bytes-used',
+                'block-count': 'x-container-object-count'
+            }
+            mapper_internal = {
+                'last-modification-time': 'x-timestamp'
+            }
+
+            for k, v in mapper.items():
+                try:
+                    statistics[k] = container_metadata[v]
+
+                except KeyError:  # pragma: no cover
+                    statistics[k] = 0
+
+            for k, v in mapper_internal.items():
+                try:
+                    statistics['internal'][k] = container_metadata[v]
+
+                except KeyError:  # pragma: no cover
+                    statistics['internal'][k] = 0
+
+        except ClientException as e:
+            pass
+
+        return statistics
+
     def delete_vault(self, request_headers, vault_id):
         response = dict()
         try:

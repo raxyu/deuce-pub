@@ -92,6 +92,26 @@ class DiskStorageDriverTest(FunctionalTest):
             request_headers=hdrs,
             vault_id=vault_id)
 
+    def test_vault_statistics(self):
+        hdrs = self.get_mock_hdrs()
+        driver = self.create_driver()
+
+        vault_id = self.create_vault_id()
+
+        # empty vault stats
+        driver.create_vault(
+            request_headers=hdrs,
+            vault_id=vault_id)
+
+        statistics = driver.get_vault_statistics(
+            request_headers=hdrs,
+            vault_id=vault_id)
+
+        main_keys = ('total-size', 'block-count')
+        for key in main_keys:
+            assert key in statistics.keys()
+            assert statistics[key] == 0
+
     def test_block_crud(self):
 
         hdrs = self.get_mock_hdrs()
