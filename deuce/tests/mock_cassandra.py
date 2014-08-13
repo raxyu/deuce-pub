@@ -10,8 +10,7 @@ import sqlite3
 import uuid
 import collections
 
-MOCK_CASSANDRA_SCHEMA = [
-    """
+MOCK_CASSANDRA_SCHEMA = ["""
 CREATE TABLE blocks (
   projectid TEXT,
   vaultid TEXT,
@@ -19,8 +18,7 @@ CREATE TABLE blocks (
   blocksize INT,
   PRIMARY KEY(projectid, vaultid, blockid)
 );
-""",
-    """
+""", """
 CREATE TABLE files (
   projectid TEXT,
   vaultid TEXT,
@@ -29,12 +27,10 @@ CREATE TABLE files (
   finalized BOOLEAN,
   PRIMARY KEY(projectid, vaultid, fileid)
 );
-""",
-    """
+""", """
 CREATE INDEX finalized_index
     on files (finalized);
-""",
-    """
+""", """
 CREATE TABLE fileblocks (
   projectid TEXT,
   vaultid TEXT,
@@ -44,8 +40,7 @@ CREATE TABLE fileblocks (
   offset INT,
   PRIMARY KEY(projectid, vaultid, fileid, offset)
 );
-"""
-]
+"""]
 
 
 class Session(object):
