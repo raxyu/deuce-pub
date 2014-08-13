@@ -34,7 +34,7 @@ class TestEmptyVault(base.TestBase):
         self.create_empty_vault()
 
     def test_get_vault(self):
-        """Get an individual vault"""
+        """Get an individual vault. Get the statistics for a vault"""
 
         resp = self.client.get_vault(self.vaultname)
         self.assertEqual(resp.status_code, 200,
@@ -80,7 +80,7 @@ class TestEmptyVault(base.TestBase):
                          '{0}'.format(resp.content))
 
     def test_vault_head(self):
-        """Head of an individual vault. Get the statistics for a vault"""
+        """Head of an individual vault"""
 
         resp = self.client.vault_head(self.vaultname)
         self.assertEqual(resp.status_code, 204,
