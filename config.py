@@ -107,7 +107,7 @@ metadata_driver = {
     },
 
     'sqlite': {
-        'path': '/tmp/deuce_sqlite_unittest_vaultmeta.db',
+        'path': ':memory:',
         'db_module': 'sqlite3'
     },
 
