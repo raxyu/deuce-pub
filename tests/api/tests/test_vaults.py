@@ -79,3 +79,13 @@ class TestEmptyVault(base.TestBase):
     def tearDown(self):
         super(TestEmptyVault, self).tearDown()
         self.client.delete_vault(self.vaultname)
+
+
+class TestVaultWithBlocksFiles(base.TestBase):
+
+    def setUp(self):
+        super(TestVaultWithBlocksFiles, self).setUp()
+
+    def tearDown(self):
+        super(TestVaultWithBlocksFiles, self).tearDown()
+        self.client.delete_vault(self.vaultname)
