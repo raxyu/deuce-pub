@@ -137,10 +137,18 @@ CQL_HAS_BLOCK = '''
 class CassandraStorageDriver(MetadataStorageDriver):
 
     def __init__(self):
+        # Import the driver module.
         self.cassandra = importlib.import_module(
             conf.metadata_driver.cassandra.db_module)
-        self._cluster = self.cassandra.Cluster(
+
+        # Import the cluster submodule
+        cluster_module = importlib.import_module(
+            '{0}.cluster'.format(conf.metadata_driver.cassandra.db_module),
+            package=self.cassandra)
+
+        self._cluster = cluster_module.Cluster(
             conf.metadata_driver.cassandra.cluster)
+
         deuce_keyspace = conf.metadata_driver.cassandra.keyspace
         self._session = self._cluster.connect(deuce_keyspace)
 
@@ -258,6 +266,7 @@ class CassandraStorageDriver(MetadataStorageDriver):
             return res[0][0]
         except IndexError:
             return None
+
 
     def get_file_data(self, project_id, vault_id, file_id):
         """Returns a tuple representing data for this file"""
