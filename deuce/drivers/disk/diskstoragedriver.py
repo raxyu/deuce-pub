@@ -41,6 +41,32 @@ class DiskStorageDriver(BlockStorageDriver):
         path = self._get_vault_path(project_id, vault_id)
         return os.path.exists(path)
 
+    def get_vault_statistics(self, project_id, vault_id,
+            auth_token=None):
+        """Return the statistics on the vault.
+
+        "param vault_id: The ID of the vault to gather statistics for"""
+
+        statistics = dict()
+        statistics['internal'] = {}
+        statistics['total-size'] = 0
+        statistics['block-count'] = 0
+
+        path = self._get_vault_path(project_id, vault_id)
+
+        total_size = 0
+        object_count = 0
+        for root, dirs, files in os.walk(path):
+            total_size = total_size + sum(
+                os.path.getsize(
+                    os.path.join(root, name)) for name in files)
+            object_count = object_count + len(files)
+
+        statistics['total-size'] = total_size
+        statistics['block-count'] = object_count
+
+        return statistics
+
     def delete_vault(self, project_id, vault_id,
             auth_token=None):
         path = self._get_vault_path(project_id, vault_id)
@@ -98,3 +124,13 @@ class DiskStorageDriver(BlockStorageDriver):
             return None
 
         return open(path, 'rb')
+
+    def get_block_object_length(self, project_id, vault_id, block_id,
+            auth_token=None):
+        """Returns the length of an object"""
+        path = self._get_block_path(project_id, vault_id, block_id)
+
+        if not os.path.exists(path):
+            return 0
+
+        return os.path.getsize(path)

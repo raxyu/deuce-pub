@@ -25,8 +25,8 @@ CREATE TABLE files (
   projectid TEXT,
   vaultid TEXT,
   fileid TEXT,
-  size INT,
   finalized BOOLEAN,
+  size TEXT,
   PRIMARY KEY(projectid, vaultid, fileid)
 );
 """,
