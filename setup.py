@@ -7,7 +7,8 @@ except ImportError:
     from setuptools import setup, find_packages
 
 REQUIRES = ['six', 'pecan', 'setuptools >= 1.1.6',
-    'cassandra-driver', 'pymongo', 'python-keystoneclient', 'python-swiftclient']
+    'cassandra-driver', 'pymongo', 'python-keystoneclient',
+    'python-swiftclient']
 
 setup(
     name='deuce',
