@@ -57,26 +57,11 @@ class VaultController(RestController):
         """Returns the statistics on vault controller object"""
         response.headers["Transaction-ID"] = request.context.request_id
 
-        if Vault.get(request.project_id, vault_id,
-                request.auth_token):
-            # Get information about the vault
-            # - number of files
-            # - number of blocks
-            # - number of file-blocks
-            # - total size
-            # - etc
-            # Return as JSON data
-            vault_stats = {}
+        vault = Vault.get(request.project_id, vault_id,
+                request.auth_token)
 
-            metadata_info = deuce.metadata_driver
-            storage_info = deuce.storage_driver
-
-            vault_stats['metadata'] = metadata_info.get_vault_statistics(
-                request.project_id, vault_id)
-            vault_stats['storage'] = storage_info.get_vault_statistics(
-                request.project_id, vault_id, request.auth_token)
-
-            response.body_file = vault_stats
+        if vault:
+            response.body_file = vault.get_vault_statistics(request.auth_token)
             response.status_code = 200
         else:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
