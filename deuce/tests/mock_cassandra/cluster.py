@@ -1,10 +1,3 @@
-"""mock_cassandra -- Cassandra mocking using Sqlite
-
-This is a simple special-case CQL/Cassandra mocker using
-sqlite to actually perform the queries. It is not intended
-to successfully mock every CQL use-case, rather it supports
-only the minimum required for Deuce
-"""
 
 import sqlite3
 import uuid
@@ -42,27 +35,7 @@ CREATE TABLE fileblocks (
 );
 """]
 
-
-class Session(object):
-
-    def __init__(self, conn):
-        self.conn = conn
-
-    def execute(self, query, queryargs):
-        # Cassandra driver supports UUID type natively but sqlite3
-        # does not, so convert every UUID to a string.
-        queryargs = tuple([str(s) if isinstance(s, uuid.UUID)
-                           else s for s in queryargs])
-
-        query = query.replace('false', '0')
-        query = query.replace('true', '1')
-        query = query.replace('%s', '?')
-
-        res = self.conn.execute(query, queryargs)
-        res = list(res)
-
-        return res
-
+from deuce.tests.mock_cassandra import Session
 
 class Cluster(object):
 
