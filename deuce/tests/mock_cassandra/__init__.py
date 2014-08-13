@@ -1,6 +1,7 @@
 
 import uuid
 
+
 class Session(object):
 
     def __init__(self, conn):
@@ -20,4 +21,3 @@ class Session(object):
         res = list(res)
 
         return res
-

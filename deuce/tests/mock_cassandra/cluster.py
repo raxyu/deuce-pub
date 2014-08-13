@@ -37,6 +37,7 @@ CREATE TABLE fileblocks (
 
 from deuce.tests.mock_cassandra import Session
 
+
 class Cluster(object):
 
     def __init__(self, hosts):

@@ -143,8 +143,7 @@ class CassandraStorageDriver(MetadataStorageDriver):
 
         # Import the cluster submodule
         cluster_module = importlib.import_module(
-            '{0}.cluster'.format(conf.metadata_driver.cassandra.db_module),
-            package=self.cassandra)
+            '{0}.cluster'.format(conf.metadata_driver.cassandra.db_module))
 
         self._cluster = cluster_module.Cluster(
             conf.metadata_driver.cassandra.cluster)
@@ -266,7 +265,6 @@ class CassandraStorageDriver(MetadataStorageDriver):
             return res[0][0]
         except IndexError:
             return None
-
 
     def get_file_data(self, project_id, vault_id, file_id):
         """Returns a tuple representing data for this file"""
