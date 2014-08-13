@@ -45,6 +45,61 @@ class MongoDbStorageDriver(MetadataStorageDriver):
 
         return res
 
+    def get_vault_statistics(self, project_id, vault_id):
+        """Return the statistics on the vault.
+
+        "param vault_id: The ID of the vault to gather statistics for"""
+        res = {}
+
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id,
+        }
+
+        def __stats_get_vault_file_block_count():
+            self._files.ensure_index([('projectid', 1),
+                ('vaultid', 1), ('fileid', 1), ('blockid', 1)])
+            result = self._files.find(args)
+            if result is None:
+                return 0  # pragma: no cover
+            else:
+                return result.count()
+
+        def __stats_get_vault_file_count():
+            self._files.ensure_index([('projectid', 1),
+                ('vaultid', 1), ('fileid', 1)])
+            result = self._files.find(args)
+            if result is None:
+                return 0  # pragma: no cover
+            else:
+                return result.count()
+
+        def __stats_get_vault_block_count():
+            self._blocks.ensure_index([('projectid', 1),
+                ('vaultid', 1), ('blockid', 1)])
+            result = self._files.find(args)
+            if result is None:
+                return 0  # pragma: no cover
+            else:
+                return result.count()
+
+        res['file-blocks'] = {}
+        res['file-blocks']['count'] = __stats_get_vault_file_block_count()
+
+        # TODO: Add any statistics regarding files
+        res['files'] = {}
+        res['files']['count'] = __stats_get_vault_file_count()
+
+        # TODO: Add any statistics regarding blocks
+        res['blocks'] = {}
+        res['blocks']['count'] = __stats_get_vault_block_count()
+
+        # TODO: Add any statistics specific to the MongoDB backend
+        res['internal'] = {}
+        # res['internal']
+
+        return res
+
     def create_file(self, project_id, vault_id, file_id):
         """Creates a new FILES with no blocks and no files"""
         args = {

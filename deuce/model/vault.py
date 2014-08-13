@@ -31,6 +31,25 @@ class Vault(object):
         self.project_id = project_id
         self.id = vault_id
 
+    def get_vault_statistics(self, auth_token):
+        # Get information about the vault
+        # - number of files
+        # - number of blocks
+        # - number of file-blocks
+        # - total size
+        # - etc
+        vault_stats = {}
+
+        metadata_info = deuce.metadata_driver
+        storage_info = deuce.storage_driver
+
+        vault_stats['metadata'] = metadata_info.get_vault_statistics(
+            self.project_id, self.id)
+        vault_stats['storage'] = storage_info.get_vault_statistics(
+            self.project_id, self.id, auth_token)
+
+        return vault_stats
+
     def put_block(self, block_id, blockdata, data_len,
             auth_token=None):
 

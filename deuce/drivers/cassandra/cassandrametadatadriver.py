@@ -37,6 +37,13 @@ CQL_GET_ALL_FILE_BLOCKS = '''
     ORDER BY offset
 '''
 
+CQL_GET_COUNT_ALL_FILE_BLOCKS = '''
+    SELECT COUNT(DISTINCT(blockid))
+    FROM fileblocks
+    WHERE projectid = %s
+    AND vaultid = %s
+'''
+
 CQL_GET_FILE_BLOCKS = '''
     SELECT blockid, offset
     FROM fileblocks
@@ -68,6 +75,13 @@ CQL_GET_ALL_BLOCKS = '''
     LIMIT %s
 '''
 
+CQL_GET_COUNT_ALL_BLOCKS = '''
+    SELECT COUNT(DISTINCT(blockid))
+    FROM blocks
+    WHERE projectid = %s
+    AND vaultid = %s
+'''
+
 CQL_GET_ALL_FILES_MARKER = '''
     SELECT fileid
     FROM files
@@ -85,6 +99,13 @@ CQL_GET_ALL_FILES = '''
     AND vaultid = %s
     AND finalized = %s
     LIMIT %s
+'''
+
+CQL_GET_COUNT_ALL_FILES = '''
+    SELECT COUNT(DISTINCT(fileid))
+    FROM files
+    WHERE projectid=%s
+    AND vaultid = %s
 '''
 
 CQL_FINALIZE_FILE = '''
@@ -155,6 +176,50 @@ class CassandraStorageDriver(MetadataStorageDriver):
             res = conf.api_configuration.max_returned_num + 1
         else:
             res = min(conf.api_configuration.max_returned_num + 1, limit)
+
+        return res
+
+    def get_vault_statistics(self, project_id, vault_id):
+        """Return the statistics on the vault.
+
+        "param vault_id: The ID of the vault to gather statistics for"""
+        res = {}
+
+        args = {
+            'projectid': project_id,
+            'vaultid': vault_id
+        }
+
+        def __stats_query(cql_statement, default_value):
+            result = self._session.execute(cql_statement, args)
+            try:
+                return result[0][0]
+
+            except IndexError:  # pragma: no cover
+                return default_value
+
+        def __stats_get_vault_file_block_count():
+            return __stats_query(CQL_GET_COUNT_ALL_FILE_BLOCKS, 0)
+
+        def __stats_get_vault_file_count():
+            return __stats_query(CQL_GET_COUNT_ALL_FILES, 0)
+
+        def __stats_get_vault_block_count():
+            return __stats_query(CQL_GET_COUNT_ALL_BLOCKS, 0)
+
+        res['file-blocks'] = {}
+        res['file-blocks']['count'] = __stats_get_vault_file_block_count()
+
+        # Add any statistics regarding files
+        res['files'] = {}
+        res['files']['count'] = __stats_get_vault_file_count()
+
+        # Add any statistics regarding blocks
+        res['blocks'] = {}
+        res['blocks']['count'] = __stats_get_vault_block_count()
+
+        # Add any statistics specific to the Cassandra backend
+        res['internal'] = {}
 
         return res
 

@@ -64,6 +64,24 @@ class DiskStorageDriverTest(FunctionalTest):
 
         assert not driver.vault_exists(project_id, vault_id, token)
 
+    def test_vault_statistics(self):
+        storage_url, token = self.get_Auth_Token()
+
+        driver = self.create_driver()
+
+        project_id = 'project_id'
+        vault_id = 'vault_id'
+
+        # empty vault stats
+        driver.create_vault(project_id, vault_id, token)
+
+        statistics = driver.get_vault_statistics(project_id, vault_id)
+
+        main_keys = ('total-size', 'block-count')
+        for key in main_keys:
+            assert key in statistics.keys()
+            assert statistics[key] == 0
+
     def test_block_crud(self):
         storage_url, token = self.get_Auth_Token()
 
