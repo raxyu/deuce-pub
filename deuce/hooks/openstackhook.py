@@ -3,7 +3,7 @@ from pecan.hooks import PecanHook
 from pecan.core import abort
 
 
-class AuthTokenHook(PecanHook):
+class OpenstackHook(PecanHook):
     """Every request that hits Deuce must have a header specifying the
     auth_token for the user the request is for.
 
