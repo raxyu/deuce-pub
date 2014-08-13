@@ -10,9 +10,7 @@ class TestRootController(FunctionalTest):
         response = self.app.get('/', expect_errors=True)
         assert response.status_int == 400
 
-        response = self.app.get('/', headers={'x-project-id': 'blah',
-            "x-auth-token": 'good',
-            "x-storage-url": ''})
+        response = self.app.get('/', headers={'x-project-id': 'blah'})
         assert response.status_int == 200
 
     def test_get_10(self):

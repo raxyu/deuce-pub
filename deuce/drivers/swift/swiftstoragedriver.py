@@ -18,10 +18,6 @@ from six import BytesIO
 class SwiftStorageDriver(BlockStorageDriver):
 
     def __init__(self, request_headers):
-        self._storage_url = request_headers['x-storage-url']
-        self._token = request_headers['x-auth-token']
-        self._project_id = request_headers['x-project-id']
-
         self.lib_pack = importlib.import_module(
             conf.block_storage_driver.swift.swift_module)
         self.Conn = getattr(self.lib_pack, 'client')
