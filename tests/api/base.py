@@ -9,6 +9,7 @@ import json
 import jsonschema
 import os
 import random
+import re
 import sha
 import string
 import urlparse
@@ -105,37 +106,38 @@ class TestBase(fixtures.BaseTestFixture):
             self.assertEqual(headers['content-type'],
                              'application/octet-stream')
 
-    def assertUrl(self, url, nextblocklist=False, filelocation=False,
-                  nextfilelist=False, nextfileblocklist=False):
+    def assertUrl(self, url, base=False, blockpath=False, files=False,
+                  filepath=False, fileblock=False, nextlist=False):
 
+        msg = 'url: {0}'.format(url)
         u = urlparse.urlparse(url)
         self.assertIn(u.scheme, ['http', 'https'])
-        if nextblocklist:
-            self.assertTrue(u.path.startswith('/{0}/{1}/blocks'
-                ''.format(self.api_version, self.vaultname)),
-                'url: {0}'.format(url))
+
+        if base:
+            self.assertEqual(u.path, '/{0}'.format(self.api_version), msg)
+
+        if blockpath:
+            self.assertEqual(u.path, '/{0}/{1}/blocks'
+                             ''.format(self.api_version, self.vaultname), msg)
+
+        if files:
+            self.assertEqual(u.path, '/{0}/{1}/files'
+                             ''.format(self.api_version, self.vaultname), msg)
+
+        if filepath:
+            valid = re.compile('/{0}/{1}/files/[a-zA-Z0-9\-_]*'
+                               ''.format(self.api_version, self.vaultname))
+            self.assertIsNotNone(valid.match(u.path), msg)
+
+        if fileblock:
+            valid = re.compile('/{0}/{1}/files/[a-zA-Z0-9\-_]*/blocks'
+                               ''.format(self.api_version, self.vaultname))
+            self.assertIsNotNone(valid.match(u.path), msg)
+
+        if nextlist:
             query = urlparse.parse_qs(u.query)
-            self.assertIn('marker', query, 'url: {0}'.format(url))
-            self.assertIn('limit', query, 'url: {0}'.format(url))
-        elif filelocation:
-            self.assertTrue(u.path.startswith('/{0}/{1}/files'
-                ''.format(self.api_version, self.vaultname)),
-                'url: {0}'.format(url))
-        elif nextfilelist:
-            self.assertTrue(u.path.startswith('/{0}/{1}/files'
-                ''.format(self.api_version, self.vaultname)),
-                'url: {0}'.format(url))
-            query = urlparse.parse_qs(u.query)
-            self.assertIn('marker', query, 'url: {0}'.format(url))
-            self.assertIn('limit', query, 'url: {0}'.format(url))
-        elif nextfileblocklist:
-            self.assertTrue(u.path.startswith('/{0}/{1}/files'
-                ''.format(self.api_version, self.vaultname)),
-                'url: {0}'.format(url))
-            self.assertIn('/blocks', u.path)
-            query = urlparse.parse_qs(u.query)
-            self.assertIn('marker', query, 'url: {0}'.format(url))
-            self.assertIn('limit', query, 'url: {0}'.format(url))
+            self.assertIn('marker', query, msg)
+            self.assertIn('limit', query, msg)
 
     def _create_empty_vault(self, vaultname=None, size=50):
         """
