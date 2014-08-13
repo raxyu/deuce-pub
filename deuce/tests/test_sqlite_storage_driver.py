@@ -101,6 +101,38 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         assert not driver.has_block(project_id, vault_id, 'invalidid')
 
+    def test_file_assignment_registration(self):
+
+        driver = self.create_driver()
+
+        project_id = 'project_id'
+        vault_id = self.create_vault_id()
+        file_id = self.create_file_id()
+
+        self.assertEqual(driver.has_file(project_id, vault_id,
+            file_id), False)
+
+        driver.create_file(project_id, vault_id, file_id)
+
+        self.assertEqual(driver.has_file(project_id, vault_id, file_id), True)
+
+        # Create one block before assigning and one block after
+
+        driver.register_block(project_id, vault_id, 'block_a', 1024)
+
+        driver.assign_block(project_id, vault_id, file_id, 'block_a', 0)
+        driver.assign_block(project_id, vault_id, file_id, 'block_b', 1024)
+
+        driver.register_block(project_id, vault_id, 'block_b', 1024)
+
+        self.assertEqual(driver.is_finalized(project_id, vault_id, file_id),
+            False)
+
+        driver.finalize_file(project_id, vault_id, file_id, 2048)
+
+        self.assertEqual(driver.is_finalized(project_id, vault_id, file_id),
+            True)
+
     def test_file_assignment(self):
 
         driver = self.create_driver()
@@ -167,6 +199,7 @@ class SqliteStorageDriverTest(FunctionalTest):
         # Create a gap in the middle
         block_ids.insert(0, 'block_0')
         blockpairs['block_0'] = 0
+
         driver.assign_block(project_id, vault_id, file_id, 'block_0', 0)
         for bid, offset in blockpairs.items():
             driver.unregister_block(project_id, vault_id, bid)
