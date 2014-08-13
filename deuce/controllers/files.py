@@ -75,7 +75,7 @@ class FilesController(RestController):
 
         return resp
 
-    @expose(content_type='application/binary;')
+    @expose(content_type='application/octet-stream;')
     @validate(vault_id=VaultGetRule, file_id=FileGetRule)
     def get_one(self, vault_id, file_id):
         """Fetches, re-assembles and streams a single

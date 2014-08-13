@@ -62,7 +62,7 @@ class BlocksController(RestController):
 
         return resp
 
-    @expose(content_type='application/binary;')
+    @expose(content_type='application/octet-stream;')
     @validate(vault_id=VaultGetRule, block_id=BlockGetRule)
     def get_one(self, vault_id, block_id):
         """Returns a specific block"""
