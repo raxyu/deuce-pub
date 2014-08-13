@@ -77,7 +77,7 @@ class FilesController(RestController):
 
         return resp
 
-    @expose()
+    @expose(content_type='application/octet-stream;')
     @validate(vault_id=VaultGetRule, file_id=FileGetRule)
     def get_one(self, vault_id, file_id):
         """Fetches, re-assembles and streams a single
@@ -108,6 +108,7 @@ class FilesController(RestController):
 
         objs = vault.get_blocks_generator(block_ids=block_ids)
 
+        response.content_length = vault.get_file_length(file_id)
         response.body_file = FileCat(objs)
         response.status_code = 200
 

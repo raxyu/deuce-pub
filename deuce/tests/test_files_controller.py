@@ -439,7 +439,7 @@ class TestFilesController(FunctionalTest):
             # NOTE: Very important to set the content-type
             # header. Otherwise pecan tries to do a UTF-8 test.
             headers = {
-                "Content-Type": "application/binary",
+                "Content-Type": "application/octet-stream",
                 "Content-Length": str(size),
             }
 

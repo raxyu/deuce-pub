@@ -63,7 +63,7 @@ class BlocksController(RestController):
 
         return resp
 
-    @expose()
+    @expose(content_type='application/octet-stream;')
     @validate(vault_id=VaultGetRule, block_id=BlockGetRule)
     def get_one(self, vault_id, block_id):
         """Returns a specific block"""
@@ -85,6 +85,7 @@ class BlocksController(RestController):
             abort(404, headers={"Transaction-ID": request.context.request_id})
         response.headers["Transaction-ID"] = request.context.request_id
         response.body_file = block.get_obj()
+        response.content_length = vault.get_block_length(block_id)
         response.status_code = 200
 
     @expose()

@@ -9,12 +9,20 @@ from pecan import conf
 
 
 CQL_CREATE_FILE = '''
-    INSERT INTO files (projectid, vaultid, fileid, finalized)
-    VALUES (%s, %s, %s, false)
+    INSERT INTO files (projectid, vaultid, fileid, finalized, size)
+    VALUES (%s, %s, %s, false, %s)
 '''
 
 CQL_GET_FILE = '''
     SELECT finalized
+    FROM files
+    WHERE projectid = %s
+    AND vaultid = %s
+    AND fileid = %s
+'''
+
+CQL_GET_FILE_SIZE = '''
+    SELECT size
     FROM files
     WHERE projectid = %s
     AND vaultid = %s
@@ -110,7 +118,8 @@ CQL_GET_COUNT_ALL_FILES = '''
 
 CQL_FINALIZE_FILE = '''
     UPDATE files
-    SET finalized=true
+    SET finalized=true,
+    size=%s
     WHERE projectid=%s
     AND vaultid=%s
     AND fileid=%s
@@ -225,10 +234,21 @@ class CassandraStorageDriver(MetadataStorageDriver):
 
     def create_file(self, project_id, vault_id, file_id):
         """Creates a new file with no blocks and no files"""
-        args = (project_id, vault_id, uuid.UUID(file_id))
+        args = (project_id, vault_id, uuid.UUID(file_id), 0)
         res = self._session.execute(CQL_CREATE_FILE, args)
 
         return file_id
+
+    def file_length(self, project_id, vault_id, file_id):
+        """Retrieve the length of the file."""
+        args = (project_id, vault_id, uuid.UUID(file_id))
+
+        res = self._session.execute(CQL_GET_FILE_SIZE, args)
+
+        try:
+            return int(res[0][0])
+        except IndexError:
+            return 0
 
     def has_file(self, project_id, vault_id, file_id):
         args = (project_id, vault_id, uuid.UUID(file_id))
@@ -292,7 +312,10 @@ class CassandraStorageDriver(MetadataStorageDriver):
                     startpos=file_size, endpos=expected_offset)
 
         if self.has_file(project_id, vault_id, file_id):
-            args = (project_id, vault_id, uuid.UUID(file_id))
+            if file_size is None:
+                file_size = 0
+            args = (file_size, project_id, vault_id,
+                uuid.UUID(file_id))
             res = self._session.execute(CQL_FINALIZE_FILE, args)
 
     def get_block_data(self, project_id, vault_id, block_id):

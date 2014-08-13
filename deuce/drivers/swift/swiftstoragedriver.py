@@ -176,6 +176,21 @@ class SwiftStorageDriver(BlockStorageDriver):
         except (KeyError, ClientException) as e:
             return None
 
+    def get_block_object_length(self, request_headers, vault_id, block_id):
+        """Returns the length of an object"""
+        response = dict()
+        try:
+            ret_hdr, ret_obj_body = \
+                self.Conn.get_object(
+                    url=request_headers['x-storage-url'],
+                    token=request_headers['x-auth-token'],
+                    container=vault_id,
+                    name='blocks/' + str(block_id),
+                    response_dict=response)
+            return ret_hdr['content-length']
+        except ClientException as e:
+            return 0
+
     def create_blocks_generator(self, request_headers, vault_id, block_gen):
         """Returns a generator of file-like objects that are
         ready to read. These objects will get closed

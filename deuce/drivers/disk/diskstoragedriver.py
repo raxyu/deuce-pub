@@ -104,3 +104,13 @@ class DiskStorageDriver(BlockStorageDriver):
             return None
 
         return open(path, 'rb')
+
+    def get_block_object_length(self, request_headers, vault_id, block_id):
+        """Returns the length of an object"""
+        path = self._get_block_path(request_headers['x-project-id'],
+            vault_id, block_id)
+
+        if not os.path.exists(path):
+            return 0
+
+        return os.path.getsize(path)

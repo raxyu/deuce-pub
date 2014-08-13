@@ -74,6 +74,12 @@ class BlockStorageDriver(object):
         raise NotImplementedError
 
     @abstractmethod
+    def get_block_object_length(self, request_headers, vault_id,
+            block_id):
+        """Returns the length of an object"""
+        raise NotImplementedError
+
+    @abstractmethod
     def store_block(self, request_headers, vault_id, block_id,
             block_data):
         """Stores the block into the specified vault

@@ -141,6 +141,11 @@ class DiskStorageDriverTest(FunctionalTest):
             vault_id=vault_id,
             block_id="test_disk_trouble_file")
 
+        assert (driver.get_block_object_length(
+            request_headers=hdrs,
+            vault_id=vault_id,
+            block_id="test_invalid_block_for_length") == 0)
+
         # Test delete invalid block
         driver.delete_block(
             request_headers=hdrs,
@@ -173,6 +178,10 @@ class DiskStorageDriverTest(FunctionalTest):
 
         assert len(returned_data) == block_size
         assert returned_data == block_data._content
+        assert (driver.get_block_object_length(
+            request_headers=hdrs,
+            vault_id=vault_id,
+            block_id=block_id) == block_size)
 
         driver.delete_block(
             request_headers=hdrs,
