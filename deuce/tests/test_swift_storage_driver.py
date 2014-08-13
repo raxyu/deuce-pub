@@ -64,8 +64,7 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
         return hdrs
 
     def create_driver(self):
-        hdrs = self.get_mock_hdrs()
-        return SwiftStorageDriver(hdrs)
+        return SwiftStorageDriver()
 
     def test_basic_construction(self):
         driver = self.create_driver()
@@ -79,7 +78,7 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
         hdrs = self.get_mock_hdrs()
         failed_hdrs = hdrs.copy()
         failed_hdrs['x-auth-token'] = failed_hdrs['x-auth-token'] + '1'
-        driver = SwiftStorageDriver(hdrs)
+        driver = SwiftStorageDriver()
         projectid = self.create_project_id()
         vaultid = self.create_vault_id()
         blockid = self.create_block_id()

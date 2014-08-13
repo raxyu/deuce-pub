@@ -17,7 +17,7 @@ from six import BytesIO
 
 class SwiftStorageDriver(BlockStorageDriver):
 
-    def __init__(self, request_headers):
+    def __init__(self):
         self.lib_pack = importlib.import_module(
             conf.block_storage_driver.swift.swift_module)
         self.Conn = getattr(self.lib_pack, 'client')
