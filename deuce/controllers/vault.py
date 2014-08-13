@@ -25,7 +25,7 @@ class VaultController(RestController):
     def put(self, vault_id):
         response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.create(
-            request_headers=request.headers,
+            request_headers=request.storage_hdrs,
             vault_id=vault_id)
         # TODO: Need check and monitor failed vault.
         logger.info('Vault [{0}] created'.format(vault_id))
@@ -37,7 +37,7 @@ class VaultController(RestController):
         """Returns the vault controller object"""
         response.headers["Transaction-ID"] = request.context.request_id
         if Vault.get(
-                request_headers=request.headers,
+                request_headers=request.storage_hdrs,
                 vault_id=vault_id):
             response.status_code = 204
         else:
@@ -51,7 +51,7 @@ class VaultController(RestController):
     def delete(self, vault_id):
         response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(
-            request_headers=request.headers,
+            request_headers=request.storage_hdrs,
             vault_id=vault_id)
 
         if vault:

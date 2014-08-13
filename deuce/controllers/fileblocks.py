@@ -27,7 +27,7 @@ class FileBlocksController(RestController):
 
         response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(
-            request_headers=request.headers,
+            request_headers=request.storage_hdrs,
             vault_id=vault_id)
 
         assert vault is not None

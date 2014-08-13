@@ -28,7 +28,7 @@ class FilesController(RestController):
     def delete(self, vault_id, file_id):
 
         vault = Vault.get(
-            request_headers=request.headers,
+            request_headers=request.storage_hdrs,
             vault_id=vault_id)
         if not vault:
             abort(404)
@@ -44,7 +44,7 @@ class FilesController(RestController):
     def get_all(self, vault_id):
         response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(
-            request_headers=request.headers,
+            request_headers=request.storage_hdrs,
             vault_id=vault_id)
 
         if not vault:
@@ -84,7 +84,7 @@ class FilesController(RestController):
         file out of Deuce"""
         response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(
-            request_headers=request.headers,
+            request_headers=request.storage_hdrs,
             vault_id=vault_id)
 
         if not vault:
@@ -120,7 +120,7 @@ class FilesController(RestController):
         """
         response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(
-            request_headers=request.headers,
+            request_headers=request.storage_hdrs,
             vault_id=vault_id)
 
         # caller tried to post to a vault that
