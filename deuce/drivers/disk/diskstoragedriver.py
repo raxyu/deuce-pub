@@ -48,8 +48,8 @@ class DiskStorageDriver(BlockStorageDriver):
             if os.path.exists(path):
 
                 if os.listdir(path) == []:
-                    # there's stuff other than blocks here
-                    # but it can all be safely deleted
+                    # There's nothing in the vault.
+                    # It's safe to delete
                     shutil.rmtree(path)
                     return True
 
