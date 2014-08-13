@@ -49,12 +49,11 @@ CQL_GET_FILE_BLOCKS = '''
 '''
 
 CQL_GET_ALL_FILE_BLOCKS_W_SIZE = '''
-    SELECT blocks.blockid, fileblocks.offset, blocks.blocksize
-    FROM blocks, fileblocks
-    WHERE fileblocks.blockid = blocks.blockid
-    AND fileblocks.projectid = %s
-    AND fileblocks.vaultid = %s
-    AND fileblocks.fileid = %s
+    SELECT blockid, offset, blocksize
+    FROM fileblocks
+    WHERE projectid = %s
+    AND vaultid = %s
+    AND fileid = %s
     ORDER by offset
 '''
 
@@ -97,8 +96,8 @@ CQL_FINALIZE_FILE = '''
 
 CQL_ASSIGN_BLOCK_TO_FILE = '''
     INSERT INTO fileblocks
-    (projectid, vaultid, fileid, blockid, offset)
-    VALUES (%s, %s, %s, %s, %s)
+    (projectid, vaultid, fileid, blockid, blocksize, offset)
+    VALUES (%s, %s, %s, %s, %s, %s)
 '''
 
 CQL_REGISTER_BLOCK = '''
@@ -200,6 +199,13 @@ class CassandraStorageDriver(MetadataStorageDriver):
         res = self._session.execute(CQL_GET_ALL_FILE_BLOCKS_W_SIZE, args)
 
         for blockid, offset, size in res:
+
+            # Use one last chance to check for the block size
+            # if it is not in the fileblocks row.
+
+            if size is None:
+                size = self._get_block_size(project_id, vault_id, blockid)
+
             if offset == expected_offset:
                 expected_offset += size
             elif offset < expected_offset:  # Block overlaps previous block
@@ -239,6 +245,19 @@ class CassandraStorageDriver(MetadataStorageDriver):
             return dict(blocksize=res[0][0])
         except IndexError:
             raise Exception("No such block: {0}".format(block_id))
+
+    def _get_block_size(self, project_id, vault_id, block_id):
+        """Returns the size of the specified block. If the block
+        is not found, None is returned"""
+
+        args = (project_id, vault_id, block_id)
+
+        res = self._session.execute(CQL_GET_BLOCK_SIZE, args)
+
+        try:
+            return res[0][0]
+        except IndexError:
+            return None
 
     def get_file_data(self, project_id, vault_id, file_id):
         """Returns a tuple representing data for this file"""
@@ -307,11 +326,17 @@ class CassandraStorageDriver(MetadataStorageDriver):
         return [(row[0], row[1]) for row in query_res]
 
     def assign_block(self, project_id, vault_id, file_id, block_id, offset):
-        # TODO(jdp): tweak this to support multiple assignments
-        # TODO(jdp): check for overlaps in metadata
 
-        args = (project_id, vault_id, uuid.UUID(file_id), block_id, offset)
-        res = self._session.execute(CQL_ASSIGN_BLOCK_TO_FILE, args)
+        blocksize = self._get_block_size(project_id, vault_id, block_id)
+
+        # Note: blocksize can be None if the block does not yet exist. This
+        # will probably not be allowed in the future, but for now we allow
+        # this to be compatible with the other drivers.
+
+        args = (project_id, vault_id, uuid.UUID(file_id), block_id,
+                blocksize, offset)
+
+        self._session.execute(CQL_ASSIGN_BLOCK_TO_FILE, args)
 
     def register_block(self, project_id, vault_id, block_id, blocksize):
         if not self.has_block(project_id, vault_id, block_id):
