@@ -102,7 +102,8 @@ class TestBase(fixtures.BaseTestFixture):
             self.assertEqual(headers['content-type'],
                              'application/json; charset=UTF-8')
         if binary:
-            self.assertEqual(headers['content-type'], 'application/octet-stream')
+            self.assertEqual(headers['content-type'],
+                             'application/octet-stream')
 
     def assertUrl(self, url, nextblocklist=False, filelocation=False,
                   nextfilelist=False, nextfileblocklist=False):

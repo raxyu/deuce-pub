@@ -74,11 +74,9 @@ class MongoDbStorageDriver(MetadataStorageDriver):
 
         if res is not None:
             length = res.get('size')
-            if length is None:
-                return 0
-            else:
-                return length
-        return 0
+            return length
+        else:
+            return 0
 
     def has_file(self, project_id, vault_id, file_id):
         self._files.ensure_index([('projectid', 1),
