@@ -201,8 +201,12 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             offset = item['offset']
             blockid = item['blockid']
 
+            blockdata = self.get_block_data(project_id, vault_id, blockid)
+
+            if blockdata is None:
+                continue
+
             if offset == expected_offset:
-                blockdata = self.get_block_data(project_id, vault_id, blockid)
                 expected_offset += int(blockdata['blocksize'])
             elif offset < expected_offset:  # Overlap scenario
                 raise OverlapError(project_id, vault_id, file_id,
