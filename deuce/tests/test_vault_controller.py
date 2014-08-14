@@ -69,8 +69,7 @@ class TestVaultController(FunctionalTest):
 
         # Upload a dummy block
         headers = {}
-        for k, v in self._hdrs.items():
-            headers[k] = v
+        headers.update(self._hdrs)
 
         headers['content-type'] = 'application/binary'
         headers['content-length'] = str(len(block_data))
