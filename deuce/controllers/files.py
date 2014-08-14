@@ -41,7 +41,6 @@ class FilesController(RestController):
     @validate(vault_id=VaultGetRule, marker=FileMarkerRule, limit=LimitRule)
     @expose('json')
     def get_all(self, vault_id):
-        response.headers["Transaction-ID"] = deuce.context.request_id
         vault = Vault.get(deuce.context.project_id, vault_id,
                 request.auth_token)
 
@@ -80,7 +79,6 @@ class FilesController(RestController):
     def get_one(self, vault_id, file_id):
         """Fetches, re-assembles and streams a single
         file out of Deuce"""
-        response.headers["Transaction-ID"] = deuce.context.request_id
         vault = Vault.get(deuce.context.project_id, vault_id,
                 request.auth_token)
 
@@ -117,7 +115,6 @@ class FilesController(RestController):
         the new file is returned in the Location
         header
         """
-        response.headers["Transaction-ID"] = deuce.context.request_id
         vault = Vault.get(deuce.context.project_id, vault_id,
                 request.auth_token)
 
@@ -140,7 +137,6 @@ class FilesController(RestController):
             format(response.headers["Location"]))
 
     def _assign(self, vault, vault_id, file_id):
-        response.headers["Transaction-ID"] = deuce.context.request_id
         f = vault.get_file(file_id)
 
         if not f:

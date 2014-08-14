@@ -25,7 +25,6 @@ class FileBlocksController(RestController):
     @expose('json')
     def get_all(self, vault_id, file_id):
 
-        response.headers["Transaction-ID"] = deuce.context.request_id
         vault = Vault.get(deuce.context.project_id, vault_id,
                 request.auth_token)
 
