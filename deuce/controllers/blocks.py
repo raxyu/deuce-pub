@@ -22,9 +22,9 @@ class BlocksController(RestController):
     c) Uploading blocks
     d) Deleting blocks
     """
-    @expose('json')
     @validate(vault_id=VaultGetRule, marker=BlockMarkerRule,
               limit=LimitRule)
+    @expose('json')
     def get_all(self, vault_id):
 
         vault = Vault.get(request.project_id, vault_id,

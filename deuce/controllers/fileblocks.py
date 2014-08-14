@@ -20,9 +20,9 @@ class FileBlocksController(RestController):
     """The FileBlocksController is responsible for:
     Listing blocks belong to a particular file
     """
-    @expose('json')
     @validate(vault_id=VaultGetRule, file_id=FileGetRule,
         marker=OffsetMarkerRule, limit=LimitRule)
+    @expose('json')
     def get_all(self, vault_id, file_id):
 
         response.headers["Transaction-ID"] = request.context.request_id
