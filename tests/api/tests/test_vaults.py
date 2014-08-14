@@ -40,7 +40,7 @@ class TestEmptyVault(base.TestBase):
         self.assertEqual(resp.status_code, 200,
                          'Status code returned for Get Vault: {0} . '
                          'Expected 200'.format(resp.status_code))
-        self.assertHeaders(resp.headers)
+        self.assertHeaders(resp.headers, json=True)
         resp_body = resp.json()
         self.assertIn('storage', resp_body)
         self.assertIn('metadata', resp_body)
