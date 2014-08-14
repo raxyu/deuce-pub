@@ -130,6 +130,35 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         assert not driver.has_block(project_id, vault_id, 'invalidid')
 
+    def test_file_assignment_no_block(self):
+
+        driver = self.create_driver()
+
+        project_id = 'project_id'
+        vault_id = self.create_vault_id()
+        file_id = self.create_file_id()
+
+        self.assertEqual(driver.has_file(project_id, vault_id,
+            file_id), False)
+
+        driver.create_file(project_id, vault_id, file_id)
+
+        self.assertEqual(driver.has_file(project_id, vault_id, file_id), True)
+
+        driver.assign_block(project_id, vault_id, file_id, 'block_a', 0)
+        driver.assign_block(project_id, vault_id, file_id, 'block_b', 1024)
+
+        with self.assertRaises(GapError) as ctx:
+            driver.finalize_file(project_id, vault_id, file_id, 2048)
+
+        self.assertEqual(ctx.exception.vault_id, vault_id)
+        self.assertEqual(ctx.exception.file_id, file_id)
+        self.assertEqual(ctx.exception.startpos, 0)
+        self.assertEqual(ctx.exception.endpos, 2048)
+
+        self.assertEqual(driver.is_finalized(project_id, vault_id, file_id),
+            False)
+
     def test_file_assignment_registration(self):
 
         driver = self.create_driver()
