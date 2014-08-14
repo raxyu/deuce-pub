@@ -4,6 +4,7 @@ from pecan.core import abort
 
 import deuce
 
+
 class ProjectIDHook(PecanHook):
     """Every request that hits Deuce must have a header specifying the
     project id that the request is for. The Project ID is synonymous with
