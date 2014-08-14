@@ -29,7 +29,7 @@ class BlocksController(RestController):
     @expose('json')
     def get_all(self, vault_id):
 
-        vault = Vault.get(vault_id, deuce.context.openstack.auth_token)
+        vault = Vault.get(vault_id)
         response.headers["Transaction-ID"] = request.context.request_id
         if not vault:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
@@ -70,22 +70,20 @@ class BlocksController(RestController):
 
         # Step 1: Is the block in our vault store?  If not, return 404
         # Step 2: Stream the block back to the user
-        vault = Vault.get(vault_id, deuce.context.openstack.auth_token)
+        vault = Vault.get(vault_id)
 
         # Existence of the vault should have been confirmed
         # in the vault controller
         assert vault is not None
 
-        block = vault.get_block(block_id,
-            deuce.context.openstack.auth_token)
+        block = vault.get_block(block_id)
 
         if block is None:
             logger.error('block [{0}] does not exist'.format(block_id))
             abort(404, headers={"Transaction-ID": request.context.request_id})
         response.headers["Transaction-ID"] = request.context.request_id
         response.body_file = block.get_obj()
-        response.content_length = vault.get_block_length(block_id,
-            deuce.context.openstack.auth_token)
+        response.content_length = vault.get_block_length(block_id)
         response.status_code = 200
 
     @expose()
@@ -96,12 +94,11 @@ class BlocksController(RestController):
         """
 
         response.headers["Transaction-ID"] = request.context.request_id
-        vault = Vault.get(vault_id, deuce.context.openstack.auth_token)
+        vault = Vault.get(vault_id)
 
         try:
             retval = vault.put_block(
-                block_id, request.body, request.headers['content-length'],
-                deuce.context.openstack.auth_token)
+                block_id, request.body, request.headers['content-length'])
             response.status_code = (201 if retval is True else 500)
             logger.info('block [{0}] added'.format(block_id))
         except ValueError as e:
