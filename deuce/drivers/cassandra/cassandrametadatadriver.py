@@ -294,9 +294,14 @@ class CassandraStorageDriver(MetadataStorageDriver):
 
             # Use one last chance to check for the block size
             # if it is not in the fileblocks row.
-
             if size is None:
                 size = self._get_block_size(project_id, vault_id, blockid)
+
+                # If size is None, the block was never registered so we
+                # skip this record. This will likely result in a GapError
+                # being thrown on the next pass
+                if size is None:
+                    continue
 
             if offset == expected_offset:
                 expected_offset += size
