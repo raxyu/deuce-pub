@@ -91,8 +91,6 @@ class TestPopulatedVault(base.TestBase):
     def test_delete_populated_vault(self):
         """Delete a Vault that has some data. 1 block"""
 
-        # TODO
-        self.skipTest('Status code returned is 204, not 412')
         resp = self.client.delete_vault(self.vaultname)
         self.assertEqual(resp.status_code, 412,
                          'Status code returned for Delete Vault: {0} . '
