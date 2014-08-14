@@ -61,13 +61,12 @@ class VaultController(RestController):
                 request.auth_token)
 
         if vault:
-            response.body_file = vault.get_vault_statistics(request.auth_token)
             response.status_code = 200
+            return vault.get_vault_statistics(request.auth_token)
         else:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
             response.status_code = 404
-
-        return None
+            return None
 
     @expose()
     @validate(vault_id=VaultPutRule)
