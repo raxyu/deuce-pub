@@ -79,9 +79,6 @@ class TestBlockUploaded(base.TestBase):
     def test_get_one_block(self):
         """Get an individual block"""
 
-        # TODO
-        self.skipTest('Skipping. Currently fails because content-type '
-                      'header returned is text/html')
         resp = self.client.get_block(self.vaultname, self.blockid)
         self.assertEqual(resp.status_code, 200,
                          'Status code for getting data of a block is '
@@ -181,7 +178,7 @@ class TestListBlocks(base.TestBase):
             if i < 20 / value - (1 + pages):
                 self.assertIn('x-next-batch', resp.headers)
                 url = resp.headers['x-next-batch']
-                self.assertUrl(url, nextblocklist=True)
+                self.assertUrl(url, blockpath=True, nextlist=True)
             else:
                 self.assertNotIn('x-next-batch', resp.headers)
             self.assertEqual(len(resp.json()), value,

@@ -21,7 +21,7 @@ class TestCreateFile(base.TestBase):
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
         self.assertIn('location', resp.headers)
-        self.assertUrl(resp.headers['location'], filelocation=True)
+        self.assertUrl(resp.headers['location'], filepath=True)
         # TODO
         if "null" == resp.content:
             self.skipTest("Skipping because the response is null")
@@ -317,7 +317,7 @@ class TestListBlocksOfFile(base.TestBase):
             if i < 20 / value - (1 + pages):
                 self.assertIn('x-next-batch', resp.headers)
                 url = resp.headers['x-next-batch']
-                self.assertUrl(url, nextfileblocklist=True)
+                self.assertUrl(url, fileblock=True, nextlist=True)
             else:
                 self.assertNotIn('x-next-batch', resp.headers)
             self.assertEqual(len(resp.json()), value,
@@ -361,9 +361,6 @@ class TestFinalizedFile(base.TestBase):
     def test_get_file(self):
         """Get a (finalized) file"""
 
-        # TODO
-        self.skipTest('Skipping. Currently fails because content-type header '
-                      'returned is text/html')
         resp = self.client.get_file(self.vaultname, self.fileid)
         self.assertEqual(resp.status_code, 200,
                          'Status code for getting a file is '
@@ -481,7 +478,7 @@ class TestMultipleFinalizedFiles(base.TestBase):
             if i < 20 / value - (1 + pages):
                 self.assertIn('x-next-batch', resp.headers)
                 url = resp.headers['x-next-batch']
-                self.assertUrl(url, nextfilelist=True)
+                self.assertUrl(url, files=True, nextlist=True)
             else:
                 self.assertNotIn('x-next-batch', resp.headers)
             self.assertEqual(len(resp.json()), value,
