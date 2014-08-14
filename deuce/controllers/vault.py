@@ -26,7 +26,7 @@ class VaultController(RestController):
     @validate(vault_name=VaultPutRule)
     @expose()
     def put(self, vault_name):
-        response.headers["Transaction-ID"] = request.context.request_id
+        response.headers["Transaction-ID"] = deuce.context.request_id
         vault = Vault.create(deuce.context.project_id, vault_name,
                 request.auth_token)
         # TODO: Need check and monitor failed vault.
@@ -38,7 +38,7 @@ class VaultController(RestController):
     def head(self, vault_id):
         """Returns the vault controller object"""
 
-        response.headers["Transaction-ID"] = request.context.request_id
+        response.headers["Transaction-ID"] = deuce.context.request_id
         if Vault.get(deuce.context.project_id, vault_id,
                 request.auth_token):
             # weblint complains about the content-type header being
@@ -55,7 +55,7 @@ class VaultController(RestController):
     @expose('json')
     def get_one(self, vault_id):
         """Returns the statistics on vault controller object"""
-        response.headers["Transaction-ID"] = request.context.request_id
+        response.headers["Transaction-ID"] = deuce.context.request_id
 
         vault = Vault.get(deuce.context.project_id, vault_id,
                 request.auth_token)
@@ -71,7 +71,7 @@ class VaultController(RestController):
     @validate(vault_id=VaultPutRule)
     @expose()
     def delete(self, vault_id):
-        response.headers["Transaction-ID"] = request.context.request_id
+        response.headers["Transaction-ID"] = deuce.context.request_id
         vault = Vault.get(deuce.context.project_id, vault_id,
                 request.auth_token)
 

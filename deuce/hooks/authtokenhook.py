@@ -2,6 +2,8 @@
 from pecan.hooks import PecanHook
 from pecan.core import abort
 
+import deuce
+
 
 class AuthTokenHook(PecanHook):
     """Every request that hits Deuce must have a header specifying the
@@ -21,4 +23,4 @@ class AuthTokenHook(PecanHook):
         except KeyError:
             # Invalid request
             abort(401, comment="Missing Header : X-Auth-Token",
-                  headers={'Transaction-ID': state.request.context.request_id})
+                  headers={'Transaction-ID': deuce.context.request_id})
