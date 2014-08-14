@@ -361,9 +361,6 @@ class TestFinalizedFile(base.TestBase):
     def test_get_file(self):
         """Get a (finalized) file"""
 
-        # TODO
-        self.skipTest('Skipping. Currently fails because content-type header '
-                      'returned is text/html')
         resp = self.client.get_file(self.vaultname, self.fileid)
         self.assertEqual(resp.status_code, 200,
                          'Status code for getting a file is '

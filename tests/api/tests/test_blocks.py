@@ -79,9 +79,6 @@ class TestBlockUploaded(base.TestBase):
     def test_get_one_block(self):
         """Get an individual block"""
 
-        # TODO
-        self.skipTest('Skipping. Currently fails because content-type '
-                      'header returned is text/html')
         resp = self.client.get_block(self.vaultname, self.blockid)
         self.assertEqual(resp.status_code, 200,
                          'Status code for getting data of a block is '
