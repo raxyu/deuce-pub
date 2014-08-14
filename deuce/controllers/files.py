@@ -27,7 +27,7 @@ class FilesController(RestController):
     @expose('json')
     def delete(self, vault_id, file_id):
 
-        vault = Vault.get(request.project_id, vault_id,
+        vault = Vault.get(deuce.context.project_id, vault_id,
                 request.auth_token)
         if not vault:
             abort(404)
@@ -42,7 +42,7 @@ class FilesController(RestController):
     @expose('json')
     def get_all(self, vault_id):
         response.headers["Transaction-ID"] = request.context.request_id
-        vault = Vault.get(request.project_id, vault_id,
+        vault = Vault.get(deuce.context.project_id, vault_id,
                 request.auth_token)
 
         if not vault:
@@ -81,7 +81,7 @@ class FilesController(RestController):
         """Fetches, re-assembles and streams a single
         file out of Deuce"""
         response.headers["Transaction-ID"] = request.context.request_id
-        vault = Vault.get(request.project_id, vault_id,
+        vault = Vault.get(deuce.context.project_id, vault_id,
                 request.auth_token)
 
         if not vault:
@@ -98,7 +98,7 @@ class FilesController(RestController):
             abort(412, headers={"Transaction-ID": request.context.request_id})
 
         block_gen = deuce.metadata_driver.create_file_block_generator(
-            request.project_id, vault_id, file_id)
+            deuce.context.project_id, vault_id, file_id)
 
         block_ids = [block[0] for block in sorted(block_gen,
             key=lambda block: block[1])]
@@ -118,7 +118,7 @@ class FilesController(RestController):
         header
         """
         response.headers["Transaction-ID"] = request.context.request_id
-        vault = Vault.get(request.project_id, vault_id,
+        vault = Vault.get(deuce.context.project_id, vault_id,
                 request.auth_token)
 
         # caller tried to post to a vault that
@@ -152,8 +152,8 @@ class FilesController(RestController):
                 # Fileid with an empty body will finalize the file.
                 filesize = request.headers['Filesize'] if 'Filesize' \
                     in request.headers.keys() else 0
-                res = deuce.metadata_driver.finalize_file(request.project_id,
-                    vault_id, file_id, filesize)
+                res = deuce.metadata_driver.finalize_file(
+                    deuce.context.project_id, vault_id, file_id, filesize)
                 return res
             except Exception as e:
                 # There are gaps or overlaps in blocks of the file
@@ -183,12 +183,12 @@ class FilesController(RestController):
             block_id = mapping['id']
             offset = int(mapping['offset'])
 
-            if not deuce.metadata_driver.has_block(request.project_id,
+            if not deuce.metadata_driver.has_block(deuce.context.project_id,
                     vault_id, block_id):
 
                 missing_blocks.append(block_id)
 
-            deuce.metadata_driver.assign_block(request.project_id, vault_id,
-                file_id, mapping['id'], mapping['offset'])
+            deuce.metadata_driver.assign_block(deuce.context.project_id,
+                vault_id, file_id, mapping['id'], mapping['offset'])
 
         return missing_blocks
