@@ -23,8 +23,8 @@ class FilesController(RestController):
 
     blocks = FileBlocksController()
 
-    @expose('json')
     @validate(vault_id=VaultGetRule, file_id=FileGetRule)
+    @expose('json')
     def delete(self, vault_id, file_id):
 
         vault = Vault.get(request.project_id, vault_id,
@@ -38,8 +38,8 @@ class FilesController(RestController):
 
         vault.delete_file(file_id)
 
-    @expose('json')
     @validate(vault_id=VaultGetRule, marker=FileMarkerRule, limit=LimitRule)
+    @expose('json')
     def get_all(self, vault_id):
         response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(request.project_id, vault_id,
@@ -75,8 +75,8 @@ class FilesController(RestController):
 
         return resp
 
-    @expose(content_type='application/octet-stream;')
     @validate(vault_id=VaultGetRule, file_id=FileGetRule)
+    @expose(content_type='application/octet-stream;')
     def get_one(self, vault_id, file_id):
         """Fetches, re-assembles and streams a single
         file out of Deuce"""
@@ -110,8 +110,8 @@ class FilesController(RestController):
         response.body_file = FileCat(objs)
         response.status_code = 200
 
-    @expose('json')
     @validate(vault_id=VaultPutRule, file_id=FilePostRuleNoneOk)
+    @expose('json')
     def post(self, vault_id, file_id=None):
         """Initializes a new file. The location of
         the new file is returned in the Location
