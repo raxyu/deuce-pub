@@ -2,7 +2,7 @@ import os.path
 
 from unittest import TestCase
 from webtest import TestApp
-from deuce.tests import FunctionalTest
+from deuce.tests import FunctionalTest, DummyContextObject
 
 from deuce.model import Vault, Block, File
 
@@ -12,11 +12,9 @@ class TestModel(FunctionalTest):
     def setUp(self):
         super(TestModel, self).setUp()
 
-        self._context_data = {
-            "x-project-id": self.create_project_id(),
-            "x-auth-token": ''
-        }
-        self.init_context(self._context_data)
+        import deuce
+        deuce.context = DummyContextObject
+        deuce.context.project_id = self.create_project_id()
 
         self.auth_token = self.create_auth_token()
 

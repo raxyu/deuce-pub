@@ -15,6 +15,10 @@ prod_conf = None
 conf_dict = {}
 
 
+class DummyContextObject(object):
+    pass
+
+
 def setUp():
     """
         Unit tests environment setup.
@@ -119,12 +123,13 @@ class FunctionalTest(TestCase):
         return str(uuid.uuid4())
 
     def init_context(self, headers):
-        class DummyObject(object):
-            pass
+        """Create a Deuce Context based on the headers
+        using the hooks; required for testing the controllers"""
 
-        state = DummyObject()
-        state.response = DummyObject()
-        state.request = DummyObject()
+        state = DummyContextObject()
+        state.response = DummyContextObject()
+        state.response.headers = {}
+        state.request = DummyContextObject()
         state.request.headers = headers
 
         # initialize all hooks with the 'state' object from above

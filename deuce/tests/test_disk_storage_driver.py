@@ -1,5 +1,5 @@
 import os
-from deuce.tests import FunctionalTest
+from deuce.tests import FunctionalTest, DummyContextObject
 from deuce.drivers.blockstoragedriver import BlockStorageDriver
 from deuce.drivers.disk import DiskStorageDriver
 from deuce.tests.util import MockFile
@@ -32,11 +32,9 @@ class DiskStorageDriverTest(FunctionalTest):
 
         driver = self.create_driver()
 
-        hdr_data = {
-            'x-project-id': self.create_project_id(),
-            'x-auth-token': ''
-        }
-        self.init_context(hdr_data)
+        import deuce
+        deuce.context = DummyContextObject
+        deuce.context.project_id = self.create_project_id()
 
         storage_url, auth_token = self.get_Auth_Token()
 
@@ -69,16 +67,16 @@ class DiskStorageDriverTest(FunctionalTest):
 
         assert not driver.vault_exists(vault_id, token)
 
+        deuce.context = None
+
     def test_vault_statistics(self):
         storage_url, token = self.get_Auth_Token()
 
         driver = self.create_driver()
 
-        hdr_data = {
-            'x-project-id': self.create_project_id(),
-            'x-auth-token': ''
-        }
-        self.init_context(hdr_data)
+        import deuce
+        deuce.context = DummyContextObject
+        deuce.context.project_id = self.create_project_id()
 
         vault_id = 'vault_id'
 
@@ -92,16 +90,16 @@ class DiskStorageDriverTest(FunctionalTest):
             assert key in statistics.keys()
             assert statistics[key] == 0
 
+        deuce.context = None
+
     def test_block_crud(self):
         storage_url, token = self.get_Auth_Token()
 
         driver = self.create_driver()
 
-        hdr_data = {
-            'x-project-id': self.create_project_id(),
-            'x-auth-token': ''
-        }
-        self.init_context(hdr_data)
+        import deuce
+        deuce.context = DummyContextObject
+        deuce.context.project_id = self.create_project_id()
 
         block_size = 3000
         vault_id = self.create_vault_id()
@@ -154,16 +152,16 @@ class DiskStorageDriverTest(FunctionalTest):
 
         assert driver.delete_vault(vault_id, token)
 
+        deuce.context = None
+
     def test_block_generator(self):
         storage_url, token = self.get_Auth_Token()
 
         driver = self.create_driver()
 
-        hdr_data = {
-            'x-project-id': self.create_project_id(),
-            'x-auth-token': ''
-        }
-        self.init_context(hdr_data)
+        import deuce
+        deuce.context = DummyContextObject
+        deuce.context.project_id = self.create_project_id()
 
         block_size = 3000
         vault_id = self.create_vault_id()
@@ -208,3 +206,5 @@ class DiskStorageDriverTest(FunctionalTest):
         for block_id in block_ids[:]:
             driver.delete_block(vault_id, block_id, token)
         assert driver.delete_vault(vault_id, token)
+
+        deuce.context = None
