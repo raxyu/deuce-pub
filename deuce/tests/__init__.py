@@ -124,6 +124,7 @@ class FunctionalTest(TestCase):
 
         state = DummyObject()
         state.response = DummyObject()
+        state.response.headers = {}
         state.request = DummyObject()
         state.request.headers = headers
 
