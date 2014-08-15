@@ -221,10 +221,9 @@ class TestBlocksAssignedToFile(base.TestBase):
         # TODO
         self.skipTest('Skipping. Functionality not implemented')
         resp = self.client.delete_block(self.vaultname, self.blockid)
-        # Need to determine proper status code that gets returned
-        self.assertEqual(resp.status_code, 204,
-                         'Status code for deleting a block is '
-                         '{0}'.format(resp.status_code))
+        self.assertEqual(resp.status_code, 412,
+                         'Status code returned: {0} . '
+                         'Expected 412'.format(resp.status_code))
         self.assertEqual(len(resp.content), 0)
 
     def tearDown(self):
