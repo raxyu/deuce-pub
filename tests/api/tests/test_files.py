@@ -6,6 +6,25 @@ import os
 import sha
 
 
+class TestNoFilesCreated(base.TestBase):
+
+    def setUp(self):
+        super(TestNoFilesCreated, self).setUp()
+        self.create_empty_vault()
+
+    def test_get_missing_file(self):
+        """Get a file that has not been created"""
+
+        resp = self.client.get_file(self.vaultname, self.id_generator(50))
+        self.assertEqual(resp.status_code, 404,
+                         'Status code returned: {0} . '
+                         'Expected 404'.format(resp.status_code))
+
+    def tearDown(self):
+        super(TestNoFilesCreated, self).tearDown()
+        self.client.delete_vault(self.vaultname)
+
+
 class TestCreateFile(base.TestBase):
 
     def setUp(self):
@@ -21,7 +40,7 @@ class TestCreateFile(base.TestBase):
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
         self.assertIn('location', resp.headers)
-        self.assertUrl(resp.headers['location'], filelocation=True)
+        self.assertUrl(resp.headers['location'], filepath=True)
         # TODO
         if "null" == resp.content:
             self.skipTest("Skipping because the response is null")
@@ -317,7 +336,7 @@ class TestListBlocksOfFile(base.TestBase):
             if i < 20 / value - (1 + pages):
                 self.assertIn('x-next-batch', resp.headers)
                 url = resp.headers['x-next-batch']
-                self.assertUrl(url, nextfileblocklist=True)
+                self.assertUrl(url, fileblock=True, nextlist=True)
             else:
                 self.assertNotIn('x-next-batch', resp.headers)
             self.assertEqual(len(resp.json()), value,
@@ -361,9 +380,6 @@ class TestFinalizedFile(base.TestBase):
     def test_get_file(self):
         """Get a (finalized) file"""
 
-        # TODO
-        self.skipTest('Skipping. Currently fails because content-type header '
-                      'returned is text/html')
         resp = self.client.get_file(self.vaultname, self.fileid)
         self.assertEqual(resp.status_code, 200,
                          'Status code for getting a file is '
@@ -482,7 +498,7 @@ class TestMultipleFinalizedFiles(base.TestBase):
             if i < 20 / value - (1 + pages):
                 self.assertIn('x-next-batch', resp.headers)
                 url = resp.headers['x-next-batch']
-                self.assertUrl(url, nextfilelist=True)
+                self.assertUrl(url, files=True, nextlist=True)
             else:
                 self.assertNotIn('x-next-batch', resp.headers)
             self.assertEqual(len(resp.json()), value,
