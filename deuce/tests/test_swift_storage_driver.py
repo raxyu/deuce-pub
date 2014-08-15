@@ -22,6 +22,13 @@ import json
 
 class SwiftStorageDriverTest(DiskStorageDriverTest):
 
+    def setUp(self):
+        super(SwiftStorageDriverTest, self).setUp()
+        from deuce.tests import DummyContextObject
+        import deuce
+        deuce.context.openstack = DummyContextObject()
+        deuce.context.openstack.auth_token = self.create_auth_token()
+
     def get_Auth_Token(self):
 
         auth_url = str(conf.block_storage_driver.swift.auth_url)
@@ -59,44 +66,25 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
     def test_basic_construction(self):
         storage_url, token = self.get_Auth_Token()
 
-        from deuce.tests import DummyContextObject
-        import deuce
-        deuce.context = DummyContextObject()
-        deuce.context.openstack = DummyContextObject()
-        deuce.context.openstack.auth_token = token
-
         driver = SwiftStorageDriver(storage_url)
 
     def create_driver(self):
         storage_url, token = self.get_Auth_Token()
-
-        from deuce.tests import DummyContextObject
-        import deuce
-        deuce.context = DummyContextObject()
-        deuce.context.openstack = DummyContextObject()
-        deuce.context.openstack.auth_token = token
-
         return SwiftStorageDriver(storage_url)
 
     def test_ancestry(self):
         storage_url, token = self.get_Auth_Token()
-
-        from deuce.tests import DummyContextObject
-        import deuce
-        deuce.context = DummyContextObject()
-        deuce.context.openstack = DummyContextObject()
-        deuce.context.openstack.auth_token = token
 
         driver = SwiftStorageDriver(storage_url)
         assert isinstance(driver, SwiftStorageDriver)
         assert isinstance(driver, object)
 
         # Test all exceptions
-        failed_token = token + '1'
         driver = SwiftStorageDriver(storage_url)
 
-        deuce.context.project_id = self.create_project_id()
+        import deuce
         valid_token = deuce.context.openstack.auth_token
+        failed_token = valid_token + '1'
         deuce.context.openstack.swift = failed_token
 
         vaultid = 'notmatter'
@@ -131,9 +119,6 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
             driver = self.create_driver()
             assert isinstance(driver, SwiftStorageDriver)
             assert isinstance(driver, object)
-
-            import deuce
-            deuce.context.project_id = self.create_project_id()
 
             # simulate swiftclient tossing exceptions
             driver.Conn.mock_drop_connections(True)
