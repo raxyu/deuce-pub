@@ -24,26 +24,27 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
 
     def setUp(self):
         super(SwiftStorageDriverTest, self).setUp()
+        storage_url, auth_token = self.get_Auth_Token()
         from deuce.tests import DummyContextObject
         import deuce
         deuce.context.openstack = DummyContextObject()
-        deuce.context.openstack.auth_token = self.create_auth_token()
+        deuce.context.openstack.auth_token = auth_token
+        deuce.context.openstack.swift = DummyContextObject()
+        deuce.context.openstack.swift.storage_url = storage_url
 
     def get_Auth_Token(self):
-
-        auth_url = str(conf.block_storage_driver.swift.auth_url)
-
-        username = 'User Name'
-        password = 'Password'
-
         self.mocking = False
         try:
-            if conf.block_storage_driver.swift.is_mocking:
+            if conf.block_storage_driver.swift.testing.is_mocking:
                 self.mocking = True
         except:
             self.mocking = False
 
         if not self.mocking:
+            auth_url = str(conf.block_storage_driver.swift.testing.auth_url)
+
+            username = str(conf.block_storage_driver.swift.testing.username)
+            password = str(conf.block_storage_driver.swift.testing.password)
             try:
                 os_options = dict()
                 storage_url, token = \
@@ -56,7 +57,8 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
                 sys.exit(str(e))
 
         else:
-            storage_url = conf.block_storage_driver.swift.storage_url
+            storage_url = \
+                str(conf.block_storage_driver.swift.testing.storage_url)
             token = 'mocking_token'
 
         self._hdrs = {"x-project-id": 'testswfitstoragedrv',
@@ -64,23 +66,18 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
         return storage_url, token
 
     def test_basic_construction(self):
-        storage_url, token = self.get_Auth_Token()
-
-        driver = SwiftStorageDriver(storage_url)
+        driver = SwiftStorageDriver()
 
     def create_driver(self):
-        storage_url, token = self.get_Auth_Token()
-        return SwiftStorageDriver(storage_url)
+        return SwiftStorageDriver()
 
     def test_ancestry(self):
-        storage_url, token = self.get_Auth_Token()
-
-        driver = SwiftStorageDriver(storage_url)
+        driver = SwiftStorageDriver()
         assert isinstance(driver, SwiftStorageDriver)
         assert isinstance(driver, object)
 
         # Test all exceptions
-        driver = SwiftStorageDriver(storage_url)
+        driver = SwiftStorageDriver()
 
         import deuce
         valid_token = deuce.context.openstack.auth_token
@@ -106,7 +103,7 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
         """
         self.mocking = False
         try:
-            if conf.block_storage_driver.swift.is_mocking:
+            if conf.block_storage_driver.swift.testing.is_mocking:
                 self.mocking = True
         except:
             self.mocking = False

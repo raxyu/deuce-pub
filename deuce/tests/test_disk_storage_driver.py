@@ -73,8 +73,6 @@ class DiskStorageDriverTest(FunctionalTest):
             assert statistics[key] == 0
 
     def test_block_crud(self):
-        storage_url = self.get_Auth_Token()
-
         driver = self.create_driver()
 
         block_size = 3000
