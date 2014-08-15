@@ -85,7 +85,7 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
         import deuce
         valid_token = deuce.context.openstack.auth_token
         failed_token = valid_token + '1'
-        deuce.context.openstack.swift = failed_token
+        deuce.context.openstack.auth_token = failed_token
 
         vaultid = 'notmatter'
         blockid = 'notmatter'
@@ -98,7 +98,7 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
         driver.delete_block(vaultid, blockid)
         driver.get_block_obj(vaultid, blockid)
 
-        deuce.context.openstack.swift = valid_token
+        deuce.context.openstack.auth_token = valid_token
 
     def test_network_drops(self):
         """

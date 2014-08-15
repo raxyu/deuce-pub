@@ -30,7 +30,6 @@ class BlocksController(RestController):
     def get_all(self, vault_id):
 
         vault = Vault.get(vault_id)
-        response.headers["Transaction-ID"] = request.context.request_id
         if not vault:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
             response.status_code = 404
@@ -80,8 +79,8 @@ class BlocksController(RestController):
 
         if block is None:
             logger.error('block [{0}] does not exist'.format(block_id))
-            abort(404, headers={"Transaction-ID": request.context.request_id})
-        response.headers["Transaction-ID"] = request.context.request_id
+            abort(404, headers={"Transaction-ID":
+                deuce.context.transaction.request_id})
         response.body_file = block.get_obj()
         response.content_length = vault.get_block_length(block_id)
         response.status_code = 200
@@ -93,7 +92,6 @@ class BlocksController(RestController):
         is returned in the Location header
         """
 
-        response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(vault_id)
 
         try:

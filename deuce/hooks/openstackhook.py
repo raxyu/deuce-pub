@@ -30,4 +30,6 @@ class OpenStackHook(PecanHook):
         except KeyError:
             # Invalid request
             abort(401, comment="Missing Header : X-Auth-Token",
-                  headers={'Transaction-ID': state.request.context.request_id})
+                headers={
+                    'Transaction-ID': deuce.context.transaction.request_id
+                })

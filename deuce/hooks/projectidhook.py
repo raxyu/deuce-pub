@@ -23,4 +23,6 @@ class ProjectIDHook(PecanHook):
         except KeyError:
             # Invalid request
             abort(400, comment="Missing Header : X-Project-ID",
-                  headers={'Transaction-ID': state.request.context.request_id})
+                headers={
+                    'Transaction-ID': deuce.context.transaction.request_id
+                })
