@@ -94,8 +94,6 @@ class BlocksController(RestController):
         is returned in the Location header
         """
 
-        response.headers["Transaction-ID"] = \
-            deuce.context.transaction.request_id
         vault = Vault.get(vault_id, request.auth_token)
 
         try:
