@@ -26,7 +26,6 @@ class VaultController(RestController):
     @validate(vault_name=VaultPutRule)
     @expose()
     def put(self, vault_name):
-        response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.create(vault_name)
         # TODO: Need check and monitor failed vault.
         logger.info('Vault [{0}] created'.format(vault_name))
@@ -37,7 +36,6 @@ class VaultController(RestController):
     def head(self, vault_id):
         """Returns the vault controller object"""
 
-        response.headers["Transaction-ID"] = request.context.request_id
         if Vault.get(vault_id):
             # weblint complains about the content-type header being
             # present as pecan doesn't intelligently add it or remove
@@ -53,7 +51,6 @@ class VaultController(RestController):
     @expose('json')
     def get_one(self, vault_id):
         """Returns the statistics on vault controller object"""
-        response.headers["Transaction-ID"] = request.context.request_id
 
         vault = Vault.get(vault_id)
 
@@ -68,7 +65,6 @@ class VaultController(RestController):
     @validate(vault_id=VaultPutRule)
     @expose()
     def delete(self, vault_id):
-        response.headers["Transaction-ID"] = request.context.request_id
         vault = Vault.get(vault_id)
 
         if vault:

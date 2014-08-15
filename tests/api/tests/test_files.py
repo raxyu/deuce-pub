@@ -101,7 +101,7 @@ class TestFileBlockUploaded(base.TestBase):
     def tearDown(self):
         super(TestFileBlockUploaded, self).tearDown()
         [self.client.delete_file(vaultname=self.vaultname,
-            fileid=fileid) for fileid in self.files]
+            fileid=file_info.Id) for file_info in self.files]
         [self.client.delete_block(self.vaultname, block.Id) for block in
             self.blocks]
         self.client.delete_vault(self.vaultname)
@@ -141,7 +141,7 @@ class TestEmptyFile(base.TestBase):
     def tearDown(self):
         super(TestEmptyFile, self).tearDown()
         [self.client.delete_file(vaultname=self.vaultname,
-            fileid=fileid) for fileid in self.files]
+            fileid=file_info.Id) for file_info in self.files]
         self.client.delete_vault(self.vaultname)
 
 
@@ -170,7 +170,7 @@ class TestFileAssignedBlocks(base.TestBase):
     def tearDown(self):
         super(TestFileAssignedBlocks, self).tearDown()
         [self.client.delete_file(vaultname=self.vaultname,
-            fileid=fileid) for fileid in self.files]
+            fileid=file_info.Id) for file_info in self.files]
         [self.client.delete_block(self.vaultname, block.Id) for block in
             self.blocks]
         self.client.delete_vault(self.vaultname)
@@ -208,7 +208,7 @@ class TestFileMissingBlock(base.TestBase):
     def tearDown(self):
         super(TestFileMissingBlock, self).tearDown()
         [self.client.delete_file(vaultname=self.vaultname,
-                                 fileid=fileid) for fileid in self.files]
+            fileid=file_info.Id) for file_info in self.files]
         [self.client.delete_block(self.vaultname, block.Id) for block in
             self.blocks]
         self.client.delete_vault(self.vaultname)
@@ -245,7 +245,7 @@ class TestFileOverlappingBlock(base.TestBase):
     def tearDown(self):
         super(TestFileOverlappingBlock, self).tearDown()
         [self.client.delete_file(vaultname=self.vaultname,
-                                 fileid=fileid) for fileid in self.files]
+            fileid=file_info.Id) for file_info in self.files]
         [self.client.delete_block(self.vaultname, block.Id) for block in
             self.blocks]
         self.client.delete_vault(self.vaultname)
@@ -361,7 +361,7 @@ class TestListBlocksOfFile(base.TestBase):
     def tearDown(self):
         super(TestListBlocksOfFile, self).tearDown()
         [self.client.delete_file(vaultname=self.vaultname,
-            fileid=fileid) for fileid in self.files]
+            fileid=file_info.Id) for file_info in self.files]
         [self.client.delete_block(self.vaultname, block.Id) for block in
             self.blocks]
         self.client.delete_vault(self.vaultname)
@@ -415,7 +415,7 @@ class TestFinalizedFile(base.TestBase):
     def tearDown(self):
         super(TestFinalizedFile, self).tearDown()
         [self.client.delete_file(vaultname=self.vaultname,
-            fileid=fileid) for fileid in self.files]
+            fileid=file_info.Id) for file_info in self.files]
         [self.client.delete_block(self.vaultname, block.Id) for block in
             self.blocks]
         self.client.delete_vault(self.vaultname)
@@ -435,7 +435,8 @@ class TestMultipleFinalizedFiles(base.TestBase):
             self.assign_all_blocks_to_file()
             self.blocks_file.append(self.blocks)
             self.finalize_file()
-        self.created_files = self.files[:]
+        self.created_files = [file_info.Id for file_info in self.files]
+        self.file_ids = self.created_files[:]
 
     def test_list_multiple_files(self):
         """List multiple files (20)"""
@@ -445,13 +446,13 @@ class TestMultipleFinalizedFiles(base.TestBase):
                          'Status code for getting the list of all files '
                          '{0}'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
-        self.assertListEqual(resp.json(), sorted(self.files))
+        self.assertListEqual(resp.json(), sorted(self.file_ids))
 
     @ddt.data(2, 4, 5, 10)
     def test_list_multiple_files_marker(self, value):
         """List multiple files (20) using a marker (value)"""
 
-        sorted_list_files = sorted(self.files)
+        sorted_list_files = sorted(self.file_ids)
         markerid = sorted_list_files[value]
         requested_list_files = sorted_list_files[value:]
         resp = self.client.list_of_files(vaultname=self.vaultname,
@@ -473,7 +474,7 @@ class TestMultipleFinalizedFiles(base.TestBase):
         """List multiple files, setting the limit to value and using a
         marker"""
 
-        markerid = sorted(self.files)[value]
+        markerid = sorted(self.file_ids)[value]
         self.assertFilesPerPage(value, marker=markerid, pages=1)
 
     def assertFilesPerPage(self, value, marker=None, pages=0):
@@ -504,9 +505,9 @@ class TestMultipleFinalizedFiles(base.TestBase):
                              'Number of file ids returned is not {0} . '
                              'Returned {1}'.format(value, len(resp.json())))
             for fileid in resp.json():
-                self.assertIn(fileid, self.files)
-                self.files.remove(fileid)
-        self.assertEqual(len(self.files), value * pages,
+                self.assertIn(fileid, self.file_ids)
+                self.file_ids.remove(fileid)
+        self.assertEqual(len(self.file_ids), value * pages,
                          'Discrepancy between the list of files returned '
                          'and the files created/finalilzed')
 
