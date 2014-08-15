@@ -15,6 +15,7 @@ import string
 import urlparse
 
 Block = namedtuple('Block', 'Id Data')
+File = namedtuple('File', 'Id Url')
 
 
 class TestBase(fixtures.BaseTestFixture):
@@ -210,7 +211,7 @@ class TestBase(fixtures.BaseTestFixture):
         resp = self.client.create_file(self.vaultname)
         self.fileurl = resp.headers['location']
         self.fileid = self.fileurl.split('/')[-1]
-        self.files.append(self.fileid)
+        self.files.append(File(Id=self.fileid, Url=self.fileurl))
         return 201 == resp.status_code
 
     def create_new_file(self):
@@ -223,24 +224,6 @@ class TestBase(fixtures.BaseTestFixture):
         if not self._create_new_file():
             raise Exception('Failed to create a file')
 
-    def _assign_all_blocks_to_file(self, offset_divisor=None):
-        """
-        Test Setup Helper: Assigns all blocks to the file
-        """
-        offset = 0
-        block_list = list()
-        for block_info in self.blocks:
-            block_list.append({'id': block_info.Id,
-                               'size': len(block_info.Data), 'offset': offset})
-            if offset_divisor:
-                offset += len(block_info.Data) / offset_divisor
-            else:
-                offset += len(block_info.Data)
-        block_dict = {'blocks': block_list}
-        resp = self.client.assign_to_file(json.dumps(block_dict),
-                                          alternate_url=self.fileurl)
-        return 200 == resp.status_code
-
     def assign_all_blocks_to_file(self, offset_divisor=None):
         """
         Test Setup Helper: Assigns all blocks to the file
@@ -248,23 +231,63 @@ class TestBase(fixtures.BaseTestFixture):
         Exception is raised if the operation is not successful
         """
 
-        if not self._assign_all_blocks_to_file(offset_divisor):
+        if not self._assign_blocks_to_file(offset_divisor=offset_divisor):
             raise Exception('Failed to assign blocks to file')
 
-    def _finalize_file(self):
+    def _assign_blocks_to_file(self, offset=0, blocks=[],
+                              offset_divisor=None, file_url=None):
+        """
+        Test Setup Helper: Assigns blocks to the file
+        """
+
+        block_list = list()
+        if len(blocks) == 0:
+            blocks = range(len(self.blocks))
+        if not file_url:
+            file_url = self.fileurl
+
+        for index in blocks:
+            block_info = self.blocks[index]
+            block_list.append({'id': block_info.Id,
+                               'size': len(block_info.Data), 'offset': offset})
+            if offset_divisor:
+                offset += len(block_info.Data) / offset_divisor
+            else:
+                offset += len(block_info.Data)
+
+        block_dict = {'blocks': block_list}
+        resp = self.client.assign_to_file(json.dumps(block_dict),
+                                          alternate_url=file_url)
+        return 200 == resp.status_code
+
+    def assign_blocks_to_file(self, offset=0, blocks=[],
+                              offset_divisor=None, file_url=None):
+        """
+        Test Setup Helper: Assigns blocks to the file
+
+        Exception is raised if the operation is not successful
+        """
+
+        if not self._assign_blocks_to_file(offset, blocks, offset_divisor,
+                                           file_url):
+            raise Exception('Failed to assign blocks to file')
+
+    def _finalize_file(self, file_url=None):
         """
         Test Setup Helper: Finalizes the file
         """
 
-        resp = self.client.finalize_file(alternate_url=self.fileurl)
+        if not file_url:
+            file_url = self.fileurl
+        resp = self.client.finalize_file(alternate_url=file_url)
         return 200 == resp.status_code
 
-    def finalize_file(self):
+    def finalize_file(self, file_url=None):
         """
         Test Setup Helper: Finalizes the file
 
         Exception is raised if the operation is not successful
         """
 
-        if not self._finalize_file():
+        if not self._finalize_file(file_url):
             raise Exception('Failed to finalize file')
