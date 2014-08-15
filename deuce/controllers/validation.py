@@ -191,7 +191,8 @@ def val_limit(value):
 
 def _abort(status_code):
     import deuce
-    abort(status_code, headers={"Transaction-ID": deuce.context.request_id})
+    abort(status_code, headers={"Transaction-ID":
+        deuce.context.transaction.request_id})
 
 # parameter rules
 VaultGetRule = Rule(val_vault_id(), lambda: _abort(404))

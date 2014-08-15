@@ -11,6 +11,7 @@ class TransactionIDHook(PecanHook):
 
         transaction = context.RequestContext()
         setattr(local.store, 'context', transaction)
-        deuce.context.request_id = transaction
+        deuce.context.transaction = transaction
 
-        state.response.headers['X-Transaction-ID'] = deuce.context.request_id
+        state.response.headers['Transaction-ID'] = \
+            deuce.context.transaction.request_id
