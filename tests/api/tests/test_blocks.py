@@ -229,7 +229,7 @@ class TestBlocksAssignedToFile(base.TestBase):
     def tearDown(self):
         super(TestBlocksAssignedToFile, self).tearDown()
         [self.client.delete_file(vaultname=self.vaultname,
-                                 fileid=fileid) for fileid in self.files]
+            fileid=file_info.Id) for file_info in self.files]
         [self.client.delete_block(self.vaultname, block.Id) for block in
             self.blocks]
         self.client.delete_vault(self.vaultname)
