@@ -20,14 +20,12 @@ class FileBlocksController(RestController):
     """The FileBlocksController is responsible for:
     Listing blocks belong to a particular file
     """
-    @expose('json')
     @validate(vault_id=VaultGetRule, file_id=FileGetRule,
         marker=OffsetMarkerRule, limit=LimitRule)
+    @expose('json')
     def get_all(self, vault_id, file_id):
 
-        response.headers["Transaction-ID"] = request.context.request_id
-        vault = Vault.get(request.project_id, vault_id,
-                request.auth_token)
+        vault = Vault.get(vault_id, request.auth_token)
 
         assert vault is not None
 
@@ -35,7 +33,8 @@ class FileBlocksController(RestController):
 
         if not f:
             logger.error('File [{0}] does not exist'.format(file_id))
-            abort(404, headers={"Transaction-ID": request.context.request_id})
+            abort(404, headers={"Transaction-ID":
+                deuce.context.transaction.request_id})
 
         inmarker = int(request.params.get('marker', 0))
         limit = int(request.params.get('limit',
@@ -46,7 +45,7 @@ class FileBlocksController(RestController):
         # for the purpose of determining if the
         # list was truncated
         retblks = deuce.metadata_driver.create_file_block_generator(
-            request.project_id, vault_id, file_id, inmarker, limit + 1)
+            vault_id, file_id, inmarker, limit + 1)
 
         resp = list(retblks)
 

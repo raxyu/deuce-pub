@@ -32,9 +32,18 @@ def _get_vault_path(vault_id):
     return os.path.join(container_path, vault_id)
 
 
-def _get_block_path(vault_id, block_id):
+def _get_vault_block_path(vault_id):
     vault_path = _get_vault_path(vault_id)
-    return os.path.join(vault_path, str(block_id))
+    return os.path.join(vault_path, 'blocks')
+
+
+def _get_block_path(vault_id, block_id):
+    if block_id.startswith('blocks/'):
+        vault_path = _get_vault_path(vault_id)
+        return os.path.join(vault_path, str(block_id))
+    else:
+        vault_block_path = _get_vault_block_path(vault_id)
+        return os.path.join(vault_block_path, str(block_id))
 
 
 # Create Vault
@@ -51,7 +60,7 @@ def put_container(url,
     else:
         raise ClientException('mocking')
 
-    block_path = os.path.join(path, 'blocks')
+    block_path = _get_vault_block_path(container)
     if not os.path.exists(block_path):
         shutil.os.makedirs(block_path)
     response_dict['status'] = 201
@@ -66,7 +75,28 @@ def head_container(url,
 
     path = _get_vault_path(container)
     if os.path.exists(path):
-        return 'mocking_ret'
+        response_headers = {}
+        response_headers['content-type'] = 'mocking_ret'
+        response_headers['x-container-bytes-used'] = 0
+        response_headers['x-container-object-count'] = 0
+        # If we really wanted to be pendantic about this field
+        # then we'd set this to zero and find the epoch to 5 decimals
+        # on each file below and take the latest (max) value between
+        # them all
+        response_headers['x-timestamp'] = 987654321.12345
+
+        total_size = 0
+        object_count = 0
+        for root, dirs, files in os.walk(path):
+            total_size = total_size + sum(
+                os.path.getsize(
+                    os.path.join(root, name)) for name in files)
+            object_count = object_count + len(files)
+
+        response_headers['x-container-bytes-used'] = total_size
+        response_headers['x-container-object-count'] = object_count
+
+        return response_headers
     else:
         raise ClientException('mocking')
 
@@ -89,7 +119,7 @@ def delete_container(url,
             "%a, %d %b %Y %H:%M:%S %Z")
 
         path = _get_vault_path(container)
-        blockpath = os.path.join(path, 'blocks')
+        blockpath = _get_vault_block_path(container)
 
         response_dict['x-vault-path'] = path
         response_dict['x-block-path'] = blockpath
@@ -144,7 +174,7 @@ def put_object(url,
     if mock_drop_connection_status:
         raise ClientException('mocking network drop')
 
-    blocks_path = os.path.join(_get_vault_path(container), 'blocks')
+    blocks_path = _get_vault_block_path(container)
     if not os.path.exists(blocks_path):
         raise ClientException('mocking')
 
@@ -208,7 +238,16 @@ def get_object(url,
     with open(path, 'rb') as infile:
         buff = infile.read()
 
-    return dict(), buff
+    mdhash = hashlib.md5()
+    mdhash.update(buff)
+    etag = mdhash.hexdigest()
+
+    hdrs = {}
+    hdrs['content-length'] = os.path.getsize(path)
+    hdrs['last-modified'] = os.path.getmtime(path)
+    hdrs['accept-ranges'] = 'bytes'
+    hdrs['etag'] = etag
+    return hdrs, buff
 
 
 def get_keystoneclient_2_0(auth_url,
