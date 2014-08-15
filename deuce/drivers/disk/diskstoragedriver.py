@@ -68,9 +68,24 @@ class DiskStorageDriver(BlockStorageDriver):
     def delete_vault(self, vault_id):
         path = self._get_vault_path(vault_id)
         try:
-            os.rmdir(path)
-            return True
-        except:
+            if os.path.exists(path):
+
+                if os.listdir(path) == []:
+                    # There's nothing in the vault.
+                    # It's safe to delete
+                    shutil.rmtree(path)
+                    return True
+
+                else:
+                    # There's data there
+                    return False
+
+            else:
+                # Vault doesn't exist, so it's already been deleted
+                return True
+
+        except:  # pragma: no cover
+            # An error occurred
             return False
 
     def store_block(self, vault_id, block_id, blockdata):
