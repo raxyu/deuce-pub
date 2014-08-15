@@ -25,7 +25,7 @@ class FileBlocksController(RestController):
     @expose('json')
     def get_all(self, vault_id, file_id):
 
-        vault = Vault.get(vault_id, request.auth_token)
+        vault = Vault.get(vault_id, deuce.context.openstack.auth_token)
 
         assert vault is not None
 

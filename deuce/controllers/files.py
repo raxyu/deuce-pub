@@ -27,7 +27,7 @@ class FilesController(RestController):
     @expose('json')
     def delete(self, vault_id, file_id):
 
-        vault = Vault.get(vault_id, request.auth_token)
+        vault = Vault.get(vault_id, deuce.context.openstack.auth_token)
         if not vault:
             abort(404)
 
@@ -40,7 +40,7 @@ class FilesController(RestController):
     @validate(vault_id=VaultGetRule, marker=FileMarkerRule, limit=LimitRule)
     @expose('json')
     def get_all(self, vault_id):
-        vault = Vault.get(vault_id, request.auth_token)
+        vault = Vault.get(vault_id, deuce.context.openstack.auth_token)
 
         if not vault:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
@@ -78,7 +78,7 @@ class FilesController(RestController):
     def get_one(self, vault_id, file_id):
         """Fetches, re-assembles and streams a single
         file out of Deuce"""
-        vault = Vault.get(vault_id, request.auth_token)
+        vault = Vault.get(vault_id, deuce.context.openstack.auth_token)
 
         if not vault:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
@@ -103,7 +103,7 @@ class FilesController(RestController):
             key=lambda block: block[1])]
 
         objs = vault.get_blocks_generator(block_ids,
-            auth_token=request.auth_token)
+            auth_token=deuce.context.openstack.auth_token)
 
         response.content_length = vault.get_file_length(file_id)
         response.body_file = FileCat(objs)
@@ -116,7 +116,7 @@ class FilesController(RestController):
         the new file is returned in the Location
         header
         """
-        vault = Vault.get(vault_id, request.auth_token)
+        vault = Vault.get(vault_id, deuce.context.openstack.auth_token)
 
         # caller tried to post to a vault that
         # does not exist

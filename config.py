@@ -9,9 +9,9 @@ def get_hooks():
     from deuce.hooks import DeuceContextHook
     from deuce.hooks import ProjectIDHook
     from deuce.hooks import TransactionIDHook
-    from deuce.hooks import AuthTokenHook
+    from deuce.hooks import OpenStackHook
     return [DeuceContextHook(), TransactionIDHook(), ProjectIDHook(),
-        AuthTokenHook()]
+        OpenStackHook()]
 
 # Pecan Application Configurations
 app = {
