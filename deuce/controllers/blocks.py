@@ -29,8 +29,7 @@ class BlocksController(RestController):
     @expose('json')
     def get_all(self, vault_id):
 
-        vault = Vault.get(deuce.context.project_id, vault_id,
-            request.auth_token)
+        vault = Vault.get(vault_id, request.auth_token)
         if not vault:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
             response.status_code = 404
@@ -70,8 +69,7 @@ class BlocksController(RestController):
 
         # Step 1: Is the block in our vault store?  If not, return 404
         # Step 2: Stream the block back to the user
-        vault = Vault.get(deuce.context.project_id, vault_id,
-            request.auth_token)
+        vault = Vault.get(vault_id, request.auth_token)
 
         # Existence of the vault should have been confirmed
         # in the vault controller
@@ -95,8 +93,8 @@ class BlocksController(RestController):
         is returned in the Location header
         """
 
-        vault = Vault.get(deuce.context.project_id, vault_id,
-            request.auth_token)
+        response.headers["Transaction-ID"] = deuce.context.request_id
+        vault = Vault.get(vault_id, request.auth_token)
 
         try:
             retval = vault.put_block(
