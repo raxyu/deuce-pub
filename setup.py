@@ -16,8 +16,11 @@ setup(
     author='Rackspace',
     author_email='',
     install_requires=REQUIRES,
-    test_suite='deuce',
+    #test_suite='deuce',
     zip_safe=False,
     include_package_data=True,
-    packages=find_packages(exclude=['tests'])
+    package_data={
+        'deuce':['public/css/style.css', 'public/images/logo.png'],
+    },
+    packages=find_packages(exclude=['tests', 'deuce/tests'])
 )

@@ -18,7 +18,7 @@ app = {
     'root': 'deuce.controllers.root.RootController',
     'modules': ['deuce'],
     'static_root': '%(confdir)s/public',
-    'template_path': '%(confdir)s/deuce/templates',
+    'template_path': '%(confdir)s/templates',
     'debug': True,
     'hooks': get_hooks(),
     'errors': {
@@ -29,7 +29,7 @@ app = {
 
 log_directory = 'log'
 import os
-if not os.path.exists(log_directory):
+if not os.path.exists(log_directory):  # pragma: no cover
     os.makedirs(log_directory)
 
 logging = {

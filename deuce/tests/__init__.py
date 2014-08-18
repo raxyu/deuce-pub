@@ -31,14 +31,14 @@ def setUp():
 
     # Copy the production configs to the test path.
     if not os.path.exists('tests/public'):
-        os.symlink('../../public', 'tests/public')
+        os.symlink('../public', 'tests/public')
     if not os.path.exists('tests/deuce/templates'):
         if not os.path.exists('tests/deuce'):
             os.mkdir('tests/deuce')
         os.symlink('../../../deuce/templates', 'tests/deuce/templates')
 
     # Cook config.py for unit tests.
-    prod_conf = pecan.configuration.conf_from_file('../config.py')
+    prod_conf = pecan.configuration.conf_from_file('config.py')
     conf_dict = prod_conf.to_dict()
 
     # To update existed items.
