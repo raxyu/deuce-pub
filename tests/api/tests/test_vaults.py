@@ -14,6 +14,7 @@ class TestNoVaultsCreated(base.TestBase):
         self.assertEqual(resp.status_code, 404,
                          'Status code returned: {0} . '
                          'Expected 404'.format(resp.status_code))
+        self.assertHeaders(resp.headers)
         self.assertEqual(len(resp.content), 0,
                          'Response Content was not empty. Content: '
                          '{0}'.format(resp.content))
@@ -25,6 +26,7 @@ class TestNoVaultsCreated(base.TestBase):
         self.assertEqual(resp.status_code, 404,
                          'Status code returned: {0} . '
                          'Expected 404'.format(resp.status_code))
+        self.assertHeaders(resp.headers)
 
     def tearDown(self):
         super(TestNoVaultsCreated, self).tearDown()
@@ -52,7 +54,8 @@ class TestCreateVaults(base.TestBase):
 
     def tearDown(self):
         super(TestCreateVaults, self).tearDown()
-        self.client.delete_vault(self.vaultname)
+        if hasattr(self, 'vaultname'):
+            self.client.delete_vault(self.vaultname)
 
 
 class TestEmptyVault(base.TestBase):
