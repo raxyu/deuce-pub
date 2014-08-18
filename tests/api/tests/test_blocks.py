@@ -17,7 +17,7 @@ class TestNoBlocksUploaded(base.TestBase):
         resp = self.client.list_of_blocks(self.vaultname)
         self.assertEqual(resp.status_code, 200,
                          'Status code for listing all blocks is'
-                         ' {0}'.format(resp.status_code))
+                         ' {0} . Expected 200'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
         self.assertListEqual(resp.json(), [],
                              'Response to List Blocks for an empty vault '
@@ -30,6 +30,7 @@ class TestNoBlocksUploaded(base.TestBase):
         self.assertEqual(resp.status_code, 404,
                          'Status code returned: {0} . '
                          'Expected 404'.format(resp.status_code))
+        self.assertHeaders(resp.headers)
 
     def tearDown(self):
         super(TestNoBlocksUploaded, self).tearDown()
@@ -53,7 +54,7 @@ class TestUploadBlocks(base.TestBase):
                                         block_data)
         self.assertEqual(resp.status_code, 201,
                          'Status code for uploading a block is '
-                         '{0}'.format(resp.status_code))
+                         '{0} . Expected 201'.format(resp.status_code))
         self.assertHeaders(resp.headers)
         self.assertEqual(len(resp.content), 0,
                          'Response Content was not empty. Content: '
@@ -79,7 +80,7 @@ class TestBlockUploaded(base.TestBase):
         resp = self.client.list_of_blocks(self.vaultname)
         self.assertEqual(resp.status_code, 200,
                          'Status code for listing all blocks is '
-                         '{0}'.format(resp.status_code))
+                         '{0} . Expected 200'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
         self.assertListEqual(resp.json(), [self.blockid],
                              'Response for List Blocks should have 1 item')
@@ -90,7 +91,7 @@ class TestBlockUploaded(base.TestBase):
         resp = self.client.get_block(self.vaultname, self.blockid)
         self.assertEqual(resp.status_code, 200,
                          'Status code for getting data of a block is '
-                         '{0}'.format(resp.status_code))
+                         '{0} . Expected 200'.format(resp.status_code))
         self.assertHeaders(resp.headers, binary=True)
         self.assertEqual(resp.content, self.block_data,
                          'Block data returned does not match block uploaded')
@@ -103,13 +104,15 @@ class TestBlockUploaded(base.TestBase):
         resp = self.client.delete_block(self.vaultname, self.blockid)
         self.assertEqual(resp.status_code, 204,
                          'Status code for deleting a block is '
-                         '{0}'.format(resp.status_code))
-        self.assertEqual(len(resp.content), 0)
+                         '{0} . Expected 204'.format(resp.status_code))
+        self.assertHeaders(resp.headers)
+        self.assertEqual(len(resp.content), 0,
+                         'Response Content was not empty. Content: '
+                         '{0}'.format(resp.content))
 
     def tearDown(self):
         super(TestBlockUploaded, self).tearDown()
-        if hasattr(self, 'blockid'):
-            self.client.delete_block(self.vaultname, self.blockid)
+        self.client.delete_block(self.vaultname, self.blockid)
         self.client.delete_vault(self.vaultname)
 
 
@@ -130,7 +133,7 @@ class TestListBlocks(base.TestBase):
         resp = self.client.list_of_blocks(self.vaultname)
         self.assertEqual(resp.status_code, 200,
                          'Status code for listing all blocks is '
-                         '{0}'.format(resp.status_code))
+                         '{0} . Expected 200'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
         self.assertListEqual(sorted(resp.json()), sorted(self.blockids),
                              'Response for List Blocks'
@@ -145,7 +148,7 @@ class TestListBlocks(base.TestBase):
         resp = self.client.list_of_blocks(self.vaultname, marker=markerid)
         self.assertEqual(resp.status_code, 200,
                          'Status code for listing all blocks is '
-                         '{0}'.format(resp.status_code))
+                         '{0} . Expected 200'.format(resp.status_code))
         self.assertHeaders(resp.headers, json=True)
         self.assertListEqual(sorted(resp.json()), sorted_block_list[value:],
                              'Response for List Blocks'
@@ -181,7 +184,7 @@ class TestListBlocks(base.TestBase):
 
             self.assertEqual(resp.status_code, 200,
                              'Status code for listing all blocks is '
-                             '{0}'.format(resp.status_code))
+                             '{0} . Expected 200'.format(resp.status_code))
             self.assertHeaders(resp.headers, json=True)
             if i < 20 / value - (1 + pages):
                 self.assertIn('x-next-batch', resp.headers)
