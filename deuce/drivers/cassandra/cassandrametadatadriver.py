@@ -46,13 +46,6 @@ CQL_GET_ALL_FILE_BLOCKS = '''
     ORDER BY offset
 '''
 
-CQL_GET_COUNT_ALL_FILE_BLOCKS = '''
-    SELECT COUNT(DISTINCT(blockid))
-    FROM fileblocks
-    WHERE projectid = %s
-    AND vaultid = %s
-'''
-
 CQL_GET_FILE_BLOCKS = '''
     SELECT blockid, offset
     FROM fileblocks
@@ -84,7 +77,7 @@ CQL_GET_ALL_BLOCKS = '''
 '''
 
 CQL_GET_COUNT_ALL_BLOCKS = '''
-    SELECT COUNT(DISTINCT(blockid))
+    SELECT COUNT(*)
     FROM blocks
     WHERE projectid = %s
     AND vaultid = %s
@@ -110,7 +103,7 @@ CQL_GET_ALL_FILES = '''
 '''
 
 CQL_GET_COUNT_ALL_FILES = '''
-    SELECT COUNT(DISTINCT(fileid))
+    SELECT COUNT(*)
     FROM files
     WHERE projectid=%s
     AND vaultid = %s
@@ -214,17 +207,11 @@ class CassandraStorageDriver(MetadataStorageDriver):
             except IndexError:  # pragma: no cover
                 return default_value
 
-        def __stats_get_vault_file_block_count():
-            return __stats_query(CQL_GET_COUNT_ALL_FILE_BLOCKS, 0)
-
         def __stats_get_vault_file_count():
             return __stats_query(CQL_GET_COUNT_ALL_FILES, 0)
 
         def __stats_get_vault_block_count():
             return __stats_query(CQL_GET_COUNT_ALL_BLOCKS, 0)
-
-        res['file-blocks'] = {}
-        res['file-blocks']['count'] = __stats_get_vault_file_block_count()
 
         # Add any statistics regarding files
         res['files'] = {}
