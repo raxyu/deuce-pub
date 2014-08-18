@@ -473,3 +473,9 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             'blockid': str(block_id)
         }
         self._blocks.remove(args)
+
+    def get_health(self):
+        try:
+            return self._db.status()
+        except:  # pragma: no cover
+            return ["mongo is not active."]

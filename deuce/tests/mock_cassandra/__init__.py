@@ -8,6 +8,10 @@ class Session(object):
         self.conn = conn
 
     def execute(self, query, queryargs):
+        # Health check.
+        if 'system.local' in query:
+            return 'true'
+
         # Cassandra driver supports UUID type natively but sqlite3
         # does not, so convert every UUID to a string.
         queryargs = tuple([str(s) if isinstance(s, uuid.UUID)

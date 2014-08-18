@@ -164,6 +164,11 @@ CQL_HAS_BLOCK = '''
     AND blockid = %s
 '''
 
+CQL_HEALTH_CHECK = '''
+    SELECT now()
+    FROM system.local
+'''
+
 
 class CassandraStorageDriver(MetadataStorageDriver):
 
@@ -448,3 +453,10 @@ class CassandraStorageDriver(MetadataStorageDriver):
         args = (deuce.context.project_id, vault_id, block_id)
 
         res = self._session.execute(CQL_UNREGISTER_BLOCK, args)
+
+    def get_health(self):
+        try:
+            args = ()
+            return self._session.execute(CQL_HEALTH_CHECK, args)
+        except:  # pragma: no cover
+            return ["cassandra is not active."]

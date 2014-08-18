@@ -8,6 +8,7 @@ import deuce
 from deuce.controllers.blocks import BlocksController
 from deuce.controllers.files import FilesController
 from deuce.controllers.validation import *
+from deuce.controllers.health import HealthController
 from deuce.model import Vault
 
 logger = logging.getLogger(__name__)
@@ -51,6 +52,13 @@ class VaultController(RestController):
     @expose('json')
     def get_one(self, vault_id):
         """Returns the statistics on vault controller object"""
+
+        # user's vault_id can never be 'health' or 'ping'
+        if vault_id == 'health':
+            return HealthController.get_health()
+
+        if vault_id == 'ping':
+            return (['ok'])
 
         vault = Vault.get(vault_id, deuce.context.openstack.auth_token)
 

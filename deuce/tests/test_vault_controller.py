@@ -18,8 +18,12 @@ class TestVaultController(FunctionalTest):
     def test_vault_leaf(self):
         response = self.app.get('/v1.0/', headers=self._hdrs,
             expect_errors=True)
-
         assert response.status_int == 404
+
+        response = self.app.get('/v1.0/ping', headers=self._hdrs)
+
+        assert response.status_int == 200
+        assert response.body == b'["ok"]'
 
     def test_invalid_vault_id(self):
         vault_name = '@#$@#$@$'
