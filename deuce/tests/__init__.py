@@ -89,6 +89,10 @@ class FunctionalTest(TestCase):
     literal application and its integration with the framework.
     """
     def setUp(self):
+        import deuce
+        deuce.context = DummyContextObject
+        deuce.context.project_id = self.create_project_id()
+
         global conf_dict
         self.app = load_test_app(config=conf_dict)
 

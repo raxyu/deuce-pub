@@ -12,12 +12,6 @@ class TestModel(FunctionalTest):
     def setUp(self):
         super(TestModel, self).setUp()
 
-        import deuce
-        deuce.context = DummyContextObject
-        deuce.context.project_id = self.create_project_id()
-        deuce.context.openstack = DummyContextObject
-        deuce.context.openstack.auth_token = self.create_auth_token()
-
     def test_get_nonexistent_block(self):
         v = Vault.get('should_not_exist')
         assert v is None

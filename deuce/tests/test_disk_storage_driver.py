@@ -13,9 +13,6 @@ from hashlib import md5
 class DiskStorageDriverTest(FunctionalTest):
 
     def create_driver(self):
-        import deuce
-        deuce.context = DummyContextObject
-
         return DiskStorageDriver()
 
     def get_Auth_Token(self):
@@ -32,8 +29,6 @@ class DiskStorageDriverTest(FunctionalTest):
 
     def test_vault_crud(self):
         driver = self.create_driver()
-        import deuce
-        deuce.context.project_id = self.create_project_id()
 
         vault_id = self.create_vault_id()
 
@@ -62,13 +57,8 @@ class DiskStorageDriverTest(FunctionalTest):
 
         assert not driver.vault_exists(vault_id)
 
-        deuce.context = None
-
     def test_vault_statistics(self):
         driver = self.create_driver()
-
-        import deuce
-        deuce.context.project_id = self.create_project_id()
 
         vault_id = 'vault_id'
 
@@ -82,15 +72,10 @@ class DiskStorageDriverTest(FunctionalTest):
             assert key in statistics.keys()
             assert statistics[key] == 0
 
-        deuce.context = None
-
     def test_block_crud(self):
         storage_url = self.get_Auth_Token()
 
         driver = self.create_driver()
-
-        import deuce
-        deuce.context.project_id = self.create_project_id()
 
         block_size = 3000
         vault_id = self.create_vault_id()
@@ -141,13 +126,8 @@ class DiskStorageDriverTest(FunctionalTest):
 
         assert driver.delete_vault(vault_id)
 
-        deuce.context = None
-
     def test_block_generator(self):
         driver = self.create_driver()
-
-        import deuce
-        deuce.context.project_id = self.create_project_id()
 
         block_size = 3000
         vault_id = self.create_vault_id()
@@ -192,5 +172,3 @@ class DiskStorageDriverTest(FunctionalTest):
         for block_id in block_ids[:]:
             driver.delete_block(vault_id, block_id)
         assert driver.delete_vault(vault_id)
-
-        deuce.context = None
