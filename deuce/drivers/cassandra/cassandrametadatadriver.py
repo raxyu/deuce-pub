@@ -196,7 +196,7 @@ class CassandraStorageDriver(MetadataStorageDriver):
         res = {}
 
         args = dict(
-            projectid =deuce.context.project_id,
+            projectid=deuce.context.project_id,
             vaultid=vault_id
         )
 

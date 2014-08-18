@@ -27,7 +27,7 @@ class Session(object):
             # used that cassandra %(fieldname)s and convert to sqlite's
             # :fieldname
 
-            for k,v in queryargs.items():
+            for k, v in queryargs.items():
                 cass_style_arg = "%({0})s".format(k)
                 sqlite_style_arg = ":{0}".format(k)
                 query = query.replace(cass_style_arg, sqlite_style_arg)
@@ -36,12 +36,7 @@ class Session(object):
                 if isinstance(v, uuid.UUID):
                     queryargs[k] = str(v)
 
-        try:
-            res = self.conn.execute(query, queryargs)
-        except sqlite3.OperationalError as ex:
-            import pdb; pdb.set_trace()
-
+        res = self.conn.execute(query, queryargs)
         res = list(res)
 
         return res
-
