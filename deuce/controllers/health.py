@@ -7,8 +7,7 @@ from pecan.rest import RestController
 import deuce
 from deuce.controllers.validation import *
 
-from deuce.model import Health, Vault, Block, File
-from deuce.util import set_qs
+from deuce.model import Health
 
 logger = logging.getLogger(__name__)
 

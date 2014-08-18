@@ -3,6 +3,8 @@ from webtest import TestApp
 from deuce.tests import FunctionalTest
 import os
 import hashlib
+import random
+import string
 from random import randrange
 
 import json
@@ -29,6 +31,7 @@ class TestVaultController(FunctionalTest):
         vault_name = '@#$@#$@$'
         vault_path = '/v1.0/{0}'.format(vault_name)
 
+        # regex validation.
         response = self.app.put(vault_path, headers=self._hdrs,
                 expect_errors=True)
         self.assertEqual(response.status_int, 400)
@@ -36,6 +39,21 @@ class TestVaultController(FunctionalTest):
         response = self.app.head(vault_path, headers=self._hdrs,
                 expect_errors=True)
         self.assertEqual(response.status_int, 404)
+
+        # vault name 'health' and 'ping' are not allowed.
+        vault_name = 'health'
+        vault_path = '/v1.0/{0}'.format(vault_name)
+        response = self.app.put(vault_path, headers=self._hdrs,
+                expect_errors=True)
+        self.assertEqual(response.status_int, 400)
+
+        # vault name cannot be more than 128 chars.
+        vault_name = ''.join(random.choice(string.ascii_uppercase)
+            for i in range(200))
+        vault_path = '/v1.0/{0}'.format(vault_name)
+        response = self.app.put(vault_path, headers=self._hdrs,
+                expect_errors=True)
+        self.assertEqual(response.status_int, 400)
 
     def test_vault_deletion(self):
 
