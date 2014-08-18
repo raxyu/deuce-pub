@@ -204,3 +204,34 @@ class TestListBlocks(base.TestBase):
         [self.client.delete_block(self.vaultname, block.Id) for block in
             self.blocks]
         self.client.delete_vault(self.vaultname)
+
+
+class TestBlocksAssignedToFile(base.TestBase):
+
+    def setUp(self):
+        super(TestBlocksAssignedToFile, self).setUp()
+        self.create_empty_vault()
+        [self.upload_block() for _ in range(3)]
+        self.create_new_file()
+        self.assign_all_blocks_to_file()
+
+    def test_delete_assigned_block(self):
+        """Delete one block assigned to a file"""
+
+        # TODO
+        self.skipTest('Skipping. Functionality not implemented')
+        resp = self.client.delete_block(self.vaultname, self.blockid)
+        self.assertEqual(resp.status_code, 412,
+                         'Status code returned: {0} . '
+                         'Expected 412'.format(resp.status_code))
+        self.assertEqual(len(resp.content), 0
+                         'Response Content was not empty. Content: '
+                         '{0}'.format(resp.content))
+
+    def tearDown(self):
+        super(TestBlocksAssignedToFile, self).tearDown()
+        [self.client.delete_file(vaultname=self.vaultname,
+            fileid=file_info.Id) for file_info in self.files]
+        [self.client.delete_block(self.vaultname, block.Id) for block in
+            self.blocks]
+        self.client.delete_vault(self.vaultname)
