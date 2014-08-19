@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 class HomeController(RestController):
 
     vaults = VaultController()
+
     @expose()
     def index(self):
         logger.warning('Invalid controller index request')
