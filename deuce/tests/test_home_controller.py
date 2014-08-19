@@ -18,7 +18,7 @@ class TestHomeController(FunctionalTest):
     def test_home_leaf(self):
         response = self.app.get('/v1.0/', headers=self._hdrs,
             expect_errors=True)
-        assert response.status_int == 404
+        assert response.status_int == 200
 
         response = self.app.get('/v1.0/vaults', headers=self._hdrs,
             expect_errors=True)

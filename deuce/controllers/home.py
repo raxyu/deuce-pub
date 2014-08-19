@@ -17,5 +17,8 @@ class HomeController(RestController):
 
     @expose()
     def index(self):
-        logger.warning('Invalid controller index request')
-        response.status_code = 404
+
+        #  TODO: This is just a space holder. Remove me after impl.
+        #      : Need return a meaningful home document.
+        response.status_code = 200
+        return b'{}'
