@@ -30,12 +30,12 @@ def setUp():
         os.mkdir('/tmp/block_storage')
 
     # Copy the production configs to the test path.
-    if not os.path.exists('tests/public'):
-        os.symlink('../../public', 'tests/public')
-    if not os.path.exists('tests/deuce/templates'):
+    if not os.path.exists('tests/deuce/public'):
         if not os.path.exists('tests/deuce'):
             os.mkdir('tests/deuce')
-        os.symlink('../../../deuce/templates', 'tests/deuce/templates')
+        os.symlink('public', 'tests/deuce/public')
+    if not os.path.exists('tests/deuce/templates'):
+        os.symlink('templates', 'tests/deuce/templates')
 
     # Cook config.py for unit tests.
     prod_conf = pecan.configuration.conf_from_file('../config.py')
@@ -86,9 +86,7 @@ def tearDown():
         os.remove('/tmp/deuce_sqlite_unittest_vaultmeta.db')
 
     # Cleanup the test configs.
-    if os.path.exists('tests/public'):
-        os.remove('tests/public')
-    if os.path.exists('tests/deuce/templates'):
+    if os.path.exists('tests/deuce'):
         shutil.rmtree('tests/deuce')
 
 
