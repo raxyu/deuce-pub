@@ -23,6 +23,7 @@ class TestRootController(FunctionalTest):
     def test_get_10(self):
         response = self.app.get('/v1.0', headers={'x-project-id': 'blah',
             'x-auth-token': 'good'})
+        assert response.status_int == 302
 
     def test_get_not_found(self):
         response = self.app.get('/a/bogus/url',

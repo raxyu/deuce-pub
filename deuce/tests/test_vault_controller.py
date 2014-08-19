@@ -16,14 +16,13 @@ class TestVaultController(FunctionalTest):
             "x-auth-token": ''}
 
     def test_vault_leaf(self):
-        response = self.app.get('/v1.0/', headers=self._hdrs,
+        response = self.app.get('/v1.0/vaults/', headers=self._hdrs,
             expect_errors=True)
-
         assert response.status_int == 404
 
     def test_invalid_vault_id(self):
         vault_name = '@#$@#$@$'
-        vault_path = '/v1.0/{0}'.format(vault_name)
+        vault_path = '/v1.0/vaults/{0}'.format(vault_name)
 
         response = self.app.put(vault_path, headers=self._hdrs,
                 expect_errors=True)
@@ -37,14 +36,14 @@ class TestVaultController(FunctionalTest):
 
         # 1. Delete non-existent vault
         vault_name = self.create_vault_id()
-        vault_path = '/v1.0/{0}'.format(vault_name)
+        vault_path = '/v1.0/vaults/{0}'.format(vault_name)
         response = self.app.delete(vault_path,
             headers=self._hdrs, expect_errors=True)
         self.assertEqual(response.status_code, 404)
 
         # 2. Create Vault and Delete it (Empty Vault)
         vault_name = self.create_vault_id()
-        vault_path = '/v1.0/{0}'.format(vault_name)
+        vault_path = '/v1.0/vaults/{0}'.format(vault_name)
         response = self.app.put(vault_path,
             headers=self._hdrs)
         self.assertEqual(response.status_code, 201)
@@ -55,7 +54,7 @@ class TestVaultController(FunctionalTest):
 
         # 3. Create Vault, Add a Block, and Delete It (Non-Empty Vault)
         vault_name = self.create_vault_id()
-        vault_path = '/v1.0/{0}'.format(vault_name)
+        vault_path = '/v1.0/vaults/{0}'.format(vault_name)
         response = self.app.put(vault_path,
             headers=self._hdrs)
         self.assertEqual(response.status_code, 201)
@@ -95,7 +94,7 @@ class TestVaultController(FunctionalTest):
 
     def test_vault_crud(self):
         vault_name = self.create_vault_id()
-        vault_path = '/v1.0/{0}'.format(vault_name)
+        vault_path = '/v1.0/vaults/{0}'.format(vault_name)
 
         # If we try to head the vault before it exists, it should
         # return a 404
