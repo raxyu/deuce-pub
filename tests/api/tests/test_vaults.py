@@ -85,7 +85,6 @@ class TestEmptyVault(base.TestBase):
         self.assertIn('files', meta)
         self.assertIn('internal', meta)
         self.assertIn('blocks', meta)
-        self.assertIn('file-blocks', meta)
 
         meta_files = meta['files']
         self.assertEqual(meta_files['count'], 0)
@@ -94,9 +93,6 @@ class TestEmptyVault(base.TestBase):
 
         meta_blocks = meta['blocks']
         self.assertEqual(meta_blocks['count'], 0)
-
-        meta_file_blocks = meta['file-blocks']
-        self.assertEqual(meta_file_blocks['count'], 0)
 
     def test_delete_vault(self):
         """Delete a Vault"""
@@ -171,9 +167,6 @@ class TestVaultWithBlocksFiles(base.TestBase):
 
         meta_blocks = meta['blocks']
         self.assertEqual(meta_blocks['count'], 20)
-
-        meta_file_blocks = meta['file-blocks']
-        self.assertEqual(meta_file_blocks['count'], 14)
 
     def tearDown(self):
         super(TestVaultWithBlocksFiles, self).tearDown()

@@ -32,7 +32,6 @@ class Vault(object):
         # Get information about the vault
         # - number of files
         # - number of blocks
-        # - number of file-blocks
         # - total size
         # - etc
         vault_stats = {}
