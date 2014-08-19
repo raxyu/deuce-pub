@@ -19,3 +19,11 @@ class TestHomeController(FunctionalTest):
         response = self.app.get('/v1.0/', headers=self._hdrs,
             expect_errors=True)
         assert response.status_int == 404
+
+        response = self.app.get('/v1.0/vaults', headers=self._hdrs,
+            expect_errors=True)
+        assert response.status_int == 302
+
+        response = self.app.get('/v1.0/notsupport', headers=self._hdrs,
+            expect_errors=True)
+        assert response.status_int == 404
