@@ -19,10 +19,7 @@ import deuce
 
 class SwiftStorageDriver(BlockStorageDriver):
 
-    def __init__(self, storage_url):
-        self._storage_url = storage_url
-        self._token = deuce.context.openstack.auth_token
-
+    def __init__(self):
         self.lib_pack = importlib.import_module(
             conf.block_storage_driver.swift.swift_module)
         self.Conn = getattr(self.lib_pack, 'client')
@@ -33,7 +30,7 @@ class SwiftStorageDriver(BlockStorageDriver):
 
         try:
             self.Conn.put_container(
-                url=self._storage_url,
+                url=deuce.context.openstack.swift.storage_url,
                 token=deuce.context.openstack.auth_token,
                 container=vault_id,
                 response_dict=response)
@@ -44,7 +41,7 @@ class SwiftStorageDriver(BlockStorageDriver):
     def vault_exists(self, vault_id):
         try:
             ret = self.Conn.head_container(
-                url=self._storage_url,
+                url=deuce.context.openstack.swift.storage_url,
                 token=deuce.context.openstack.auth_token,
                 container=vault_id)
             return ret is not None
@@ -64,7 +61,7 @@ class SwiftStorageDriver(BlockStorageDriver):
         try:
             # This will always return a dictionary
             container_metadata = self.Conn.head_container(
-                url=self._storage_url,
+                url=deuce.context.openstack.swift.storage_url,
                 token=deuce.context.openstack.auth_token,
                 container=vault_id)
 
@@ -99,7 +96,7 @@ class SwiftStorageDriver(BlockStorageDriver):
         response = dict()
         try:
             self.Conn.delete_container(
-                url=self._storage_url,
+                url=deuce.context.openstack.swift.storage_url,
                 token=deuce.context.openstack.auth_token,
                 container=vault_id,
                 response_dict=response)
@@ -128,7 +125,7 @@ class SwiftStorageDriver(BlockStorageDriver):
             mdhash.update(blockdata)
             mdetag = mdhash.hexdigest()
             ret_etag = self.Conn.put_object(
-                url=self._storage_url,
+                url=deuce.context.openstack.swift.storage_url,
                 token=deuce.context.openstack.auth_token,
                 container=vault_id,
                 name='blocks/' + str(block_id),
@@ -143,7 +140,7 @@ class SwiftStorageDriver(BlockStorageDriver):
     def block_exists(self, vault_id, block_id):
         try:
             ret = self.Conn.head_object(
-                url=self._storage_url,
+                url=deuce.context.openstack.swift.storage_url,
                 token=deuce.context.openstack.auth_token,
                 container=vault_id,
                 name='blocks/' + str(block_id))
@@ -155,7 +152,7 @@ class SwiftStorageDriver(BlockStorageDriver):
         response = dict()
         try:
             self.Conn.delete_object(
-                url=self._storage_url,
+                url=deuce.context.openstack.swift.storage_url,
                 token=deuce.context.openstack.auth_token,
                 container=vault_id,
                 name='blocks/' + str(block_id),
@@ -170,7 +167,7 @@ class SwiftStorageDriver(BlockStorageDriver):
         try:
             ret_hdr, ret_obj_body = \
                 self.Conn.get_object(
-                    url=self._storage_url,
+                    url=deuce.context.openstack.swift.storage_url,
                     token=deuce.context.openstack.auth_token,
                     container=vault_id,
                     name='blocks/' + str(block_id),
@@ -187,7 +184,7 @@ class SwiftStorageDriver(BlockStorageDriver):
         try:
             ret_hdr, ret_obj_body = \
                 self.Conn.get_object(
-                    url=self._storage_url,
+                    url=deuce.context.openstack.swift.storage_url,
                     token=deuce.context.openstack.auth_token,
                     container=vault_id,
                     name='blocks/' + str(block_id),

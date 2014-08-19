@@ -52,12 +52,9 @@ def setUp():
         'deuce.tests.mock_cassandra'
     conf_dict['metadata_driver']['cassandra']['is_mocking'] = True
     # Swift
-    conf_dict['block_storage_driver']['swift']['swift_module'] = \
-        'deuce.tests.db_mocking.swift_mocking'
-    conf_dict['block_storage_driver']['swift']['is_mocking'] = True
-    # conf_dict['block_storage_driver']['swift']['swift_module'] = \
-    #     'swiftclient'
-    # conf_dict['block_storage_driver']['swift']['is_mocking'] = False
+    if conf_dict['block_storage_driver']['swift']['testing']['is_mocking']:
+        conf_dict['block_storage_driver']['swift']['swift_module'] = \
+            'deuce.tests.db_mocking.swift_mocking'
 
     # To add for-test-only items.
     # conf_dict['metadata_driver']['mongodb']['foo'] = 'bar'
