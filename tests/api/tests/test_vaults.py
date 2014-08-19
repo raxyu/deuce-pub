@@ -14,6 +14,7 @@ class TestNoVaultsCreated(base.TestBase):
         self.assertEqual(resp.status_code, 404,
                          'Status code returned: {0} . '
                          'Expected 404'.format(resp.status_code))
+        self.assertHeaders(resp.headers)
         self.assertEqual(len(resp.content), 0,
                          'Response Content was not empty. Content: '
                          '{0}'.format(resp.content))
@@ -25,6 +26,7 @@ class TestNoVaultsCreated(base.TestBase):
         self.assertEqual(resp.status_code, 404,
                          'Status code returned: {0} . '
                          'Expected 404'.format(resp.status_code))
+        self.assertHeaders(resp.headers)
 
     def tearDown(self):
         super(TestNoVaultsCreated, self).tearDown()
@@ -52,7 +54,8 @@ class TestCreateVaults(base.TestBase):
 
     def tearDown(self):
         super(TestCreateVaults, self).tearDown()
-        self.client.delete_vault(self.vaultname)
+        if hasattr(self, 'vaultname'):
+            self.client.delete_vault(self.vaultname)
 
 
 class TestEmptyVault(base.TestBase):
@@ -82,7 +85,6 @@ class TestEmptyVault(base.TestBase):
         self.assertIn('files', meta)
         self.assertIn('internal', meta)
         self.assertIn('blocks', meta)
-        self.assertIn('file-blocks', meta)
 
         meta_files = meta['files']
         self.assertEqual(meta_files['count'], 0)
@@ -91,9 +93,6 @@ class TestEmptyVault(base.TestBase):
 
         meta_blocks = meta['blocks']
         self.assertEqual(meta_blocks['count'], 0)
-
-        meta_file_blocks = meta['file-blocks']
-        self.assertEqual(meta_file_blocks['count'], 0)
 
     def test_delete_vault(self):
         """Delete a Vault"""
@@ -168,9 +167,6 @@ class TestVaultWithBlocksFiles(base.TestBase):
 
         meta_blocks = meta['blocks']
         self.assertEqual(meta_blocks['count'], 20)
-
-        meta_file_blocks = meta['file-blocks']
-        self.assertEqual(meta_file_blocks['count'], 14)
 
     def tearDown(self):
         super(TestVaultWithBlocksFiles, self).tearDown()

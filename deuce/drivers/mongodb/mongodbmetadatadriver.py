@@ -56,15 +56,6 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             'vaultid': vault_id,
         }
 
-        def __stats_get_vault_file_block_count():
-            self._files.ensure_index([('projectid', 1),
-                ('vaultid', 1), ('fileid', 1), ('blockid', 1)])
-            result = self._files.find(args)
-            if result is None:
-                return 0  # pragma: no cover
-            else:
-                return result.count()
-
         def __stats_get_vault_file_count():
             self._files.ensure_index([('projectid', 1),
                 ('vaultid', 1), ('fileid', 1)])
@@ -82,9 +73,6 @@ class MongoDbStorageDriver(MetadataStorageDriver):
                 return 0  # pragma: no cover
             else:
                 return result.count()
-
-        res['file-blocks'] = {}
-        res['file-blocks']['count'] = __stats_get_vault_file_block_count()
 
         # TODO: Add any statistics regarding files
         res['files'] = {}

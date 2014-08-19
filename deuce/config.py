@@ -86,10 +86,16 @@ block_storage_driver = {
     'swift': {
         'driver': 'deuce.drivers.swift.SwiftStorageDriver',
         'swift_module': 'swiftclient',
-        'auth_url': 'Auth Url',
-        'storage_url': 'Storage Url'
-        # Example:
-        # 'auth_url': 'https://identity.api.rackspacecloud.com/v2.0/'
+
+        'testing': {
+            'is_mocking': True,
+            'username': 'User name',
+            'password': 'Password',
+            'auth_url': 'Auth Url',
+            'storage_url': 'Storage Url'
+            # Example:
+            # 'auth_url': 'https://identity.api.rackspacecloud.com/v2.0/'
+        }
     }
 }
 
@@ -99,14 +105,13 @@ metadata_driver = {
     'cassandra': {
         'cluster': ['127.0.0.1'],
         'keyspace': 'deucekeyspace',
-
-        # Production DB with real cassandra
-        'is_mocking': False,
         'db_module': 'cassandra.cluster',
-        #
-        # Mocking DB module
-        # 'is_mocking': True,
-        # 'db_module': 'deuce.tests.mock_cassandra',
+
+        # Testing configuration
+        'testing': {
+            # Mocking DB module
+            'is_mocking': True
+        }
     },
 
     'sqlite': {
@@ -132,8 +137,12 @@ metadata_driver = {
         # 'FileBlockReadSegNum': 10,
 
         # pymongo block number in each File document
-        'maxFileBlockSegNum': 100000
+        'maxFileBlockSegNum': 100000,
         # 'maxFileBlockSegNum': 30
+
+        'testing': {
+            'is_mocking': True
+        }
     }
 }
 
