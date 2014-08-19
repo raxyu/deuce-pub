@@ -17,7 +17,7 @@ def get_hooks():
 app = {
     'root': 'deuce.controllers.root.RootController',
     'modules': ['deuce'],
-    'static_root': '%(confdir)s/deuce/public',
+    'static_root': '%(confdir)s/public',
     'template_path': '%(confdir)s/deuce/templates',
     'debug': True,
     'hooks': get_hooks(),

@@ -27,9 +27,9 @@ setup(
                     ['deuce/templates/error.html',
                     'deuce/templates/index.html',
                     'deuce/templates/layout.html']),
-                ('bin/deuce/public/css',
-                    ['deuce/public/css/style.css']),
-                ('bin/deuce/public/images',
-                    ['deuce/public/images/logo.png'])],
+                ('bin/public/css',
+                    ['public/css/style.css']),
+                ('bin/public/images',
+                    ['public/images/logo.png'])],
     packages=find_packages(exclude=['tests'])
 )
