@@ -30,7 +30,7 @@ class TestFilesController(FunctionalTest):
 
         # Create a vault and a file for us to work with
         self.vault_id = self.create_vault_id()
-        self._vault_path = '/v1.0/' + self.vault_id
+        self._vault_path = '/v1.0/vaults/' + self.vault_id
         self._files_path = self._vault_path + '/files'
         self._blocks_path = self._vault_path + '/blocks'
 
@@ -40,14 +40,14 @@ class TestFilesController(FunctionalTest):
         response = self.app.post(self._files_path, headers=self._hdrs)
         self._file_id = response.headers["Location"]
         self._file_id = urlparse(self._file_id).path
-        # Now, _file_id is '/v1.0/files_vault_test/files/SOME_FILE_ID'
+        # Now, _file_id is '/v1.0/vaults/files_vault_test/files/SOME_FILE_ID'
 
         # Create distractor File
         response = self.app.post(self._files_path, headers=self._hdrs)
         self._distractor_file_id = response.headers["Location"]
         self._distractor_file_id = urlparse(self._distractor_file_id).path
 
-        self._NOT_EXIST_files_path = '/v1.0/not_exists/files'
+        self._NOT_EXIST_files_path = '/v1.0/vaults/not_exists/files'
 
     def _create_file_id(self):
         return str(uuid.uuid4())
@@ -343,7 +343,7 @@ class TestFilesController(FunctionalTest):
         assert response.status_int == 200
 
     def test_nonexistent_file_endpoints(self):
-        file_path_format = '/v1.0/{0}/files/{1}'
+        file_path_format = '/v1.0/vaults/{0}/files/{1}'
 
         incorrect_vault = file_path_format.format('bogus_vault',
                                                   self._create_file_id())

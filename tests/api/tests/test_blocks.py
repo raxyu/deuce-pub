@@ -227,7 +227,7 @@ class TestBlocksAssignedToFile(base.TestBase):
         self.assertEqual(resp.status_code, 412,
                          'Status code returned: {0} . '
                          'Expected 412'.format(resp.status_code))
-        self.assertEqual(len(resp.content), 0
+        self.assertEqual(len(resp.content), 0,
                          'Response Content was not empty. Content: '
                          '{0}'.format(resp.content))
 
