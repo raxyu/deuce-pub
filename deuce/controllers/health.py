@@ -1,14 +1,8 @@
-from deuce.util import log as logging
-
-from pecan import conf, expose, request, response
-from pecan.core import abort
-from pecan.rest import RestController
 
 import deuce
-from deuce.controllers.validation import *
 
 from deuce.model import Health
-
+from deuce.util import log as logging
 logger = logging.getLogger(__name__)
 
 
