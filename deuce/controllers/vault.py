@@ -8,7 +8,6 @@ import deuce
 from deuce.controllers.blocks import BlocksController
 from deuce.controllers.files import FilesController
 from deuce.controllers.validation import *
-from deuce.controllers.health import HealthController
 from deuce.model import Vault
 
 logger = logging.getLogger(__name__)
@@ -27,7 +26,7 @@ class VaultController(RestController):
     @validate(vault_name=VaultPutRule)
     @expose()
     def put(self, vault_name):
-        vault = Vault.create(vault_name, deuce.context.openstack.auth_token)
+        vault = Vault.create(vault_name)
         # TODO: Need check and monitor failed vault.
         logger.info('Vault [{0}] created'.format(vault_name))
         response.status_code = 201 if vault else 500
@@ -37,7 +36,7 @@ class VaultController(RestController):
     def head(self, vault_id):
         """Returns the vault controller object"""
 
-        if Vault.get(vault_id, deuce.context.openstack.auth_token):
+        if Vault.get(vault_id):
             # weblint complains about the content-type header being
             # present as pecan doesn't intelligently add it or remove
             # it.
@@ -52,20 +51,11 @@ class VaultController(RestController):
     @expose('json')
     def get_one(self, vault_id):
         """Returns the statistics on vault controller object"""
-
-        # user's vault_id can never be 'health' or 'ping'
-        if vault_id == 'health':
-            return HealthController.get_health()
-
-        if vault_id == 'ping':
-            return (['ok'])
-
-        vault = Vault.get(vault_id, deuce.context.openstack.auth_token)
+        vault = Vault.get(vault_id)
 
         if vault:
             response.status_code = 200
-            return vault.get_vault_statistics(
-                deuce.context.openstack.auth_token)
+            return vault.get_vault_statistics()
         else:
             logger.error('Vault [{0}] does not exist'.format(vault_id))
             response.status_code = 404
@@ -74,11 +64,10 @@ class VaultController(RestController):
     @validate(vault_id=VaultPutRule)
     @expose()
     def delete(self, vault_id):
-        vault = Vault.get(vault_id, deuce.context.openstack.auth_token)
+        vault = Vault.get(vault_id)
 
         if vault:
-            if vault.delete(
-                    deuce.context.openstack.auth_token):
+            if vault.delete():
                 logger.info('Vault [{0}] deleted'.format(vault_id))
                 # weblint complains about the content-type header being present
                 # as pecan doesn't intelligently add it or remove it.

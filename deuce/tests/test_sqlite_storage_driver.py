@@ -34,7 +34,7 @@ class SqliteStorageDriverTest(FunctionalTest):
         # TODO ** Create Vault Here **
         statistics = driver.get_vault_statistics(vault_id)
 
-        main_keys = ('file-blocks', 'files', 'blocks')
+        main_keys = ('files', 'blocks')
         for key in main_keys:
             assert key in statistics.keys()
             assert 'count' in statistics[key].keys()

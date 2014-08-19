@@ -157,22 +157,6 @@ def validation_function(func):
 
 @validation_function
 def val_vault_id(value):
-    if value == 'health' or value == 'ping':
-        return
-
-    if not VAULT_ID_REGEX.match(value):
-        raise ValidationFailed('Invalid vault id {0}'.format(value))
-
-    if len(value) > VAULT_ID_MAX_LEN:
-        raise ValidationFailed('Vault ID exceeded max len {0}'.format(
-            VAULT_ID_MAX_LEN))
-
-
-@validation_function
-def val_vault_id_create(value):
-    if value == 'health' or value == 'ping':
-        raise ValidationFailed('Invalid vault id {0}'.format(value))
-
     if not VAULT_ID_REGEX.match(value):
         raise ValidationFailed('Invalid vault id {0}'.format(value))
 
@@ -212,7 +196,7 @@ def _abort(status_code):
 
 # parameter rules
 VaultGetRule = Rule(val_vault_id(), lambda: _abort(404))
-VaultPutRule = Rule(val_vault_id_create(), lambda: _abort(400))
+VaultPutRule = Rule(val_vault_id(), lambda: _abort(400))
 BlockGetRule = Rule(val_block_id(), lambda: _abort(404))
 # BlockPostRule = Rule(val_vault_id(), lambda: _abort(400))
 FileGetRule = Rule(val_file_id(), lambda: _abort(404))

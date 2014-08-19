@@ -273,17 +273,11 @@ class SqliteStorageDriver(MetadataStorageDriver):
             except IndexError:  # pragma: no cover
                 return default_value
 
-        def __stats_get_vault_file_block_count():
-            return __stats_query(SQL_GET_COUNT_ALL_FILE_BLOCKS, 0)
-
         def __stats_get_vault_file_count():
             return __stats_query(SQL_GET_COUNT_ALL_FILES, 0)
 
         def __stats_get_vault_block_count():
             return __stats_query(SQL_GET_COUNT_ALL_BLOCKS, 0)
-
-        res['file-blocks'] = {}
-        res['file-blocks']['count'] = __stats_get_vault_file_block_count()
 
         # Add any statistics regarding files
         res['files'] = {}

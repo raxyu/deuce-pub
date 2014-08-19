@@ -1,7 +1,7 @@
 from pecan import expose, redirect, response
 from webob.exc import status_map
 
-from deuce.controllers.vault import VaultController
+from deuce.controllers.home import HomeController
 
 
 class RootController(object):
@@ -9,7 +9,7 @@ class RootController(object):
     def __init__(self):
         # Support multiple API versions from the beginning. This
         # should most likely get moved into config
-        self.versions = {"v1.0": VaultController()}
+        self.versions = {"v1.0": HomeController()}
 
     @expose(generic=True, template='index.html')
     def index(self):

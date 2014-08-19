@@ -18,19 +18,13 @@ class TestVaultController(FunctionalTest):
             "x-auth-token": ''}
 
     def test_vault_leaf(self):
-        response = self.app.get('/v1.0/', headers=self._hdrs,
+        response = self.app.get('/v1.0/vaults/', headers=self._hdrs,
             expect_errors=True)
         assert response.status_int == 404
 
-        # ping end point does not require token or projectid headers!
-        response = self.app.get('/v1.0/ping', headers={})
-
-        assert response.status_int == 200
-        assert response.body == b'["ok"]'
-
     def test_invalid_vault_id(self):
         vault_name = '@#$@#$@$'
-        vault_path = '/v1.0/{0}'.format(vault_name)
+        vault_path = '/v1.0/vaults/{0}'.format(vault_name)
 
         # regex validation.
         response = self.app.put(vault_path, headers=self._hdrs,
@@ -41,33 +35,18 @@ class TestVaultController(FunctionalTest):
                 expect_errors=True)
         self.assertEqual(response.status_int, 404)
 
-        # vault name 'health' and 'ping' are not allowed.
-        vault_name = 'health'
-        vault_path = '/v1.0/{0}'.format(vault_name)
-        response = self.app.put(vault_path, headers=self._hdrs,
-                expect_errors=True)
-        self.assertEqual(response.status_int, 400)
-
-        # vault name cannot be more than 128 chars.
-        vault_name = ''.join(random.choice(string.ascii_uppercase)
-            for i in range(200))
-        vault_path = '/v1.0/{0}'.format(vault_name)
-        response = self.app.put(vault_path, headers=self._hdrs,
-                expect_errors=True)
-        self.assertEqual(response.status_int, 400)
-
     def test_vault_deletion(self):
 
         # 1. Delete non-existent vault
         vault_name = self.create_vault_id()
-        vault_path = '/v1.0/{0}'.format(vault_name)
+        vault_path = '/v1.0/vaults/{0}'.format(vault_name)
         response = self.app.delete(vault_path,
             headers=self._hdrs, expect_errors=True)
         self.assertEqual(response.status_code, 404)
 
         # 2. Create Vault and Delete it (Empty Vault)
         vault_name = self.create_vault_id()
-        vault_path = '/v1.0/{0}'.format(vault_name)
+        vault_path = '/v1.0/vaults/{0}'.format(vault_name)
         response = self.app.put(vault_path,
             headers=self._hdrs)
         self.assertEqual(response.status_code, 201)
@@ -78,7 +57,7 @@ class TestVaultController(FunctionalTest):
 
         # 3. Create Vault, Add a Block, and Delete It (Non-Empty Vault)
         vault_name = self.create_vault_id()
-        vault_path = '/v1.0/{0}'.format(vault_name)
+        vault_path = '/v1.0/vaults/{0}'.format(vault_name)
         response = self.app.put(vault_path,
             headers=self._hdrs)
         self.assertEqual(response.status_code, 201)
@@ -118,7 +97,7 @@ class TestVaultController(FunctionalTest):
 
     def test_vault_crud(self):
         vault_name = self.create_vault_id()
-        vault_path = '/v1.0/{0}'.format(vault_name)
+        vault_path = '/v1.0/vaults/{0}'.format(vault_name)
 
         # If we try to head the vault before it exists, it should
         # return a 404
