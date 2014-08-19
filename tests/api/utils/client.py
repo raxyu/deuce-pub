@@ -54,8 +54,9 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
         """
         Create a Vault
         """
-        resp = self.request('PUT', '{0}/{1}/{2}'.format(self.url, self.version,
-                            vaultname))
+        resp = self.request('PUT', '{0}/{1}/vaults/{2}'.format(self.url,
+                                                               self.version,
+                                                               vaultname))
         return resp
 
     def delete_vault(self, vaultname):
@@ -63,9 +64,9 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
         Delete a Vault
         """
 
-        resp = self.request('DELETE', '{0}/{1}/{2}'.format(self.url,
-                                                           self.version,
-                                                           vaultname))
+        resp = self.request('DELETE', '{0}/{1}/vaults/{2}'.format(self.url,
+                                                                  self.version,
+                                                                  vaultname))
         return resp
 
     def get_vault(self, vaultname):
@@ -73,8 +74,9 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
         Get a vault
         """
 
-        resp = self.request('GET', '{0}/{1}/{2}'.format(self.url, self.version,
-                                                        vaultname))
+        resp = self.request('GET', '{0}/{1}/vaults/{2}'.format(self.url,
+                                                               self.version,
+                                                               vaultname))
         return resp
 
     def vault_head(self, vaultname):
@@ -82,9 +84,9 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
         Get vault statistics via HEAD
         """
 
-        resp = self.request('HEAD', '{0}/{1}/{2}'.format(self.url,
-                                                         self.version,
-                                                         vaultname))
+        resp = self.request('HEAD', '{0}/{1}/vaults/{2}'.format(self.url,
+                                                                self.version,
+                                                                vaultname))
         return resp
 
     def list_of_blocks(self, vaultname=None, marker=None, limit=None,
@@ -101,8 +103,8 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
         if alternate_url:
             url = alternate_url
         else:
-            url = '{0}/{1}/{2}/blocks'.format(self.url, self.version,
-                                              vaultname)
+            url = '{0}/{1}/vaults/{2}/blocks'.format(self.url, self.version,
+                                                     vaultname)
         resp = self.request('GET', url, params=parameters)
         return resp
 
@@ -113,7 +115,7 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
 
         new_header = {'Content-Type': 'application/octet-stream',
                       'content-length': len(block_data)}
-        resp = self.request('PUT', '{0}/{1}/{2}/blocks/{3}'.format(
+        resp = self.request('PUT', '{0}/{1}/vaults/{2}/blocks/{3}'.format(
             self.url, self.version, vaultname, blockid),
             headers=new_header, data=block_data)
         return resp
@@ -123,7 +125,7 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
         Delete a block
         """
 
-        resp = self.request('DELETE', '{0}/{1}/{2}/blocks/{3}'.format(
+        resp = self.request('DELETE', '{0}/{1}/vaults/{2}/blocks/{3}'.format(
             self.url, self.version, vaultname, blockid))
         return resp
 
@@ -132,7 +134,7 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
         Get data of a block
         """
 
-        resp = self.request('GET', '{0}/{1}/{2}/blocks/{3}'.format(
+        resp = self.request('GET', '{0}/{1}/vaults/{2}/blocks/{3}'.format(
             self.url, self.version, vaultname, blockid))
         return resp
 
@@ -141,7 +143,7 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
         Create a file
         """
 
-        resp = self.request('POST', '{0}/{1}/{2}/files'.format(
+        resp = self.request('POST', '{0}/{1}/vaults/{2}/files'.format(
             self.url, self.version, vaultname))
         return resp
 
@@ -153,10 +155,10 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
         if alternate_url:
             return alternate_url
         elif blocks:
-            return '{0}/{1}/{2}/files/{3}/blocks'.format(
+            return '{0}/{1}/vaults/{2}/files/{3}/blocks'.format(
                 self.url, self.version, vaultname, fileid)
         else:
-            return '{0}/{1}/{2}/files/{3}'.format(
+            return '{0}/{1}/vaults/{2}/files/{3}'.format(
                 self.url, self.version, vaultname, fileid)
 
     def assign_to_file(self, blocklist_json, vaultname=None, fileid=None,
@@ -229,6 +231,7 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
         if alternate_url:
             url = alternate_url
         else:
-            url = '{0}/{1}/{2}/files'.format(self.url, self.version, vaultname)
+            url = '{0}/{1}/vaults/{2}/files'.format(self.url, self.version,
+                                                    vaultname)
         resp = self.request('GET', url, params=parameters)
         return resp
