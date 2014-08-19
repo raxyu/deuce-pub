@@ -41,17 +41,29 @@ def setUp():
     prod_conf = pecan.configuration.conf_from_file('../config.py')
     conf_dict = prod_conf.to_dict()
 
+    import logging
+    LOG = logging.getLogger(__name__)
+
     # To update existed items.
     # MongoDB
-    conf_dict['metadata_driver']['mongodb']['db_module'] = \
-        'deuce.tests.db_mocking.mongodb_mocking'
-    conf_dict['metadata_driver']['mongodb']['FileBlockReadSegNum'] = 10
-    conf_dict['metadata_driver']['mongodb']['maxFileBlockSegNum'] = 30
+    LOG.info('MongoDB - Mocking: {0:}'.format(
+        conf_dict['metadata_driver']['mongodb']['testing']['is_mocking']))
+    if conf_dict['metadata_driver']['mongodb']['testing']['is_mocking']:
+        conf_dict['metadata_driver']['mongodb']['db_module'] = \
+            'deuce.tests.db_mocking.mongodb_mocking'
+        conf_dict['metadata_driver']['mongodb']['FileBlockReadSegNum'] = 10
+        conf_dict['metadata_driver']['mongodb']['maxFileBlockSegNum'] = 30
+
     # Cassandra
-    conf_dict['metadata_driver']['cassandra']['db_module'] = \
-        'deuce.tests.mock_cassandra'
-    conf_dict['metadata_driver']['cassandra']['is_mocking'] = True
+    LOG.info('Cassandra - Mocking: {0:}'.format(
+        conf_dict['metadata_driver']['cassandra']['testing']['is_mocking']))
+    if conf_dict['metadata_driver']['cassandra']['testing']['is_mocking']:
+        conf_dict['metadata_driver']['cassandra']['db_module'] = \
+            'deuce.tests.mock_cassandra'
+
     # Swift
+    LOG.info('Swift - Mocking: {0:}'.format(
+        conf_dict['block_storage_driver']['swift']['testing']['is_mocking']))
     if conf_dict['block_storage_driver']['swift']['testing']['is_mocking']:
         conf_dict['block_storage_driver']['swift']['swift_module'] = \
             'deuce.tests.db_mocking.swift_mocking'

@@ -105,14 +105,13 @@ metadata_driver = {
     'cassandra': {
         'cluster': ['127.0.0.1'],
         'keyspace': 'deucekeyspace',
-
-        # Production DB with real cassandra
-        'is_mocking': False,
         'db_module': 'cassandra.cluster',
-        #
-        # Mocking DB module
-        # 'is_mocking': True,
-        # 'db_module': 'deuce.tests.mock_cassandra',
+
+        # Testing configuration
+        'testing': {
+            # Mocking DB module
+            'is_mocking': True
+        }
     },
 
     'sqlite': {
@@ -138,8 +137,12 @@ metadata_driver = {
         # 'FileBlockReadSegNum': 10,
 
         # pymongo block number in each File document
-        'maxFileBlockSegNum': 100000
+        'maxFileBlockSegNum': 100000,
         # 'maxFileBlockSegNum': 30
+
+        'testing': {
+            'is_mocking': True
+        }
     }
 }
 
