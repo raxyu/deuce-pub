@@ -9,8 +9,8 @@ class TestVaultController(FunctionalTest):
 
     def setUp(self):
         super(TestVaultController, self).setUp()
-        self._hdrs = {"x-project-id": self.create_project_id(),
-            "x-auth-token": ''}
+        # health end point does not require token or projectid headers!
+        self._hdrs = {}
 
     def test_health(self):
         response = self.app.get('/v1.0/health', headers=self._hdrs)

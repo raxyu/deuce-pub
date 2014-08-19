@@ -22,7 +22,8 @@ class TestVaultController(FunctionalTest):
             expect_errors=True)
         assert response.status_int == 404
 
-        response = self.app.get('/v1.0/ping', headers=self._hdrs)
+        # ping end point does not require token or projectid headers!
+        response = self.app.get('/v1.0/ping', headers={})
 
         assert response.status_int == 200
         assert response.body == b'["ok"]'

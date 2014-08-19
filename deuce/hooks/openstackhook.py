@@ -25,6 +25,10 @@ class OpenStackHook(PecanHook):
 
             # auth_token is assumed validated by an outside source (e.g Repose
             # or WSGI middleware
+            if hasattr(state.request, 'path'):
+                if state.request.path.endswith('v1.0/health') or  \
+                        state.request.path.endswith('v1.0/ping'):
+                    return
             deuce.context.openstack.auth_token = \
                 state.request.headers['x-auth-token']
         except KeyError:
