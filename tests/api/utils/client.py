@@ -235,3 +235,12 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
                                                     vaultname)
         resp = self.request('GET', url, params=parameters)
         return resp
+
+    def ping(self):
+        """
+        Ping
+        """
+
+        resp = self.request('GET', '{0}/{1}/ping'.format(self.url,
+                                                         self.version))
+        return resp
