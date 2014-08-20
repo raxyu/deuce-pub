@@ -128,7 +128,7 @@ class TestVaultWithBlocksFiles(base.TestBase):
     def setUp(self):
         super(TestVaultWithBlocksFiles, self).setUp()
         self.create_empty_vault()
-        [self.upload_block() for _ in range(20)]
+        self.upload_multiple_blocks(20)
         [self.create_new_file() for _ in range(3)]
         # Assign specific blocks to the files created
         # Assign 3 unique blocks to file 1

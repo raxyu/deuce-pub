@@ -7,6 +7,7 @@ from collections import namedtuple
 
 import json
 import jsonschema
+import msgpack
 import os
 import random
 import re
@@ -202,6 +203,28 @@ class TestBase(fixtures.BaseTestFixture):
         """
         if not self._upload_block(block_data, size):
             raise Exception('Failed to upload block')
+
+    def _upload_multiple_blocks(self, nblocks, size=30720):
+        """
+        Test Setup Helper: Uploads multiple blocks using msgpack
+        """
+        prev_blocks = self.blocks[:]
+        [self.generate_block_data(size=size) for _ in range(nblocks)]
+        # uploaded new generated blocks
+        uploaded = list(set(self.blocks) - set(prev_blocks))
+        data = dict([(block.Id, block.Data) for block in uploaded])
+        msgpack_data = msgpack.packb(data)
+        resp = self.client.upload_multiple_blocks(self.vaultname, msgpack_data)
+        return 201 == resp.status_code
+
+    def upload_multiple_blocks(self, nblocks, size=30720):
+        """
+        Test Setup Helper: Uploads multiple blocks using msgpack
+
+        Exception is raised if the operation is not successful
+        """
+        if not self._upload_multiple_blocks(nblocks, size):
+            raise Exception('Failed to upload multiple blocks')
 
     def _create_new_file(self):
         """

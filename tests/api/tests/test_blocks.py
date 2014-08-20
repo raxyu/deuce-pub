@@ -60,7 +60,7 @@ class TestUploadBlocks(base.TestBase):
                          'Response Content was not empty. Content: '
                          '{0}'.format(resp.content))
 
-    @ddt.data(1, 3, 10)
+    @ddt.data(1, 3, 10, 32)
     def test_upload_multiple_blocks(self, value):
         """Upload multiple blocks in a single request"""
 
@@ -139,7 +139,7 @@ class TestListBlocks(base.TestBase):
     def setUp(self):
         super(TestListBlocks, self).setUp()
         self.create_empty_vault()
-        [self.upload_block() for _ in range(20)]
+        self.upload_multiple_blocks(20)
         self.blockids = []
         for block in self.blocks:
             self.blockids.append(block.Id)
@@ -231,7 +231,7 @@ class TestBlocksAssignedToFile(base.TestBase):
     def setUp(self):
         super(TestBlocksAssignedToFile, self).setUp()
         self.create_empty_vault()
-        [self.upload_block() for _ in range(3)]
+        self.upload_multiple_blocks(3)
         self.create_new_file()
         self.assign_all_blocks_to_file()
 
