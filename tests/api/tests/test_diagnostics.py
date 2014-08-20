@@ -8,7 +8,7 @@ class TestDiagnostics(base.TestBase):
         super(TestDiagnostics, self).setUp()
 
     def test_ping(self):
-        """Create a Vault"""
+        """Ping"""
 
         resp = self.client.ping()
         self.assertEqual(resp.status_code, 204,
