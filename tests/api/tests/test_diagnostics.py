@@ -12,7 +12,7 @@ class TestDiagnostics(base.TestBase):
 
         resp = self.client.ping()
         self.assertEqual(resp.status_code, 204,
-                         'Status code returned for Create Vault: {0} . '
+                         'Status code returned for Ping: {0} . '
                          'Expected 204'.format(resp.status_code))
         self.assertHeaders(resp.headers)
         self.assertEqual(len(resp.content), 0,
