@@ -37,22 +37,30 @@ logging = {
         # 'root': {'level': 'INFO', 'handlers': ['logstash']},
         # 'deuce': {'level': 'DEBUG', 'handlers': ['logstash']},
         # 'py.warnings': {'handlers': ['logstash']},
-        'root': {'level': 'INFO', 'handlers': ['rotatelogfile']},
-        'deuce': {'level': 'DEBUG', 'handlers': ['rotatelogfile']},
-        'py.warnings': {'handlers': ['rotatelogfile']},
+        'root': {'level': 'INFO', 'handlers': ['syslog']},
+        'deuce': {'level': 'DEBUG', 'handlers': ['syslog']},
+        'py.warnings': {'handlers': ['syslog']},
         '__force_dict__': True
     },
     'handlers': {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'simple'
+            'formatter': 'standard'
         },
         'logfile': {
             'class': 'logging.FileHandler',
             'filename': os.path.join(log_directory, 'deuce.log'),
             'level': 'INFO',
-            'formatter': 'simple'
+            'formatter': 'standard'
+        },
+        'syslog': {
+            #  'socktype': socket.SOCK_DGRAM,
+            #  'facility': 'local0',
+            'class': 'logging.handlers.SysLogHandler',
+            'level': 'INFO',
+            'formatter': 'standard',
+            'address': '/dev/log'
         },
         'rotatelogfile': {
             'class': 'logging.handlers.RotatingFileHandler',
@@ -60,7 +68,7 @@ logging = {
             'level': 'INFO',
             'maxBytes': 400000000,
             'backupCount': 2,
-            'formatter': 'simple'
+            'formatter': 'standard'
         }  # ,
         # 'logstash': {
         #     'class': 'logstash.LogstashHandler',
@@ -71,7 +79,7 @@ logging = {
         # }
     },
     'formatters': {
-        'simple': {
+        'standard': {
             'format': ('%(asctime)s %(levelname)-5.5s [%(name)s/%(lineno)d]'
                        '[%(threadName)s] [%(request_id)s] : %(message)s')
         }
