@@ -168,3 +168,8 @@ class MetadataStorageDriver(object):
         """Unregisters (removes) the block from the metadata
         store"""
         raise NotImplementedError
+
+    @abstractmethod
+    def get_health(self):
+        """Check the meta driver health status"""
+        raise NotImplementedError

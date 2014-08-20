@@ -3,6 +3,8 @@ from webtest import TestApp
 from deuce.tests import FunctionalTest
 import os
 import hashlib
+import random
+import string
 from random import randrange
 
 import json
@@ -24,6 +26,7 @@ class TestVaultController(FunctionalTest):
         vault_name = '@#$@#$@$'
         vault_path = '/v1.0/vaults/{0}'.format(vault_name)
 
+        # regex validation.
         response = self.app.put(vault_path, headers=self._hdrs,
                 expect_errors=True)
         self.assertEqual(response.status_int, 400)

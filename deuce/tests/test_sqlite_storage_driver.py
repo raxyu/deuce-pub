@@ -42,6 +42,10 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         # TODO: Add files and check that founds match as expected
 
+    def test_db_health(self):
+        driver = self.create_driver()
+        retval = driver.get_health()
+
     def test_file_crud(self):
         driver = self.create_driver()
 
