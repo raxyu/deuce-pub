@@ -19,8 +19,8 @@ class ProjectIDHook(PecanHook):
         # the value to the request project id.
         try:
             if hasattr(state.request, 'path') and \
-                    (state.request.path.endswith('v1.0/health') or
-                    state.request.path.endswith('v1.0/ping')):
+                    (state.request.path == '/v1.0/health' or
+                    state.request.path == '/v1.0/ping'):
                 return
             deuce.context.project_id = state.request.headers['x-project-id']
             # TODO: validate the project_id
