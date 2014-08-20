@@ -19,5 +19,18 @@ class TestDiagnostics(base.TestBase):
                          'Response Content was not empty. Content: '
                          '{0}'.format(resp.content))
 
+    def test_health(self):
+        """Health"""
+
+        resp = self.client.health()
+        self.assertEqual(resp.status_code, 200,
+                         'Status code returned for Health: {0} . '
+                         'Expected 200'.format(resp.status_code))
+        self.assertHeaders(resp.headers, json=True)
+
+        # TODO: Add additional response.content validation
+        resp_body = resp.json()
+        self.assertTrue(resp_body[0].endswith('is active.'))
+
     def tearDown(self):
         super(TestDiagnostics, self).tearDown()
