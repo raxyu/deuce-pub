@@ -11,9 +11,8 @@ class RootController(object):
         # should most likely get moved into config
         self.versions = {"v1.0": HomeController()}
 
-    @expose(generic=True, template='index.html')
-    def index(self):
-        return dict()
+    # DISABLE INDEX PAGE!
+    # def index(self):
 
     @expose()
     def _lookup(self, primary_key, *remainder):
@@ -24,7 +23,7 @@ class RootController(object):
 
     # TODO: Eliminate this error handling template or have
     # it return a well-formed error in a JSON body
-    @expose('error.html')
+    @expose('json')
     def error(self, status):
         try:
             status = int(status)

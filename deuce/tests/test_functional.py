@@ -17,8 +17,9 @@ class TestRootController(FunctionalTest):
         assert response.status_int == 401
 
         response = self.app.get('/', headers={'x-project-id': 'blah',
-            'x-auth-token': 'good'})
-        assert response.status_int == 200
+            'x-auth-token': 'good'},
+            expect_errors=True)
+        assert response.status_int == 404
 
     def test_get_10(self):
         response = self.app.get('/v1.0', headers={'x-project-id': 'blah',
