@@ -1,6 +1,7 @@
 from tests.api import base
 
 import ddt
+import msgpack
 import os
 import sha
 
@@ -48,10 +49,9 @@ class TestUploadBlocks(base.TestBase):
     def test_upload_block(self, value):
         """Upload a block to a vault"""
 
-        block_data = os.urandom(value)
-        self.blockid = sha.new(block_data).hexdigest()
+        self.generate_block_data(size=value)
         resp = self.client.upload_block(self.vaultname, self.blockid,
-                                        block_data)
+                                        self.block_data)
         self.assertEqual(resp.status_code, 201,
                          'Status code for uploading a block is '
                          '{0} . Expected 201'.format(resp.status_code))
@@ -60,10 +60,27 @@ class TestUploadBlocks(base.TestBase):
                          'Response Content was not empty. Content: '
                          '{0}'.format(resp.content))
 
+    @ddt.data(1, 3, 10)
+    def test_upload_multiple_blocks(self, value):
+        """Upload multiple blocks in a single request"""
+
+        [self.generate_block_data() for _ in range(value)]
+        data = dict([(block.Id, block.Data) for block in self.blocks])
+        msgpacked_data = msgpack.packb(data)
+        resp = self.client.upload_multiple_blocks(self.vaultname,
+                                                  msgpacked_data)
+        self.assertEqual(resp.status_code, 201,
+                         'Status code for uploading multiple blocks is '
+                         '{0} . Expected 201'.format(resp.status_code))
+        self.assertHeaders(resp.headers)
+        self.assertEqual(len(resp.content), 0,
+                         'Response Content was not empty. Content: '
+                         '{0}'.format(resp.content))
+
     def tearDown(self):
         super(TestUploadBlocks, self).tearDown()
-        if hasattr(self, 'blockid'):
-            self.client.delete_block(self.vaultname, self.blockid)
+        [self.client.delete_block(self.vaultname, block.Id) for block in
+            self.blocks]
         self.client.delete_vault(self.vaultname)
 
 
