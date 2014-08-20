@@ -21,8 +21,6 @@ class RootController(object):
         except KeyError:
             response.status_code = 404
 
-    # TODO: Eliminate this error handling template or have
-    # it return a well-formed error in a JSON body
     @expose('json')
     def error(self, status):
         try:

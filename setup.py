@@ -22,15 +22,6 @@ setup(
     install_requires=REQUIRES,
     test_suite='deuce',
     zip_safe=False,
-    data_files=[
-        ('bin', ['config.py']),
-        ('bin/deuce/templates',
-            ['deuce/templates/error.html',
-            'deuce/templates/index.html',
-            'deuce/templates/layout.html']),
-        ('bin/public/css',
-            ['deuce/public/css/style.css']),
-        ('bin/public/images',
-            ['deuce/public/images/logo.png'])],
+    data_files=[('bin', ['config.py'])],
     packages=find_packages(exclude=['tests'])
 )
