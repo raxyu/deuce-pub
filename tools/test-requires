@@ -2,6 +2,7 @@ coverage
 nose
 testtools
 testfixtures
+mock
 setuptools>=1.1.6
 pep8
 sentinels
