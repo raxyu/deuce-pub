@@ -544,3 +544,10 @@ class SqliteStorageDriver(MetadataStorageDriver):
 
         self._conn.execute(SQL_UNREGISTER_BLOCK, args)
         self._conn.commit()
+
+    def get_health(self):
+        try:
+            # TODO: Collect more system statistics.
+            return ["sqlite is active."]
+        except:  # pragma: no cover
+            return ["sqlite is not active."]

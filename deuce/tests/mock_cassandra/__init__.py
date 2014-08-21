@@ -8,6 +8,9 @@ class Session(object):
         self.conn = conn
 
     def execute(self, query, queryargs):
+        # Health check.
+        if 'system.local' in query:
+            return 'true'
 
         query = query.replace('false', '0')
         query = query.replace('true', '1')
