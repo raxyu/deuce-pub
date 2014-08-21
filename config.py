@@ -96,12 +96,12 @@ block_storage_driver = {
         # 'auth_url': 'https://identity.api.rackspacecloud.com/v2.0/'
 
     },
-    'swift2k': {
-        'driver': 'deuce.drivers.swift2k.SwiftStorageDriver',
+    'swift_py2': {
+        'driver': 'deuce.drivers.swift.py2.SwiftStorageDriver',
         'swift_module': 'swiftclient',
     },
-    'swift3k': {
-        'driver': 'deuce.drivers.swift3k.SwiftStorageDriver',
+    'swift_py3': {
+        'driver': 'deuce.drivers.swift.py3.SwiftStorageDriver',
         'swift_module': 'deuce.util',
     }
 }

@@ -2,10 +2,10 @@ import six
 from deuce.drivers.blockstoragedriver import BlockStorageDriver
 from pecan import conf
 if six.PY2:
-    from deuce.drivers.swift2k import SwiftStorageDriver
+    from deuce.drivers.swift.py2 import SwiftStorageDriver
 
 else:
-    from deuce.drivers.swift3k import SwiftStorageDriver
+    from deuce.drivers.swift.py3 import SwiftStorageDriver
 
 from deuce.tests.test_disk_storage_driver import DiskStorageDriverTest
 

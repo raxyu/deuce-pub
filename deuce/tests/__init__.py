@@ -57,9 +57,9 @@ def setUp():
     LOG.info('Swift - Mocking: {0:}'.format(
         conf_dict['block_storage_driver']['swift_testing']['is_mocking']))
     if conf_dict['block_storage_driver']['swift_testing']['is_mocking']:
-        conf_dict['block_storage_driver']['swift2k']['swift_module'] = \
+        conf_dict['block_storage_driver']['swift_py2']['swift_module'] = \
             'deuce.tests.db_mocking.swift_mocking'
-        conf_dict['block_storage_driver']['swift3k']['swift_module'] = \
+        conf_dict['block_storage_driver']['swift_py3']['swift_module'] = \
             'deuce.tests.db_mocking.swift_mocking'
 
     # To add for-test-only items.
