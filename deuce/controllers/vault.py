@@ -51,7 +51,6 @@ class VaultController(RestController):
     @expose('json')
     def get_one(self, vault_id):
         """Returns the statistics on vault controller object"""
-
         vault = Vault.get(vault_id)
 
         if vault:
