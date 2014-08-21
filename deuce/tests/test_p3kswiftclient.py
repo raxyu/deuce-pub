@@ -1,6 +1,6 @@
 from deuce.util import client as p3k_swiftclient
 from deuce.tests.util.mockfile import MockFile
-
+from deuce.tests import FunctionalTest
 from unittest import TestCase
 import mock
 import asyncio
@@ -18,13 +18,13 @@ class Response(object):
             self.content.read = mock.Mock(return_value=fut)
 
 
-class Test_P3k_SwiftClient(TestCase):
+class Test_P3k_SwiftClient(FunctionalTest):
 
     def setUp(self):
         self.storage_url = 'http://mock_storage_url.com'
-        self.token = 'mock_token'
-        self.vault = 'mock_vault'
-        self.block = 'mock'
+        self.token = self.create_auth_token()
+        self.vault = self.create_vault_id()
+        self.block = self.create_block_id()
         self.blocks = ['mock1', 'mock2']
         self.block_contents = [b'mock', b'mock']
         self.response_dict = dict()

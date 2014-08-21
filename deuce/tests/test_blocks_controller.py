@@ -21,14 +21,11 @@ class TestBlocksController(FunctionalTest):
 
         # Create a vault for us to work with
 
-        vault_name = 'blocks_vault_test'
+        vault_name = self.create_vault_id()
         self._vault_path = '/v1.0/vaults/{0}'.format(vault_name)
-
-        vault_name = 'blocks_vault_test' + str(uuid.uuid4())
-
         self._blocks_path = '{0}/blocks'.format(self._vault_path)
 
-        self._hdrs = {"x-project-id": 'testblockctrl' + str(uuid.uuid4()),
+        self._hdrs = {"x-project-id": self.create_project_id(),
                       "x-auth-token": '',
                       "x-storage-url": ''}
 
