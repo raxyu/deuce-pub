@@ -114,6 +114,13 @@ SQL_GET_FILE_BLOCKS = '''
     LIMIT :limit
 '''
 
+SQL_DELETE_FILE_BLOCKS_FOR_FILE = '''
+    DELETE FROM fileblocks
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+    AND fileid = :fileid
+'''
+
 SQL_GET_ALL_BLOCKS = '''
     SELECT blockid
     FROM blocks
@@ -191,6 +198,14 @@ SQL_HAS_BLOCK = '''
     WHERE projectid=:projectid
     AND blockid = :blockid
     AND vaultid = :vaultid
+'''
+
+SQL_GET_BLOCK_REF_COUNT = '''
+    SELECT count(*)
+    FROM fileblocks
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+    AND blockid = :blockid
 '''
 
 
@@ -360,6 +375,9 @@ class SqliteStorageDriver(MetadataStorageDriver):
         }
 
         res = self._conn.execute(SQL_DELETE_FILE, args)
+        self._conn.commit()
+
+        res = self._conn.execute(SQL_DELETE_FILE_BLOCKS_FOR_FILE, args)
         self._conn.commit()
 
     def finalize_file(self, vault_id, file_id, file_size=None):
@@ -544,3 +562,15 @@ class SqliteStorageDriver(MetadataStorageDriver):
 
         self._conn.execute(SQL_UNREGISTER_BLOCK, args)
         self._conn.commit()
+
+    def get_block_ref_count(self, vault_id, block_id):
+
+        args = {
+            'projectid': deuce.context.project_id,
+            'vaultid': vault_id,
+            'blockid': block_id
+        }
+
+        query_res = self._conn.execute(SQL_GET_BLOCK_REF_COUNT, args)
+
+        return next(query_res)[0]
