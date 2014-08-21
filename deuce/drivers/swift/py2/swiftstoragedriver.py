@@ -23,7 +23,7 @@ class SwiftStorageDriver(BlockStorageDriver):
 
     def __init__(self):
         self.lib_pack = importlib.import_module(
-            conf.block_storage_driver.swift_py2.swift_module)
+            conf.block_storage_driver.swift.swift_module)
         self.Conn = getattr(self.lib_pack, 'client')
 
     # =========== VAULTS ===============================

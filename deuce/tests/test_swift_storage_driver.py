@@ -39,16 +39,16 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
     def get_Auth_Token(self):
         self.mocking = False
         try:
-            if conf.block_storage_driver.swift_testing.is_mocking:
+            if conf.block_storage_driver.swift.testing.is_mocking:
                 self.mocking = True
         except:
             self.mocking = False
 
         if not self.mocking:
-            auth_url = str(conf.block_storage_driver.swift_testing.auth_url)
+            auth_url = str(conf.block_storage_driver.swift.testing.auth_url)
 
-            username = str(conf.block_storage_driver.swift_testing.username)
-            password = str(conf.block_storage_driver.swift_testing.password)
+            username = str(conf.block_storage_driver.swift.testing.username)
+            password = str(conf.block_storage_driver.swift.testing.password)
             try:
                 os_options = dict()
                 storage_url, token = \
@@ -62,7 +62,7 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
 
         else:
             storage_url = \
-                str(conf.block_storage_driver.swift_testing.storage_url)
+                str(conf.block_storage_driver.swift.testing.storage_url)
             token = 'mocking_token'
 
         self._hdrs = {"x-project-id": 'testswfitstoragedrv',
@@ -115,7 +115,7 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
         """
         self.mocking = False
         try:
-            if conf.block_storage_driver.swift_testing.is_mocking:
+            if conf.block_storage_driver.swift.testing.is_mocking:
                 self.mocking = True
         except:
             self.mocking = False
