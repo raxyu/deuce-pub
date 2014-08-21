@@ -20,9 +20,21 @@ class Vault(object):
         return None
 
     @staticmethod
+    def get_vaults_generator(marker, limit):
+        vault_list = deuce.metadata_driver.create_vaults_generator(
+            marker, limit + 1)
+        outmarker = None
+        if vault_list:
+            if len(vault_list) == limit + 1:
+                outmarker = vault_list[-1]
+                vault_list.pop()
+        return vault_list, outmarker
+
+    @staticmethod
     def create(vault_id):
         """Creates the vault with the specified vault_id"""
         deuce.storage_driver.create_vault(vault_id)
+        deuce.metadata_driver.create_vault(vault_id)
         return Vault(vault_id)
 
     def __init__(self, vault_id):
@@ -108,7 +120,10 @@ class Vault(object):
         return deuce.metadata_driver.file_length(self.id, file_id)
 
     def delete(self):
-        return deuce.storage_driver.delete_vault(self.id)
+        succ = deuce.storage_driver.delete_vault(self.id)
+        if succ:
+            deuce.metadata_driver.delete_vault(self.id)
+        return succ
 
     def delete_file(self, file_id):
         return deuce.metadata_driver.delete_file(self.id, file_id)

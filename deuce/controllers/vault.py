@@ -10,6 +10,11 @@ from deuce.controllers.files import FilesController
 from deuce.controllers.validation import *
 from deuce.model import Vault
 
+from deuce.util import set_qs
+import six
+from six.moves.urllib.parse import urlparse, parse_qs
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -18,10 +23,28 @@ class VaultController(RestController):
     blocks = BlocksController()
     files = FilesController()
 
-    @expose()
+    @expose('json')
     def index(self):
-        logger.warning('Invalid vault controller index request')
-        response.status_code = 404
+        inmarker = request.params.get('marker')
+        limit = int(request.params.get('limit', 0))
+
+        vaultlist, outmarker = Vault.get_vaults_generator(
+            inmarker, limit)
+        if vaultlist:
+            # Set x-next-batch resp header.
+            if outmarker:
+                query_args = {'marker': outmarker}
+                query_args['limit'] = limit
+                returl = set_qs(request.url, query_args)
+                response.headers["X-Next-Batch"] = returl
+            # Set return json for vault URLs.
+            p = urlparse(request.url)
+
+            return list(six.moves.map(lambda vaultname:
+                dict({vaultname: p.scheme +
+                    '://' + p.netloc + p.path + vaultname}), vaultlist))
+
+        return list()
 
     @validate(vault_name=VaultPutRule)
     @expose()
