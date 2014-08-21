@@ -17,7 +17,7 @@ class TestBlocksController(FunctionalTest):
 
         # Create a vault for us to work with
         vault_name = 'blocks_vault_test'
-        self._vault_path = '/v1.0/{0}'.format(vault_name)
+        self._vault_path = '/v1.0/vaults/{0}'.format(vault_name)
         self._blocks_path = '{0}/blocks'.format(self._vault_path)
 
         self._hdrs = {"x-project-id": 'testblockctrl',
@@ -63,7 +63,7 @@ class TestBlocksController(FunctionalTest):
         assert response.status_int == 404
 
     def test_get_all_invalid_vault_id(self):
-        path = '/v1.0/{0}/blocks'.format('bad_vault_id')
+        path = '/v1.0/vaults/{0}/blocks'.format('bad_vault_id')
         response = self.app.get(path, headers=self._hdrs,
                                 expect_errors=True)
 

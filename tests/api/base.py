@@ -119,20 +119,20 @@ class TestBase(fixtures.BaseTestFixture):
             self.assertEqual(u.path, '/{0}'.format(self.api_version), msg)
 
         if blockpath:
-            self.assertEqual(u.path, '/{0}/{1}/blocks'
+            self.assertEqual(u.path, '/{0}/vaults/{1}/blocks'
                              ''.format(self.api_version, self.vaultname), msg)
 
         if files:
-            self.assertEqual(u.path, '/{0}/{1}/files'
+            self.assertEqual(u.path, '/{0}/vaults/{1}/files'
                              ''.format(self.api_version, self.vaultname), msg)
 
         if filepath:
-            valid = re.compile('/{0}/{1}/files/[a-zA-Z0-9\-_]*'
+            valid = re.compile('/{0}/vaults/{1}/files/[a-zA-Z0-9\-_]*'
                                ''.format(self.api_version, self.vaultname))
             self.assertIsNotNone(valid.match(u.path), msg)
 
         if fileblock:
-            valid = re.compile('/{0}/{1}/files/[a-zA-Z0-9\-_]*/blocks'
+            valid = re.compile('/{0}/vaults/{1}/files/[a-zA-Z0-9\-_]*/blocks'
                                ''.format(self.api_version, self.vaultname))
             self.assertIsNotNone(valid.match(u.path), msg)
 
