@@ -160,6 +160,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         }
 
         self._files.remove(args)
+        self._fileblocks.remove(args)
 
     def finalize_file(self, vault_id, file_id, file_size=None):
         """Updates FILES to set a file to finalized. This function
@@ -273,6 +274,8 @@ class MongoDbStorageDriver(MetadataStorageDriver):
                 self._files.update({'_id': filerec_id}, {'$push':
                     {'blocks': {'$each': blocks}}},
                     upsert=False)
+
+                z = self._files.find_one({'_id': filerec_id})
 
                 # Monitor the size of the document.
                 docsize += blocks_len
@@ -455,9 +458,36 @@ class MongoDbStorageDriver(MetadataStorageDriver):
     def unregister_block(self, vault_id, block_id):
         self._blocks.ensure_index([('projectid', 1),
             ('vaultid', 1), ('blockid', 1)])
+
         args = {
             'projectid': deuce.context.project_id,
             'vaultid': vault_id,
             'blockid': str(block_id)
         }
         self._blocks.remove(args)
+
+    def get_block_ref_count(self, vault_id, block_id):
+
+        # Blocks can be in two places:
+        # 1) The fileblocks collection for unfinalized files
+        # 2) The files collection for finalized files
+
+        args = {
+            'projectid': deuce.context.project_id,
+            'vaultid': vault_id,
+            'blockid': str(block_id)
+        }
+
+        fileblocks_cnt = self._fileblocks.find(args).count()
+
+        # TODO: we currently count all documents. Let's
+        # optimize this query later
+        res = self._files.find()
+
+        files_cnt = 0
+
+        for doc in res:
+            docgen = (rec['blockid'] for rec in doc['blocks'])
+            files_cnt += sum(1 for _ in docgen)
+
+        return files_cnt + fileblocks_cnt
