@@ -486,7 +486,6 @@ class SqliteStorageDriverTest(FunctionalTest):
 
     def test_vault_crud_and_generator(self):
         driver = self.create_driver()
-        project_id = 'project_id'
         vaultids = list()
         for n in range(5):
             vault_id = self.create_vault_id()
