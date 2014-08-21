@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 try:
-    from setuptools import setup, find_packages
+    from distutils.core import setup
+    from setuptools import find_packages
 except ImportError:
     from ez_setup import use_setuptools
     use_setuptools()
@@ -13,11 +14,14 @@ setup(
     name='deuce',
     version='0.1',
     description='Deuce - Block-level de-duplication as-a-service',
+    license='Apache License 2.0',
+    url='github.com/rackerlabs/deuce',
     author='Rackspace',
     author_email='',
+    include_package_data=True,
     install_requires=REQUIRES,
     test_suite='deuce',
     zip_safe=False,
-    include_package_data=True,
+    data_files=[('bin', ['config.py'])],
     packages=find_packages(exclude=['tests'])
 )
