@@ -187,6 +187,110 @@ class SqliteStorageDriverTest(FunctionalTest):
         self.assertEqual(driver.is_finalized(vault_id, file_id),
             False)
 
+    def test_delete_block_no_refs(self):
+        driver = self.create_driver()
+
+        hdr_data = {
+            'x-project-id': self.create_project_id(),
+            'x-auth-token': ''
+        }
+        self.init_context(hdr_data)
+
+        vault_id = self.create_vault_id()
+
+        block_id = 'block_0'
+        block_size = 1024
+
+        self.assertEqual(driver.get_block_ref_count(vault_id, block_id), 0)
+
+        driver.register_block(vault_id, block_id, block_size)
+
+        self.assertEqual(driver.get_block_ref_count(vault_id, block_id), 0)
+
+        driver.unregister_block(vault_id, block_id)
+
+        self.assertEqual(driver.get_block_ref_count(vault_id, block_id), 0)
+
+    def test_delete_file_check_refs(self):
+        driver = self.create_driver()
+
+        hdr_data = {
+            'x-project-id': self.create_project_id(),
+            'x-auth-token': ''
+        }
+        self.init_context(hdr_data)
+
+        vault_id = self.create_vault_id()
+        file_id = self.create_file_id()
+        block_id = 'block_0'
+        block_size = 1024
+
+        driver.create_file(vault_id, file_id)
+        driver.register_block(vault_id, block_id, block_size)
+        driver.assign_block(vault_id, file_id, block_id, 0)
+
+        self.assertEqual(driver.get_block_ref_count(vault_id, block_id), 1)
+        driver.delete_file(vault_id, file_id)
+        self.assertEqual(driver.get_block_ref_count(vault_id, block_id), 0)
+
+    def test_block_references(self):
+
+        driver = self.create_driver()
+
+        hdr_data = {
+            'x-project-id': self.create_project_id(),
+            'x-auth-token': ''
+        }
+        self.init_context(hdr_data)
+
+        vault_id = self.create_vault_id()
+
+        num_elements = 1
+
+        # Create a bunch of file IDs
+        file_ids = [self.create_file_id() for _ in range(0, num_elements)]
+
+        # Now create some file IDs
+        block_ids = ['block_{0}'.format(x) for x in range(0, num_elements)]
+
+        block_size = 1024
+
+        # Create each of those files
+
+        for file_id in file_ids:
+            driver.create_file(vault_id, file_id)
+
+        for block_id in block_ids:
+            self.assertEqual(driver.has_block(vault_id, block_id), False)
+
+            # Check the block references on a non-existent block. Should be 0
+            self.assertEqual(driver.get_block_ref_count(vault_id, block_id), 0)
+
+            driver.register_block(vault_id, block_id, block_size)
+            self.assertEqual(driver.has_block(vault_id, block_id), True)
+
+            # Check the block references for these blocks. They should all be 0
+            self.assertEqual(driver.get_block_ref_count(vault_id, block_id), 0)
+
+        # Now assign each block to a single file. The reference count for each
+        # block should be incremented to 1
+        for i in range(0, num_elements):
+            file_id = file_ids[i]
+            block_id = block_ids[i]
+
+            self.assertEqual(driver.get_block_ref_count(vault_id, block_id), 0)
+            driver.assign_block(vault_id, file_id, block_id, 0)
+            self.assertEqual(driver.get_block_ref_count(vault_id, block_id), 1)
+
+            # Each 'file' is one block in length
+            driver.finalize_file(vault_id, file_id, file_size=block_size)
+
+            self.assertEqual(driver.is_finalized(vault_id, file_id), True)
+
+            # Finalizing the file should not change the block
+            # reference count
+            self.assertEqual(driver.get_block_ref_count(vault_id, block_id), 1)
+
     def test_file_assignment_registration(self):
 
         driver = self.create_driver()
