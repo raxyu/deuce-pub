@@ -27,7 +27,8 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         hdr_data = {
             'x-project-id': self.create_project_id(),
-            'x-auth-token': ''
+            'x-auth-token': '',
+            "x-storage-url": ''
         }
         self.init_context(hdr_data)
         vault_id = self.create_vault_id()
@@ -56,7 +57,8 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         hdr_data = {
             'x-project-id': self.create_project_id(),
-            'x-auth-token': ''
+            'x-auth-token': '',
+            "x-storage-url": ''
         }
         self.init_context(hdr_data)
 
@@ -86,7 +88,8 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         hdr_data = {
             'x-project-id': self.create_project_id(),
-            'x-auth-token': ''
+            'x-auth-token': '',
+            "x-storage-url": ''
         }
         self.init_context(hdr_data)
 
@@ -108,7 +111,8 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         hdr_data = {
             'x-project-id': self.create_project_id(),
-            'x-auth-token': ''
+            'x-auth-token': '',
+            "x-storage-url": ''
         }
         self.init_context(hdr_data)
 
@@ -134,7 +138,8 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         hdr_data = {
             'x-project-id': self.create_project_id(),
-            'x-auth-token': ''
+            'x-auth-token': '',
+            "x-storage-url": ''
         }
         self.init_context(hdr_data)
 
@@ -168,7 +173,8 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         hdr_data = {
             'x-project-id': self.create_project_id(),
-            'x-auth-token': ''
+            'x-auth-token': '',
+            "x-storage-url": ''
         }
         self.init_context(hdr_data)
 
@@ -202,7 +208,8 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         hdr_data = {
             'x-project-id': self.create_project_id(),
-            'x-auth-token': ''
+            'x-auth-token': '',
+            "x-storage-url": ''
         }
         self.init_context(hdr_data)
 
@@ -237,7 +244,8 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         hdr_data = {
             'x-project-id': self.create_project_id(),
-            'x-auth-token': ''
+            'x-auth-token': '',
+            "x-storage-url": ''
         }
         self.init_context(hdr_data)
 
@@ -428,7 +436,8 @@ class SqliteStorageDriverTest(FunctionalTest):
 
         hdr_data = {
             'x-project-id': self.create_project_id(),
-            'x-auth-token': ''
+            'x-auth-token': '',
+            "x-storage-url": ''
         }
         self.init_context(hdr_data)
 
