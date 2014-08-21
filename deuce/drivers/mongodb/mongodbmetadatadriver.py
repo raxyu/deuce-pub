@@ -275,8 +275,6 @@ class MongoDbStorageDriver(MetadataStorageDriver):
                     {'blocks': {'$each': blocks}}},
                     upsert=False)
 
-                z = self._files.find_one({'_id': filerec_id})
-
                 # Monitor the size of the document.
                 docsize += blocks_len
                 if docsize > self._docnum or Finished:
