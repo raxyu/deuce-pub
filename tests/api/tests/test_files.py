@@ -154,7 +154,7 @@ class TestFileAssignedBlocks(base.TestBase):
     def setUp(self):
         super(TestFileAssignedBlocks, self).setUp()
         self.create_empty_vault()
-        [self.upload_block() for _ in range(3)]
+        self.upload_multiple_blocks(3)
         self.create_new_file()
         self.assign_all_blocks_to_file()
 
@@ -223,7 +223,7 @@ class TestFileOverlappingBlock(base.TestBase):
     def setUp(self):
         super(TestFileOverlappingBlock, self).setUp()
         self.create_empty_vault()
-        [self.upload_block() for _ in range(4)]
+        self.upload_multiple_blocks(4)
         self.create_new_file()
         # Assign the files but set the offset to half the size of the block
         self.assign_all_blocks_to_file(offset_divisor=2)
@@ -261,7 +261,7 @@ class TestListBlocksOfFile(base.TestBase):
     def setUp(self):
         super(TestListBlocksOfFile, self).setUp()
         self.create_empty_vault()
-        [self.upload_block() for _ in range(20)]
+        self.upload_multiple_blocks(20)
         self.blockids = []
         self.blockids_offsets = []
         offset = 0
@@ -377,7 +377,7 @@ class TestFinalizedFile(base.TestBase):
     def setUp(self):
         super(TestFinalizedFile, self).setUp()
         self.create_empty_vault()
-        [self.upload_block() for _ in range(3)]
+        self.upload_multiple_blocks(3)
         self.create_new_file()
         self.assign_all_blocks_to_file()
         self.finalize_file()
