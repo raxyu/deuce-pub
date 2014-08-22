@@ -43,10 +43,36 @@ class TestVaultController(FunctionalTest):
         for cnt in range(5):
             self.helper_create_vault('vault_{0}'.format(cnt), hdrs)
 
+        # No limit nor marker
+        response = self.app.get('/v1.0/vaults/',
+            params=params,
+            headers=hdrs)
+        assert str(response.body) == str(
+            b'[{"vault_0": "http://localhost/v1.0/vaults/vault_0"}, '
+            b'{"vault_1": "http://localhost/v1.0/vaults/vault_1"}, '
+            b'{"vault_2": "http://localhost/v1.0/vaults/vault_2"}, '
+            b'{"vault_3": "http://localhost/v1.0/vaults/vault_3"}, '
+            b'{"vault_4": "http://localhost/v1.0/vaults/vault_4"}]')
+
+        # Only marker
+        params['marker'] = "vault_0"
+        response = self.app.get('/v1.0/vaults/',
+            params=params,
+            headers=hdrs)
+        assert str(response.body) == str(
+            b'[{"vault_0": "http://localhost/v1.0/vaults/vault_0"}, '
+            b'{"vault_1": "http://localhost/v1.0/vaults/vault_1"}, '
+            b'{"vault_2": "http://localhost/v1.0/vaults/vault_2"}, '
+            b'{"vault_3": "http://localhost/v1.0/vaults/vault_3"}, '
+            b'{"vault_4": "http://localhost/v1.0/vaults/vault_4"}]')
+
+        # Only limit
+        params = dict()
         params['limit'] = 99
         response = self.app.get('/v1.0/vaults/',
             params=params,
             headers=hdrs)
+
         assert str(response.body) == str(
             b'[{"vault_0": "http://localhost/v1.0/vaults/vault_0"}, '
             b'{"vault_1": "http://localhost/v1.0/vaults/vault_1"}, '
