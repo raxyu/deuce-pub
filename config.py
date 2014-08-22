@@ -11,7 +11,7 @@ def get_hooks():
     from deuce.hooks import TransactionIDHook
     from deuce.hooks import OpenStackHook
     return [DeuceContextHook(), TransactionIDHook(), ProjectIDHook(),
-        OpenStackHook()]
+            OpenStackHook()]
 
 # Pecan Application Configurations
 app = {
@@ -87,8 +87,12 @@ block_storage_driver = {
         'path': '/tmp/block_storage'
     },
     'swift': {
-        'driver': 'deuce.drivers.swift.SwiftStorageDriver',
+
+        'driver': 'deuce.drivers.swift.py2.SwiftStorageDriver',
         'swift_module': 'swiftclient',
+
+        # 'driver': 'deuce.drivers.swift.py3.SwiftStorageDriver',
+        # 'swift_module': 'deuce.util',
 
         'testing': {
             'is_mocking': True,
@@ -98,7 +102,8 @@ block_storage_driver = {
             'storage_url': 'Storage Url'
             # Example:
             # 'auth_url': 'https://identity.api.rackspacecloud.com/v2.0/'
-        }
+        },
+
     }
 }
 
