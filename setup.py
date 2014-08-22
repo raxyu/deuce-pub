@@ -13,9 +13,8 @@ else:
                 'python-swiftclient']
 
     extras_require = {
-        ':python_version=="2.7"': ['gevent'],
-        ':python_version=="3.3"': ['asyncio', 'aiohttp'],
-        ':python_version=="3.4"': ['asyncio', 'aiohttp'],
+        'python_version>="3.3"': ['asyncio', 'aiohttp'],
+        'python_version=="2.7"': ['gevent']
     }
     setup(
         name='deuce',
