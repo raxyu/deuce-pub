@@ -36,7 +36,8 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
     """
 
     def __init__(self, url, version, auth_token=None, storage_url=None,
-                 serialize_format='json', deserialize_format='json'):
+                 tenantid=None, serialize_format='json',
+                 deserialize_format='json'):
         super(BaseDeuceClient, self).__init__(serialize_format,
                                               deserialize_format)
         self.url = url
@@ -47,8 +48,10 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
         if storage_url:
             self.default_headers['X-Storage-Url'] = storage_url
         self.default_headers['X-Auth-Token'] = self.auth_token
-        self.default_headers['X-Project-Id'] = str(uuid.uuid4()).replace('-',
-                                                                         '')
+        if tenantid:
+            self.default_headers['X-Project-Id'] = tenantid
+        else:
+            self.default_headers['X-Project-Id'] = str(uuid.uuid4())
 
     def create_vault(self, vaultname):
         """
