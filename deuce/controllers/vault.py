@@ -1,6 +1,6 @@
 from deuce.util import log as logging
 
-from pecan import expose, response, request
+from pecan import conf, expose, response, request
 from pecan.rest import RestController
 
 import deuce
@@ -23,28 +23,38 @@ class VaultController(RestController):
     blocks = BlocksController()
     files = FilesController()
 
+    @validate(marker=VaultMarkerRule, limit=LimitRule)
     @expose('json')
     def index(self):
         inmarker = request.params.get('marker')
-        limit = int(request.params.get('limit', 0))
+        limit = int(request.params.get('limit',
+            conf.api_configuration.max_returned_num))
 
-        vaultlist, outmarker = Vault.get_vaults_generator(
-            inmarker, limit)
-        if vaultlist:
-            # Set x-next-batch resp header.
-            if outmarker:
-                query_args = {'marker': outmarker}
-                query_args['limit'] = limit
-                returl = set_qs(request.url, query_args)
-                response.headers["X-Next-Batch"] = returl
-            # Set return json for vault URLs.
-            p = urlparse(request.url)
+        vaultlist = Vault.get_vaults_generator(
+            inmarker, limit + 1)
+        resp = list(vaultlist)
 
-            return list(six.moves.map(lambda vaultname:
-                dict({vaultname: p.scheme +
-                    '://' + p.netloc + p.path + vaultname}), vaultlist))
+        if not resp:
+            return list()
 
-        return list()
+        # Note: the list may not actually be truncated
+        truncated = len(resp) == limit + 1
+
+        outmarker = resp.pop() if truncated else None
+
+        # Set x-next-batch resp header.
+        if outmarker:
+            query_args = {'marker': outmarker}
+            query_args['limit'] = limit
+            returl = set_qs(request.url, query_args)
+            response.headers["X-Next-Batch"] = returl
+
+        # Set return json for vault URLs.
+        p = urlparse(request.url)
+
+        return list(six.moves.map(lambda vaultname:
+            dict({vaultname: p.scheme +
+                '://' + p.netloc + p.path + vaultname}), resp))
 
     @validate(vault_name=VaultPutRule)
     @expose()

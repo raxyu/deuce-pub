@@ -21,14 +21,8 @@ class Vault(object):
 
     @staticmethod
     def get_vaults_generator(marker, limit):
-        vault_list = deuce.metadata_driver.create_vaults_generator(
-            marker, limit + 1)
-        outmarker = None
-        if vault_list:
-            if len(vault_list) == limit + 1:
-                outmarker = vault_list[-1]
-                vault_list.pop()
-        return vault_list, outmarker
+        return deuce.metadata_driver.create_vaults_generator(
+            marker, limit)
 
     @staticmethod
     def create(vault_id):

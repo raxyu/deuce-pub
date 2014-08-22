@@ -204,6 +204,9 @@ FilePostRuleNoneOk = Rule(val_file_id(none_ok=True), lambda: _abort(400))
 BlockPutRuleNoneOk = Rule(val_block_id(none_ok=True), lambda: _abort(400))
 
 # query string rules
+VaultMarkerRule = Rule(val_vault_id(none_ok=True),
+lambda: _abort(404),lambda v: request.params.get(v))
+
 FileMarkerRule = Rule(val_file_id(none_ok=True), lambda: _abort(404),
                       lambda v: request.params.get(v))
 
