@@ -244,3 +244,12 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
         resp = self.request('GET', '{0}/{1}/ping'.format(self.url,
                                                          self.version))
         return resp
+
+    def health(self):
+        """
+        Health
+        """
+
+        resp = self.request('GET', '{0}/{1}/health'.format(self.url,
+                                                           self.version))
+        return resp
