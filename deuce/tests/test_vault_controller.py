@@ -37,7 +37,7 @@ class TestVaultController(FunctionalTest):
         response = self.app.get('/v1.0/vaults/',
             params=params,
             headers=hdrs)
-        assert str(response.body) == str(b'[]')
+        assert str(response.text) == str('[]')
 
         # Prepare several vaults in the storage.
         for cnt in range(5):
@@ -47,24 +47,29 @@ class TestVaultController(FunctionalTest):
         response = self.app.get('/v1.0/vaults/',
             params=params,
             headers=hdrs)
-        assert str(response.body) == str(
-            b'[{"vault_0": "http://localhost/v1.0/vaults/vault_0"}, '
-            b'{"vault_1": "http://localhost/v1.0/vaults/vault_1"}, '
-            b'{"vault_2": "http://localhost/v1.0/vaults/vault_2"}, '
-            b'{"vault_3": "http://localhost/v1.0/vaults/vault_3"}, '
-            b'{"vault_4": "http://localhost/v1.0/vaults/vault_4"}]')
+
+        assert json.loads(response.text) == json.loads(
+            str(
+                u'{"vault_4": {"url": "http://localhost/v1.0/vaults/vault_4"},'
+                u' "vault_2": {"url": "http://localhost/v1.0/vaults/vault_2"},'
+                u' "vault_3": {"url": "http://localhost/v1.0/vaults/vault_3"},'
+                u' "vault_0": {"url": "http://localhost/v1.0/vaults/vault_0"},'
+                u' "vault_1": {"url": "http://localhost/v1.0/vaults/vault_1"}}'
+            ))
 
         # Only marker
         params['marker'] = "vault_0"
         response = self.app.get('/v1.0/vaults/',
             params=params,
             headers=hdrs)
-        assert str(response.body) == str(
-            b'[{"vault_0": "http://localhost/v1.0/vaults/vault_0"}, '
-            b'{"vault_1": "http://localhost/v1.0/vaults/vault_1"}, '
-            b'{"vault_2": "http://localhost/v1.0/vaults/vault_2"}, '
-            b'{"vault_3": "http://localhost/v1.0/vaults/vault_3"}, '
-            b'{"vault_4": "http://localhost/v1.0/vaults/vault_4"}]')
+        assert json.loads(response.text) == json.loads(
+            str(
+                u'{"vault_4": {"url": "http://localhost/v1.0/vaults/vault_4"},'
+                u' "vault_2": {"url": "http://localhost/v1.0/vaults/vault_2"},'
+                u' "vault_3": {"url": "http://localhost/v1.0/vaults/vault_3"},'
+                u' "vault_0": {"url": "http://localhost/v1.0/vaults/vault_0"},'
+                u' "vault_1": {"url": "http://localhost/v1.0/vaults/vault_1"}}'
+            ))
 
         # Only limit
         params = dict()
@@ -73,37 +78,45 @@ class TestVaultController(FunctionalTest):
             params=params,
             headers=hdrs)
 
-        assert str(response.body) == str(
-            b'[{"vault_0": "http://localhost/v1.0/vaults/vault_0"}, '
-            b'{"vault_1": "http://localhost/v1.0/vaults/vault_1"}, '
-            b'{"vault_2": "http://localhost/v1.0/vaults/vault_2"}, '
-            b'{"vault_3": "http://localhost/v1.0/vaults/vault_3"}, '
-            b'{"vault_4": "http://localhost/v1.0/vaults/vault_4"}]')
+        assert json.loads(response.text) == json.loads(
+            str(
+                u'{"vault_4": {"url": "http://localhost/v1.0/vaults/vault_4"},'
+                u' "vault_2": {"url": "http://localhost/v1.0/vaults/vault_2"},'
+                u' "vault_3": {"url": "http://localhost/v1.0/vaults/vault_3"},'
+                u' "vault_0": {"url": "http://localhost/v1.0/vaults/vault_0"},'
+                u' "vault_1": {"url": "http://localhost/v1.0/vaults/vault_1"}}'
+            ))
 
         params['limit'] = 1
         response = self.app.get('/v1.0/vaults/',
             params=params,
             headers=hdrs)
-        assert str(response.body) == str(b'[{"vault_0": '
-            b'"http://localhost/v1.0/vaults/vault_0"}]')
+        assert json.loads(response.text) == json.loads(
+            str(
+                u'{"vault_0": {"url": "http://localhost/v1.0/vaults/vault_0"}}'
+            ))
 
         next_url = response.headers["X-Next-Batch"]
         params['limit'] = 99  # More than what left in the list.
         response = self.app.get(next_url,
             params=params,
             headers=hdrs)
-        assert str(response.body) == str(
-            b'[{"vault_1": "http://localhost/v1.0/vaults/vault_1"}, '
-            b'{"vault_2": "http://localhost/v1.0/vaults/vault_2"}, '
-            b'{"vault_3": "http://localhost/v1.0/vaults/vault_3"}, '
-            b'{"vault_4": "http://localhost/v1.0/vaults/vault_4"}]')
+        assert json.loads(response.text) == json.loads(
+            str(
+                u'{"vault_4": {"url": "http://localhost/v1.0/vaults/vault_4"},'
+                u' "vault_2": {"url": "http://localhost/v1.0/vaults/vault_2"},'
+                u' "vault_3": {"url": "http://localhost/v1.0/vaults/vault_3"},'
+                u' "vault_1": {"url": "http://localhost/v1.0/vaults/vault_1"}}'
+            ))
 
         params['limit'] = 1
         response = self.app.get(next_url,
             params=params,
             headers=hdrs)
-        assert str(response.body) == str(b'[{"vault_1": '
-            b'"http://localhost/v1.0/vaults/vault_1"}]')
+        assert json.loads(response.text) == json.loads(
+            str(
+                u'{"vault_1": {"url": "http://localhost/v1.0/vaults/vault_1"}}'
+            ))
 
         params['marker'] = 'vault_not_exists'
         params['limit'] = 99
@@ -111,7 +124,7 @@ class TestVaultController(FunctionalTest):
             params=params,
             headers=hdrs,
             expect_errors=True)
-        assert str(response.body) == str(b'[]')
+        assert str(response.text) == str('[]')
 
         # Cleanup
         for cnt in range(5):

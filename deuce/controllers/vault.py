@@ -52,8 +52,8 @@ class VaultController(RestController):
         # Set return json for vault URLs.
         p = urlparse(request.url)
 
-        return list(six.moves.map(lambda vaultname:
-            dict({vaultname: p.scheme +
+        return dict(six.moves.map(lambda vaultname:
+            (vaultname, {"url": p.scheme +
                 '://' + p.netloc + p.path + vaultname}), resp))
 
     @validate(vault_name=VaultPutRule)
