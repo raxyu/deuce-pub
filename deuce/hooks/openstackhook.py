@@ -1,10 +1,10 @@
 import deuce
 
-from deuce.hooks import Healthhook
+from deuce.hooks import HealthHook
 from pecan.core import abort
 
 
-class OpenStackHook(Healthhook):
+class OpenStackHook(HealthHook):
     """Every request that hits Deuce must have a header specifying the
     auth_token for the user the request is for.
 

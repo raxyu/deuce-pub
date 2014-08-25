@@ -1,12 +1,12 @@
 import six
 from pecan.hooks import PecanHook
-from deuce.hooks import Healthhook
+from deuce.hooks import HealthHook
 from pecan.core import abort
 
 import deuce
 
 
-class SwiftHook(Healthhook):
+class OpenstackSwiftHook(HealthHook):
     """Every request that hits Deuce must have a header specifying the
     x-storage-url if running the swift storage driver
 
@@ -14,7 +14,7 @@ class SwiftHook(Healthhook):
     with a 401"""
 
     def on_route(self, state):
-        if super(SwiftHook, self).health(state):
+        if super(OpenstackSwiftHook, self).health(state):
             return
 
         class OpenStackObject(object):

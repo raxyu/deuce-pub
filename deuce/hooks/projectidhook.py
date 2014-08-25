@@ -1,11 +1,11 @@
 
 from pecan.hooks import PecanHook
 from pecan.core import abort
-from deuce.hooks import Healthhook
+from deuce.hooks import HealthHook
 import deuce
 
 
-class ProjectIDHook(Healthhook):
+class ProjectIDHook(HealthHook):
     """Every request that hits Deuce must have a header specifying the
     project id that the request is for. The Project ID is synonymous with
     Account ID, Tenant ID, etc. in the Rackspace world.
