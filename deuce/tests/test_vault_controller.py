@@ -15,8 +15,7 @@ class TestVaultController(FunctionalTest):
     def setUp(self):
         super(TestVaultController, self).setUp()
         self._hdrs = {"x-project-id": self.create_project_id(),
-                      "x-auth-token": '',
-                      "x-storage-url": ''}
+                      "x-auth-token": self.create_auth_token()}
 
     def test_vault_leaf(self):
         response = self.app.get('/v1.0/vaults/', headers=self._hdrs,
