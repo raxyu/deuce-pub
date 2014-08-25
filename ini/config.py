@@ -56,14 +56,14 @@ logging = {
             'level': config['handlers']['logfile']['level'],
             'formatter': config['handlers']['logfile']['formatter']
         },
-        # 'syslog': {
-        #     #  'socktype': config['handlers']['syslog']['socktype'],
-        #     #  'facility': config['handlers']['syslog']['facility'],
-        #     'class': config['handlers']['syslog']['class'],
-        #     'level': config['handlers']['syslog']['level'],
-        #     'formatter': config['handlers']['syslog']['formatter'],
-        #     'address': 'config['handlers']['syslog']['address']'
-        # },
+        'syslog': {
+            #  'socktype': config['handlers']['syslog']['socktype'],
+            #  'facility': config['handlers']['syslog']['facility'],
+            'class': config['handlers']['syslog']['class'],
+            'level': config['handlers']['syslog']['level'],
+            'formatter': config['handlers']['syslog']['formatter'],
+            'address': 'config['handlers']['syslog']['address']'
+        },
         'rotatelogfile': {
             'class': config['handlers']['rotatelogfile']['class'],
             'filename': os.path.join(log_directory,
@@ -75,13 +75,13 @@ logging = {
                                ['backupCount']),
             'formatter': config['handlers']['rotatelogfile']['formatter']
         },
-        # 'logstash': {
-        #     'class': config['handlers']['logstash']['class'],
-        #     'level': config['handlers']['logstash']['level'],
-        #     'host': config['handlers']['logstash']['host']',
-        #     'port': int(config['handlers']['logstash']['port']),
-        #     'version': int(config['handlers']['logstash']['version'])
-        # }
+        'logstash': {
+            'class': config['handlers']['logstash']['class'],
+            'level': config['handlers']['logstash']['level'],
+            'host': config['handlers']['logstash']['host']',
+            'port': int(config['handlers']['logstash']['port']),
+            'version': int(config['handlers']['logstash']['version'])
+        }
     },
     'formatters': {
         'standard': {
