@@ -42,14 +42,16 @@ class OpenstackSwiftHook(HealthHook):
         # current storage driver is swift
 
         if six.PY2:  # pragma: no cover
+            from deuce.drivers.swift import py2
             if isinstance(deuce.storage_driver,
-                          deuce.drivers.swift.py2.SwiftStorageDriver):
+                          py2.SwiftStorageDriver):
                 check_storage_url()
             else:
                 pass
         elif six.PY3:  # pragma: no cover
+            from deuce.drivers.swift import py3
             if isinstance(deuce.storage_driver,
-                          deuce.drivers.swift.py3.SwiftStorageDriver):
+                          py3.SwiftStorageDriver):
                 check_storage_url()
             else:
                 pass
