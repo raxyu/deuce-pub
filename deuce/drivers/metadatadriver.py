@@ -170,6 +170,18 @@ class MetadataStorageDriver(object):
         raise NotImplementedError
 
     @abstractmethod
+    def get_block_ref_count(self, vault_id, block_id):
+        """Returns an integer indicating the number of referencs
+        to the specified block. Note that each reference of the
+        block is counted, even if from the same file. If the
+        block does not exist, None shall be returned.
+
+        :param vault_id: The ID of the vault containing the block
+        :param block_id: The ID the block to check references on
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def get_health(self):
         """Check the meta driver health status"""
         raise NotImplementedError
