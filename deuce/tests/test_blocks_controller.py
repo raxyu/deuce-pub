@@ -26,8 +26,7 @@ class TestBlocksController(FunctionalTest):
         self._blocks_path = '{0}/blocks'.format(self._vault_path)
 
         self._hdrs = {"x-project-id": self.create_project_id(),
-                      "x-auth-token": '',
-                      "x-storage-url": ''}
+                      "x-auth-token": self.create_auth_token()}
 
         response = self.app.put(self._vault_path,
                                 headers=self._hdrs)

@@ -25,7 +25,7 @@ class TestFilesController(FunctionalTest):
         self.total_file_num = 0
 
         self._hdrs = {"x-project-id": self.create_project_id(),
-            "x-auth-token": ''}
+            "x-auth-token": self.create_auth_token()}
         self.init_context(self._hdrs)
 
         # Create a vault and a file for us to work with
