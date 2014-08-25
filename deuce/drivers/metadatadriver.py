@@ -180,3 +180,8 @@ class MetadataStorageDriver(object):
         :param block_id: The ID the block to check references on
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def get_health(self):
+        """Check the meta driver health status"""
+        raise NotImplementedError

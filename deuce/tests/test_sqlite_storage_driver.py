@@ -6,6 +6,8 @@ from deuce.drivers.metadatadriver import MetadataStorageDriver, GapError,\
     OverlapError
 from deuce.drivers.sqlite import SqliteStorageDriver
 
+from mock import MagicMock
+
 
 class SqliteStorageDriverTest(FunctionalTest):
 
@@ -41,6 +43,13 @@ class SqliteStorageDriverTest(FunctionalTest):
             assert statistics[key]['count'] == 0
 
         # TODO: Add files and check that founds match as expected
+
+    def test_db_health(self):
+        driver = self.create_driver()
+        retval = driver.get_health()
+        driver.get_health = MagicMock(return_value=str('is not active.'))
+        retval = driver.get_health()
+        assert retval == str('is not active.')
 
     def test_file_crud(self):
         driver = self.create_driver()

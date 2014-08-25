@@ -1,3 +1,4 @@
+import msgpack
 from deuce.util import log as logging
 
 from pecan import conf, expose, request, response, abort
@@ -101,3 +102,32 @@ class BlocksController(RestController):
             logger.info('block [{0}] added'.format(block_id))
         except ValueError as e:
             response.status_code = 412
+
+    @validate(vault_id=VaultGetRule, block_id=ReqNoneRule)
+    @expose()
+    def post(self, vault_id, block_id):
+
+        vault = Vault.get(vault_id)
+        try:
+            unpacked = msgpack.unpackb(request.body_file_seekable.read())
+
+            if not isinstance(unpacked, dict):
+                raise TypeError
+
+            else:
+                block_ids = list(unpacked.keys())
+                block_datas = list(unpacked.values())
+                try:
+                    retval = vault.put_async_block(
+                        block_ids,
+                        block_datas)
+                    response.status_code = 201 if all(retval) is True else 500
+                    logger.info('blocks [{0}] added'.format(block_ids))
+                except ValueError:
+                    response.status_code = 412
+        except (TypeError, ValueError):
+            logger.error('Request Body not well formed '
+                         'for posting muliple blocks to {0}'.format(vault_id))
+            abort(400, headers={"Transaction-ID":
+                  deuce.context.transaction.request_id},
+                  comment="Request Body not well formed")

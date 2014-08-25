@@ -12,6 +12,9 @@ class Session(object):
         self.conn = conn
 
     def execute(self, query, queryargs):
+        # Health check.
+        if 'system.local' in query:
+            return 'true'
 
         original_query = query
 

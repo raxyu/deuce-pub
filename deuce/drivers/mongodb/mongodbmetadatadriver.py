@@ -489,3 +489,9 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             files_cnt += sum(1 for _ in docgen)
 
         return files_cnt + fileblocks_cnt
+
+    def get_health(self):
+        try:
+            return self._db.status()
+        except:  # pragma: no cover
+            return ["mongo is not active."]

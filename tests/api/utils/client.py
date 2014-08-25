@@ -120,6 +120,18 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
             headers=new_header, data=block_data)
         return resp
 
+    def upload_multiple_blocks(self, vaultname, content):
+        """
+        Upload multiple blocks using msgpacked content
+        """
+
+        new_header = {'Content-Type': 'application/msgpack',
+                      'content-length': len(content)}
+        resp = self.request('POST', '{0}/{1}/vaults/{2}/blocks'.format(
+            self.url, self.version, vaultname),
+            headers=new_header, data=content)
+        return resp
+
     def delete_block(self, vaultname, blockid):
         """
         Delete a block
@@ -243,4 +255,13 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
 
         resp = self.request('GET', '{0}/{1}/ping'.format(self.url,
                                                          self.version))
+        return resp
+
+    def health(self):
+        """
+        Health
+        """
+
+        resp = self.request('GET', '{0}/{1}/health'.format(self.url,
+                                                           self.version))
         return resp

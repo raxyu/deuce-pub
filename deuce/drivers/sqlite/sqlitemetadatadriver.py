@@ -574,3 +574,10 @@ class SqliteStorageDriver(MetadataStorageDriver):
         query_res = self._conn.execute(SQL_GET_BLOCK_REF_COUNT, args)
 
         return next(query_res)[0]
+
+    def get_health(self):
+        try:
+            # TODO: Collect more system statistics.
+            return ["sqlite is active."]
+        except:  # pragma: no cover
+            return ["sqlite is not active."]
