@@ -105,7 +105,7 @@ class DiskStorageDriver(BlockStorageDriver):
                 outfile.write(blockdata)
                 results.append(True)
 
-        return results
+        return True
 
     def block_exists(self, vault_id, block_id):
         path = self._get_block_path(vault_id, block_id)

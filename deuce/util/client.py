@@ -1,6 +1,7 @@
 import aiohttp
 import asyncio
 import hashlib
+from swiftclient.exceptions import ClientException
 from deuce.util.event_loop import get_event_loop
 
 # NOTE (TheSriram) : must include exception handling
@@ -69,7 +70,11 @@ def put_container(url, token, container, response_dict):
 def head_container(url, token, container):
     headers = {'X-Auth-Token': token}
     response = _request('HEAD', url + '/' + container, headers=headers)
-    return response.headers
+
+    if response.status >= 200 and response.status < 300:
+        return response.headers
+    else:
+        raise ClientException("Vault HEAD failed")
 
 
 # Delete Vault
@@ -92,6 +97,7 @@ def put_object(url, token, container, name, contents,
                         headers=headers, data=contents)
 
     response_dict['status'] = response.status
+    return response.headers['etag']
 
 
 def put_async_object(
@@ -129,7 +135,10 @@ def head_object(url, token, container, name):
         str(name),
         headers=headers)
 
-    return response.headers
+    if response.status >= 200 and response.status < 300:
+        return response.headers
+    else:
+        raise ClientException("Block HEAD failed")
 
 
 # Delete Block
