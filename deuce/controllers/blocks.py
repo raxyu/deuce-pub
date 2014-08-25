@@ -106,7 +106,6 @@ class BlocksController(RestController):
     @validate(vault_id=VaultGetRule, block_id=ReqNoneRule)
     @expose()
     def post(self, vault_id, block_id):
-
         vault = Vault.get(vault_id)
         try:
             unpacked = msgpack.unpackb(request.body_file_seekable.read())
@@ -121,7 +120,7 @@ class BlocksController(RestController):
                     retval = vault.put_async_block(
                         block_ids,
                         block_datas)
-                    response.status_code = 201 if all(retval) is True else 500
+                    response.status_code = 201 if retval else 500
                     logger.info('blocks [{0}] added'.format(block_ids))
                 except ValueError:
                     response.status_code = 412
