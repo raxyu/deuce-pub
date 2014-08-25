@@ -15,7 +15,7 @@ class TestVaultController(FunctionalTest):
     def setUp(self):
         super(TestVaultController, self).setUp()
         self._hdrs = {"x-project-id": self.create_project_id(),
-            "x-auth-token": ''}
+            "x-auth-token": self.create_auth_token()}
 
     def helper_create_vault(self, vault_name, hdrs):
         vault_path = '/v1.0/vaults/{0}'.format(vault_name)
@@ -26,8 +26,8 @@ class TestVaultController(FunctionalTest):
         response = self.app.delete(vault_path, headers=hdrs)
 
     def test_vault_leaf(self):
-        hdrs = {"x-project-id": 'test_list_vaults',
-            "x-auth-token": ''}
+        hdrs = {"x-project-id": self.create_project_id(),
+            "x-auth-token": self.create_auth_token()}
         params = dict()
 
         # Create an empty root path in the storage.
