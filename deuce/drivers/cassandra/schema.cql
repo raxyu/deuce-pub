@@ -31,6 +31,14 @@ CREATE TABLE files (
 CREATE INDEX finalized_index
     on files (finalized);
 
+CREATE COLUMNFAMILY blockreferences (
+  projectid TEXT,
+  vaultid TEXT,
+  blockid TEXT,
+  refcount COUNTER,
+  PRIMARY KEY(projectid, vaultid, blockid) 
+);
+
 CREATE TABLE fileblocks (
   projectid TEXT,
   vaultid TEXT, 

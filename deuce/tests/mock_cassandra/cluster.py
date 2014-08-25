@@ -39,6 +39,15 @@ CREATE TABLE fileblocks (
   offset INT,
   PRIMARY KEY(projectid, vaultid, fileid, offset)
 );
+""",
+"""
+CREATE TABLE blockreferences (
+  projectid TEXT,
+  vaultid TEXT,
+  blockid TEXT,
+  refcount INTEGER,
+  PRIMARY KEY(projectid, vaultid, blockid)
+);
 """]
 
 from deuce.tests.mock_cassandra import Session
