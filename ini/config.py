@@ -62,7 +62,7 @@ logging = {
             'class': config['handlers']['syslog']['class'],
             'level': config['handlers']['syslog']['level'],
             'formatter': config['handlers']['syslog']['formatter'],
-            'address': 'config['handlers']['syslog']['address']'
+            'address': config['handlers']['syslog']['address']
         },
         'rotatelogfile': {
             'class': config['handlers']['rotatelogfile']['class'],
@@ -78,7 +78,7 @@ logging = {
         'logstash': {
             'class': config['handlers']['logstash']['class'],
             'level': config['handlers']['logstash']['level'],
-            'host': config['handlers']['logstash']['host']',
+            'host': config['handlers']['logstash']['host'],
             'port': int(config['handlers']['logstash']['port']),
             'version': int(config['handlers']['logstash']['version'])
         }
