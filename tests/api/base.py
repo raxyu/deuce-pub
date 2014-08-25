@@ -35,7 +35,7 @@ class TestBase(fixtures.BaseTestFixture):
         cls.auth_config = config.authConfig()
         cls.auth_token = None
         cls.storage_config = config.storageConfig()
-        cls.storage_url = None
+        cls.storage_url = ''
         cls.tenantid = None
         cls.region = cls.storage_config.region
         if cls.config.use_auth:

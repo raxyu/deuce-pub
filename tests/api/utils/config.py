@@ -66,13 +66,13 @@ class storageConfig(ConfigSectionInterface):
     @property
     def internal_url(self):
         """
-        storage url
+        boolean indicating whether to use the internal storage url
         """
         return self.get_boolean('internal_url')
 
     @property
     def region(self):
         """
-        storage url
+        storage url region
         """
         return self.get('region')
