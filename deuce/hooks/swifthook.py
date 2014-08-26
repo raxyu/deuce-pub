@@ -2,7 +2,7 @@ import six
 from pecan.hooks import PecanHook
 from deuce.hooks import HealthHook
 from pecan.core import abort
-
+from deuce.drivers.swift import py3
 import deuce
 
 
@@ -41,17 +41,8 @@ class OpenstackSwiftHook(HealthHook):
         # the value to the deuce context's open stack context, if the
         # current storage driver is swift
 
-        if six.PY2:  # pragma: no cover
-            from deuce.drivers.swift import py2
-            if isinstance(deuce.storage_driver,
-                          py2.SwiftStorageDriver):
-                check_storage_url()
-            else:
-                pass
-        elif six.PY3:  # pragma: no cover
-            from deuce.drivers.swift import py3
-            if isinstance(deuce.storage_driver,
-                          py3.SwiftStorageDriver):
-                check_storage_url()
-            else:
-                pass
+        if isinstance(deuce.storage_driver,
+                      py3.SwiftStorageDriver):  # pragma: no cover
+            check_storage_url()
+        else:
+            pass
