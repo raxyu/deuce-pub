@@ -178,7 +178,8 @@ class SwiftStorageDriver(BlockStorageDriver):
         try:
             buff = BytesIO()
             response = dict()
-
+            # NOTE(TheSriram): block is a tuple of
+            # headers and response body.
             block = self.Conn.get_object(
                 url=deuce.context.openstack.swift.storage_url,
                 token=deuce.context.openstack.auth_token,
@@ -199,6 +200,8 @@ class SwiftStorageDriver(BlockStorageDriver):
         """Returns the length of an object"""
         response = dict()
         try:
+            # NOTE(TheSriram): block is a tuple of
+            # headers and response body
             block = \
                 self.Conn.get_object(
                     url=deuce.context.openstack.swift.storage_url,
