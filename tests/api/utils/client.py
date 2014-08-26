@@ -91,6 +91,23 @@ class BaseDeuceClient(client.AutoMarshallingHTTPClient):
                                                                 vaultname))
         return resp
 
+    def list_of_vaults(self, marker=None, limit=None, alternate_url=None):
+        """
+        Get a list of all vaults
+        """
+
+        parameters = {}
+        if marker is not None:
+            parameters['marker'] = marker
+        if limit is not None:
+            parameters['limit'] = limit
+        if alternate_url:
+            url = alternate_url
+        else:
+            url = '{0}/{1}/vaults'.format(self.url, self.version)
+        resp = self.request('GET', url, params=parameters)
+        return resp
+
     def list_of_blocks(self, vaultname=None, marker=None, limit=None,
                        alternate_url=None):
         """
