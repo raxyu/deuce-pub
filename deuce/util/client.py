@@ -54,7 +54,7 @@ def _request_getobj(method, url, headers, data=None):
                                           headers=headers, data=data)
 
     block = yield from response.content.read()
-    return block
+    return (response, block)
 
 
 # Create vault
@@ -160,7 +160,7 @@ def delete_object(url, token, container, name, response_dict):
 
 def get_object(url, token, container, name, response_dict):
     headers = {'X-Auth-Token': token}
-    response = _request_getobj(
+    (resp_headers, response) = _request_getobj(
         'GET',
         url +
         '/' +
@@ -169,4 +169,4 @@ def get_object(url, token, container, name, response_dict):
         str(name),
         headers=headers)
 
-    return response
+    return (resp_headers, response)

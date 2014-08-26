@@ -175,7 +175,8 @@ class Test_P3k_SwiftClient(FunctionalTest):
             self.vault,
             self.block,
             self.response_dict)
-        self.assertEqual(file, response)
+        self.assertEqual(file, response[1])
+        self.assertEqual(r.headers, response[0].headers)
 
     def test_delete_object(self):
         r = Response(204)
