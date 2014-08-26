@@ -89,7 +89,7 @@ block_storage_driver = {
     },
     'swift': {
 
-        'driver': 'deuce.drivers.swift.py3.SwiftStorageDriver',
+        'driver': 'deuce.drivers.swift.SwiftStorageDriver',
         'swift_module': 'deuce.util',
 
         'testing': {
