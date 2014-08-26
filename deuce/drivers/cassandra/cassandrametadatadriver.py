@@ -9,6 +9,27 @@ from pecan import conf
 
 import deuce
 
+
+CQL_CREATE_VAULT = '''
+    INSERT INTO vaults (projectid, vaultid)
+    VALUES (%(projectid)s, %(vaultid)s)
+'''
+
+CQL_DELETE_VAULT = '''
+    DELETE FROM vaults
+    where projectid = %(projectid)s
+    AND vaultid = %(vaultid)s
+'''
+
+CQL_GET_ALL_VAULTS = '''
+    SELECT vaultid
+    FROM vaults
+    WHERE projectid = %(projectid)s
+    AND vaultid >= %(vaultid)s
+    ORDER BY vaultid
+    LIMIT %(limit)s
+'''
+
 CQL_CREATE_FILE = '''
     INSERT INTO files (projectid, vaultid, fileid, finalized, size)
     VALUES (%(projectid)s, %(vaultid)s, %(fileid)s, false, %(size)s)
@@ -221,6 +242,32 @@ class CassandraStorageDriver(MetadataStorageDriver):
             res = min(conf.api_configuration.max_returned_num + 1, limit)
 
         return res
+
+    def create_vault(self, vault_id):
+        """Creates a vault"""
+        args = dict(
+            projectid=deuce.context.project_id,
+            vaultid=vault_id
+        )
+        res = self._session.execute(CQL_CREATE_VAULT, args)
+        return
+
+    def delete_vault(self, vault_id):
+        args = dict(
+            projectid=deuce.context.project_id,
+            vaultid=vault_id
+        )
+        self._session.execute(CQL_DELETE_VAULT, args)
+        return
+
+    def create_vaults_generator(self, marker=None, limit=None):
+        args = dict(
+            projectid=deuce.context.project_id,
+            vaultid=marker or '0',
+            limit=self._determine_limit(limit)
+        )
+        res = self._session.execute(CQL_GET_ALL_VAULTS, args)
+        return [row[0] for row in res]
 
     def get_vault_statistics(self, vault_id):
         """Return the statistics on the vault.

@@ -46,10 +46,39 @@ schemas.append([
         size INTEGER NOT NULL,
         PRIMARY KEY(projectid, vaultid, blockid)
     )
+    """,
+    """
+    CREATE TABLE vaults
+    (
+        projectid TEXT NOT NULL,
+        vaultid TEXT NOT NULL,
+        PRIMARY KEY(projectid, vaultid)
+    )
     """
 ])  # Version 1
 
 CURRENT_DB_VERSION = len(schemas)
+
+SQL_CREATE_VAULT = '''
+    INSERT OR REPLACE INTO vaults
+    (projectid, vaultid)
+    VALUES (:projectid, :vaultid)
+'''
+
+SQL_DELETE_VAULT = '''
+    DELETE FROM vaults
+    where projectid=:projectid
+    AND vaultid=:vaultid
+'''
+
+SQL_GET_ALL_VAULT = '''
+    SELECT vaultid
+    FROM vaults
+    WHERE projectid = :projectid
+    AND vaultid >= :marker
+    ORDER BY vaultid
+    LIMIT :limit
+'''
 
 SQL_CREATE_FILE = '''
     INSERT INTO files (projectid, vaultid, fileid)
@@ -263,6 +292,42 @@ class SqliteStorageDriver(MetadataStorageDriver):
         the passed marker is None, empty string, etc
         """
         return marker or ''
+
+    def create_vault(self, vault_id):
+        """Creates a representation of a vault."""
+        args = {
+            'projectid': deuce.context.project_id,
+            'vaultid': vault_id
+        }
+        self._conn.execute(SQL_CREATE_VAULT, args)
+        self._conn.commit()
+        # TODO: check that one row was inserted
+        return
+
+    def delete_vault(self, vault_id):
+        """Deletes the vault from metadata."""
+        args = {
+            'projectid': deuce.context.project_id,
+            'vaultid': vault_id
+        }
+
+        self._conn.execute(SQL_DELETE_VAULT, args)
+        self._conn.commit()
+        return
+
+    def create_vaults_generator(self, marker=None, limit=None):
+        """Creates and returns a generator that will return
+        the vault IDs.
+        """
+
+        args = {
+            'projectid': deuce.context.project_id,
+            'marker': self._determine_marker(marker),
+            'limit': self._determine_limit(limit)
+        }
+
+        res = self._conn.execute(SQL_GET_ALL_VAULT, args)
+        return [row[0] for row in res]
 
     def get_vault_statistics(self, vault_id):
         """Return the statistics on the vault.

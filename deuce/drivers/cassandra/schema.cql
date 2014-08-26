@@ -1,9 +1,15 @@
 
 // TODO: Tweak this replication strategy
-CREATE KEYSPACE IF NOT EXISTS deucekeyspace WITH 
+CREATE KEYSPACE IF NOT EXISTS deucekeyspace WITH
   replication = {'class': 'SimpleStrategy', 'replication_factor': 3};
 
-use deucekeyspace; 
+use deucekeyspace;
+
+CREATE TABLE vaults(
+  projectid TEXT,
+  vaultid TEXT,
+  PRIMARY KEY(proectid, vaultid)
+);
 
 CREATE COLUMNFAMILY blocks (
   projectid TEXT,

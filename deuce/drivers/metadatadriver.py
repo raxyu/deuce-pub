@@ -66,11 +66,39 @@ class MetadataStorageDriver(object):
     defines all functions necessary for a Deuce metadata
     driver.
     """
+
+    @abstractmethod
+    def create_vaults_generator(self, marker=None, limit=None):
+        """Creates and returns a generator that will return
+        the vault IDs.
+
+        :param marker: The vault_id to start of the list
+        :param limit: Number of returned items
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def create_vault(self, vault_id):
+        """Creates a representation of a vault.
+
+        :param vault_id: The ID of the vault to create
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def delete_vault(self, vault_id):
+        """Deletes the vault from metadata.
+
+        :param vault_id: The ID of the vault to delete
+        """
+        raise NotImplementedError
+
     @abstractmethod
     def get_vault_statistics(self, vault_id):
         """Return the statistics on the vault.
 
-        "param vault_id: The ID of the vault to gather statistics for"""
+        :param vault_id: The ID of the vault to gather statistics for
+        """
         raise NotImplementedError
 
     @abstractmethod
