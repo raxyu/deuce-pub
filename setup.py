@@ -30,5 +30,5 @@ else:
         test_suite='deuce',
         zip_safe=False,
         data_files=[('bin', ['config.py'])],
-        packages=find_packages(exclude=['tests'])
+        packages=find_packages(exclude=['tests*', 'deuce/tests*'])
     )
