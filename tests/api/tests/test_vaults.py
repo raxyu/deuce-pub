@@ -213,18 +213,6 @@ class TestListVaults(base.TestBase):
         [self.create_empty_vault() for _ in range(20)]
         self.vaultids = sorted(self.vaults[:])
 
-#    def test_list_multiple_vaults(self):
-#        """List multiple vaults (20)"""
-#
-#        resp = self.client.list_of_vaults()
-#        self.assertEqual(resp.status_code, 200,
-#                         'Status code for listing all vaults is '
-#                         '{0} . Expected 200'.format(resp.status_code))
-#        self.assertHeaders(resp.headers, json=True)
-#        self.check_vaultids_in_resp(self.vaultids, resp)
-#        self.assertEqual(len(self.vaultids), 0,
-#                         'Inconsistency in the list of vaults returned')
-
     def check_vaultids_in_resp(self, vaultids, response):
         resp_body = response.json()
         for vaultid in resp_body.keys():
@@ -239,34 +227,19 @@ class TestListVaults(base.TestBase):
             vaultid_from_url = vault_url.path.split('/')[-1]
             self.assertEqual(vaultid_from_url, vaultid)
 
-#    @ddt.data(2, 4, 5, 10)
-#    def test_list_multiple_vaults_marker(self, value):
-#        """List multiple vaults (20) using a marker (value)"""
-#
-#        markerid = self.vaultids[value]
-#        resp = self.client.list_of_vaults(marker=markerid)
-#        self.assertEqual(resp.status_code, 200,
-#                         'Status code for listing all vaults is '
-#                         '{0} . Expected 200'.format(resp.status_code))
-#        self.assertHeaders(resp.headers, json=True)
-#        self.vaultids = self.vaultids[value:]
-#        self.check_vaultids_in_resp(self.vaultids, resp)
-#        self.assertEqual(len(self.vaultids), 0,
-#                         'Inconsistency in the list of vaults returned')
-#
     @ddt.data(2, 4, 5, 10)
     def test_list_vaults_limit(self, value):
         """List multiple vaults, setting the limit to value"""
 
         self.assertVaultsPerPage(value)
 
-#    @ddt.data(2, 4, 5, 10)
-#    def test_list_vaults_limit_marker(self, value):
-#        """List multiple vaults, setting the limit to value and using a
-#        marker"""
-#
-#        markerid = self.vaultids[value]
-#        self.assertVaultsPerPage(value, marker=markerid, pages=1)
+    @ddt.data(2, 4, 5, 10)
+    def test_list_vaults_limit_marker(self, value):
+        """List multiple vaults, setting the limit to value and using a
+        marker"""
+
+        markerid = self.vaultids[value]
+        self.assertVaultsPerPage(value, marker=markerid, pages=1)
 
     def assertVaultsPerPage(self, value, marker=None, pages=0):
         """
@@ -299,7 +272,7 @@ class TestListVaults(base.TestBase):
             self.check_vaultids_in_resp(self.vaultids, resp)
             if finished:
                 break
-        self.assertEqual(len(self.vaultids), 0,
+        self.assertEqual(len(self.vaultids), value * pages,
                          'Discrepancy between the list of vaults returned '
                          'and the vaults uploaded {0}'.format(self.vaultids))
 
