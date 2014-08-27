@@ -101,9 +101,6 @@ block_storage_driver = {
         'swift_module': config['block_storage_driver']['swift']
                               ['swift_module'],
 
-        # 'driver': 'deuce.drivers.swift.py3.SwiftStorageDriver',
-        # 'swift_module': 'deuce.util',
-
         'testing': {
             'is_mocking': bool(config['block_storage_driver']['swift']
                               ['testing']['is_mocking']),
