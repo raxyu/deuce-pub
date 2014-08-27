@@ -1,6 +1,12 @@
 # Server Specific Configurations
+import os
 from configobj import ConfigObj
-config = ConfigObj('config.ini', interpolation=False)
+# NOTE(TheSriram): Please set a fully qualified path to config.ini
+path_to_ini = ''
+if not os.path.exists(path_to_ini):
+    raise OSError("Please set absolute path to correct ini file")
+config = ConfigObj(path_to_ini, interpolation=False)
+
 server = {
     'port': config['server']['port'],
     'host': config['server']['host']
@@ -28,7 +34,6 @@ app = {
 }
 
 log_directory = config['logging']['log_directory']
-import os
 if not os.path.exists(log_directory):  # pragma: no cover
     os.makedirs(log_directory)
 
