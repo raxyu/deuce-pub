@@ -35,19 +35,25 @@ class TestBase(fixtures.BaseTestFixture):
         cls.auth_config = config.authConfig()
         cls.auth_token = None
         cls.storage_config = config.storageConfig()
-        cls.storage_url = None
+        cls.storage_url = ''
+        cls.tenantid = None
+        cls.region = cls.storage_config.region
         if cls.config.use_auth:
             cls.a_client = client.AuthClient(cls.auth_config.base_url)
             cls.a_resp = cls.a_client.get_auth_token(cls.auth_config.user_name,
                                                      cls.auth_config.api_key)
             jsonschema.validate(cls.a_resp.json(), auth.authentication)
             cls.auth_token = cls.a_resp.entity.token
-        if cls.config.use_storage:
-            cls.storage_url = cls.storage_config.base_url
+
+            cls.tenantid = cls.a_resp.entity.regions[cls.region]['tenantId']
+            url_type = 'internalURL' if cls.storage_config.internal_url \
+                else 'publicURL'
+            cls.storage_url = cls.a_resp.entity.regions[cls.region][url_type]
         cls.client = client.BaseDeuceClient(cls.config.base_url,
                                             cls.config.version,
                                             cls.auth_token,
-                                            cls.storage_url)
+                                            cls.storage_url,
+                                            cls.tenantid)
 
         cls.blocks = []
         cls.api_version = cls.config.version
