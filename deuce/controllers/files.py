@@ -20,7 +20,7 @@ class FilesController(RestController):
     blocks = FileBlocksController()
 
     @validate(vault_id=VaultGetRule, file_id=FileGetRule)
-    @expose('json')
+    @expose()
     def delete(self, vault_id, file_id):
 
         vault = Vault.get(vault_id)
