@@ -1,9 +1,13 @@
 # Server Specific Configurations
 import os
 from configobj import ConfigObj
-# NOTE(TheSriram): Please set a fully qualified path to config.ini
-path_to_ini = ''
-if not os.path.exists(path_to_ini):
+
+# NOTE(TheSriram): Please reset path_to_ini to a
+# fully qualified path pointing to config.ini
+
+path_to_ini = '/random_path/config.ini'
+if not os.path.exists(os.path.abspath(path_to_ini)) or \
+                not 'config.ini' in path_to_ini:
     raise OSError("Please set absolute path to correct ini file")
 config = ConfigObj(path_to_ini, interpolation=False)
 
