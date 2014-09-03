@@ -7,9 +7,9 @@ from configobj import ConfigObj
 
 path_to_ini = '/random_path/config.ini'
 if not os.path.exists(os.path.abspath(path_to_ini)) or \
-                not 'config.ini' in path_to_ini:
+        'config.ini' not in path_to_ini:
     raise OSError("Please set absolute path to correct ini file")
-config = ConfigObj(path_to_ini, interpolation=False)
+config = ConfigObj(os.path.abspath(path_to_ini), interpolation=False)
 
 server = {
     'port': config['server']['port'],
@@ -112,7 +112,7 @@ block_storage_driver = {
 
         'testing': {
             'is_mocking': bool(config['block_storage_driver']['swift']
-                              ['testing']['is_mocking']),
+                               ['testing']['is_mocking']),
             'username': config['block_storage_driver']['swift']['testing']
                               ['username'],
             'password': config['block_storage_driver']['swift']['testing']
