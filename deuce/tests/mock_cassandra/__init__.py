@@ -1,4 +1,8 @@
 
+
+import deuce.drivers.cassandra.cassandrametadatadriver \
+    as actual_driver
+
 import uuid
 
 
@@ -11,6 +15,8 @@ class Session(object):
         # Health check.
         if 'system.local' in query:
             return 'true'
+
+        original_query = query
 
         query = query.replace('false', '0')
         query = query.replace('true', '1')
@@ -38,6 +44,24 @@ class Session(object):
                 # Convert UUID parameters to strings
                 if isinstance(v, uuid.UUID):
                     queryargs[k] = str(v)
+
+        if original_query == actual_driver.CQL_INC_BLOCK_REF_COUNT:
+
+            # Special-case this query, since sqlite doesn't
+            # support upserts
+
+            insert_query = """
+                INSERT or IGNORE into blockreferences
+                (projectid, vaultid, blockid, refcount)
+                VALUES
+                (:projectid, :vaultid, :blockid, :refcount)
+            """
+
+            insert_args = queryargs.copy()
+            insert_args.update({'refcount': 0})
+            del insert_args["delta"]
+
+            self.conn.execute(insert_query, insert_args)
 
         res = self.conn.execute(query, queryargs)
         res = list(res)

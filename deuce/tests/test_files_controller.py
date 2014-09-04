@@ -25,7 +25,7 @@ class TestFilesController(FunctionalTest):
         self.total_file_num = 0
 
         self._hdrs = {"x-project-id": self.create_project_id(),
-            "x-auth-token": ''}
+            "x-auth-token": self.create_auth_token()}
         self.init_context(self._hdrs)
 
         # Create a vault and a file for us to work with
@@ -340,7 +340,7 @@ class TestFilesController(FunctionalTest):
 
         # Delete the finalized file. delete returns 'ok'
         response = self.app.delete(self._file_id, headers=hdrs)
-        assert response.status_int == 200
+        assert response.status_int == 204
 
     def test_nonexistent_file_endpoints(self):
         file_path_format = '/v1.0/vaults/{0}/files/{1}'

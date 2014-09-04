@@ -5,9 +5,31 @@ import uuid
 
 from deuce.drivers.metadatadriver import MetadataStorageDriver
 from deuce.drivers.metadatadriver import GapError, OverlapError
+from deuce.drivers.metadatadriver import ConstraintError
 from pecan import conf
 
 import deuce
+
+
+CQL_CREATE_VAULT = '''
+    INSERT INTO vaults (projectid, vaultid)
+    VALUES (%(projectid)s, %(vaultid)s)
+'''
+
+CQL_DELETE_VAULT = '''
+    DELETE FROM vaults
+    where projectid = %(projectid)s
+    AND vaultid = %(vaultid)s
+'''
+
+CQL_GET_ALL_VAULTS = '''
+    SELECT vaultid
+    FROM vaults
+    WHERE projectid = %(projectid)s
+    AND vaultid >= %(vaultid)s
+    ORDER BY vaultid
+    LIMIT %(limit)s
+'''
 
 CQL_CREATE_FILE = '''
     INSERT INTO files (projectid, vaultid, fileid, finalized, size)
@@ -146,6 +168,34 @@ CQL_GET_BLOCK_SIZE = '''
     AND blockid = %(blockid)s
 '''
 
+CQL_GET_BLOCK_REF_COUNT = '''
+    SELECT refcount
+    FROM blockreferences
+    WHERE
+    projectid = %(projectid)s
+    AND vaultid = %(vaultid)s
+    AND blockid = %(blockid)s
+'''
+
+# Note: negative numbers for decrementing works
+# fine here.
+CQL_INC_BLOCK_REF_COUNT = '''
+    UPDATE blockreferences
+    SET refcount = refcount + %(delta)s
+    WHERE
+    projectid = %(projectid)s
+    AND vaultid = %(vaultid)s
+    AND blockid = %(blockid)s
+'''
+
+CQL_DEL_BLOCK_REF_COUNT = '''
+    DELETE FROM blockreferences
+    WHERE
+    projectid = %(projectid)s
+    AND vaultid = %(vaultid)s
+    AND blockid = %(blockid)s
+'''
+
 # TODO: Optimize this. Now need to
 # count all of the blocks, we can just
 # get the first, limit by 1, and
@@ -193,6 +243,32 @@ class CassandraStorageDriver(MetadataStorageDriver):
             res = min(conf.api_configuration.max_returned_num + 1, limit)
 
         return res
+
+    def create_vault(self, vault_id):
+        """Creates a vault"""
+        args = dict(
+            projectid=deuce.context.project_id,
+            vaultid=vault_id
+        )
+        res = self._session.execute(CQL_CREATE_VAULT, args)
+        return
+
+    def delete_vault(self, vault_id):
+        args = dict(
+            projectid=deuce.context.project_id,
+            vaultid=vault_id
+        )
+        self._session.execute(CQL_DELETE_VAULT, args)
+        return
+
+    def create_vaults_generator(self, marker=None, limit=None):
+        args = dict(
+            projectid=deuce.context.project_id,
+            vaultid=marker or '0',
+            limit=self._determine_limit(limit)
+        )
+        res = self._session.execute(CQL_GET_ALL_VAULTS, args)
+        return [row[0] for row in res]
 
     def get_vault_statistics(self, vault_id):
         """Return the statistics on the vault.
@@ -297,6 +373,12 @@ class CassandraStorageDriver(MetadataStorageDriver):
         )
 
         self._session.execute(CQL_DELETE_FILE, args)
+
+        # now list the file blocks and decrement the block reference count
+        res = self._session.execute(CQL_GET_ALL_FILE_BLOCKS_W_SIZE, args)
+
+        for block_id, offset, block_size in res:
+            self._inc_block_ref_count(vault_id, block_id, -1)
 
     def finalize_file(self, vault_id, file_id, file_size=None):
         """Updates the files table to set a file to finalized. This function
@@ -506,6 +588,7 @@ class CassandraStorageDriver(MetadataStorageDriver):
         )
 
         self._session.execute(CQL_ASSIGN_BLOCK_TO_FILE, args)
+        self._inc_block_ref_count(vault_id, block_id)
 
     def register_block(self, vault_id, block_id, blocksize):
         if not self.has_block(vault_id, block_id):
@@ -521,6 +604,8 @@ class CassandraStorageDriver(MetadataStorageDriver):
 
     def unregister_block(self, vault_id, block_id):
 
+        self._require_no_block_refs(vault_id, block_id)
+
         args = dict(
             projectid=deuce.context.project_id,
             vaultid=vault_id,
@@ -528,6 +613,44 @@ class CassandraStorageDriver(MetadataStorageDriver):
         )
 
         res = self._session.execute(CQL_UNREGISTER_BLOCK, args)
+
+        self._del_block_ref_count(vault_id, block_id)
+
+    def get_block_ref_count(self, vault_id, block_id):
+
+        args = dict(
+            projectid=deuce.context.project_id,
+            vaultid=vault_id,
+            blockid=block_id
+        )
+
+        res = self._session.execute(CQL_GET_BLOCK_REF_COUNT, args)
+
+        try:
+            return res[0][0]
+        except IndexError:
+            return 0
+
+    def _inc_block_ref_count(self, vault_id, block_id, cnt=1):
+
+        args = dict(
+            projectid=deuce.context.project_id,
+            vaultid=vault_id,
+            blockid=block_id,
+            delta=cnt
+        )
+
+        self._session.execute(CQL_INC_BLOCK_REF_COUNT, args)
+
+    def _del_block_ref_count(self, vault_id, block_id):
+
+        args = dict(
+            projectid=deuce.context.project_id,
+            vaultid=vault_id,
+            blockid=block_id
+        )
+
+        self._session.execute(CQL_DEL_BLOCK_REF_COUNT, args)
 
     def get_health(self):
         try:

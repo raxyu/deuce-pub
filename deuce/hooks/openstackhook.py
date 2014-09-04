@@ -1,11 +1,10 @@
-
-from pecan.hooks import PecanHook
-from pecan.core import abort
-
 import deuce
 
+from deuce.hooks import HealthHook
+from pecan.core import abort
 
-class OpenStackHook(PecanHook):
+
+class OpenStackHook(HealthHook):
     """Every request that hits Deuce must have a header specifying the
     auth_token for the user the request is for.
 
@@ -13,6 +12,8 @@ class OpenStackHook(PecanHook):
     with a 401"""
 
     def on_route(self, state):
+        if super(OpenStackHook, self).health(state):
+            return
 
         class OpenStackObject(object):
             pass
@@ -25,15 +26,12 @@ class OpenStackHook(PecanHook):
 
             # auth_token is assumed validated by an outside source (e.g Repose
             # or WSGI middleware
-            if hasattr(state.request, 'path') and \
-                    (state.request.path == '/v1.0/health' or
-                    state.request.path == '/v1.0/ping'):
-                return
             deuce.context.openstack.auth_token = \
                 state.request.headers['x-auth-token']
         except KeyError:
             # Invalid request
-            abort(401, comment="Missing Header : X-Auth-Token",
+            abort(401, comment="Missing Headers : "
+                               "X-Auth-Token",
                 headers={
                     'Transaction-ID': deuce.context.transaction.request_id
                 })

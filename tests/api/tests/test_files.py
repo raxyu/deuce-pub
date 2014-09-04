@@ -399,8 +399,6 @@ class TestFinalizedFile(base.TestBase):
     def test_delete_file(self):
         """Delete a (finalized) file"""
 
-        # TODO
-        self.skipTest('Skipping. Functionality not implemented')
         resp = self.client.delete_file(self.vaultname, self.fileid)
         self.assertEqual(resp.status_code, 204,
                          'Status code for deleting a file is '

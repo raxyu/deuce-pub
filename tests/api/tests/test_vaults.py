@@ -1,6 +1,7 @@
 from tests.api import base
 import ddt
 import urlparse
+import time
 
 
 class TestNoVaultsCreated(base.TestBase):
@@ -79,8 +80,17 @@ class TestEmptyVault(base.TestBase):
 
         storage = resp_body['storage']
         self.assertEqual(storage['block-count'], 0)
-        self.assertEqual(storage['internal'], {})
         self.assertEqual(storage['total-size'], 0)
+
+        if 'last-modification-time' in storage['internal']:
+            slmt = storage['internal']['last-modification-time']
+            try:
+                time.ctime(float(slmt))
+            except Exception:
+                self.fail('internal/last-modification-time {0} is not time'
+                        ''.format(slmt))
+        else:
+            self.assertEqual(storage['internal'], {})
 
         meta = resp_body['metadata']
         self.assertIn('files', meta)
@@ -157,8 +167,17 @@ class TestVaultWithBlocksFiles(base.TestBase):
         resp_body = resp.json()
         storage = resp_body['storage']
         self.assertEqual(storage['block-count'], 20)
-        self.assertEqual(storage['internal'], {})
         self.assertEqual(storage['total-size'], 30720 * 20)
+
+        if 'last-modification-time' in storage['internal']:
+            slmt = storage['internal']['last-modification-time']
+            try:
+                time.ctime(float(slmt))
+            except Exception:
+                self.fail('internal/last-modification-time {0} is not time'
+                        ''.format(slmt))
+        else:
+            self.assertEqual(storage['internal'], {})
 
         meta = resp_body['metadata']
         meta_files = meta['files']

@@ -8,14 +8,9 @@ except ImportError:
     use_setuptools()
     from setuptools import setup, find_packages
 else:
-    REQUIRES = ['six', 'pecan', 'setuptools >= 1.1.6',
+    REQUIRES = ['configobj', 'six', 'pecan', 'setuptools >= 1.1.6',
                 'cassandra-driver', 'pymongo', 'msgpack-python',
-                'python-swiftclient']
-
-    extras_require = {
-        'python_version>="3.3"': ['asyncio', 'aiohttp'],
-        'python_version=="2.7"': ['gevent']
-    }
+                'python-swiftclient', 'asyncio', 'aiohttp']
     setup(
         name='deuce',
         version='0.1',
@@ -26,9 +21,8 @@ else:
         author_email='',
         include_package_data=True,
         install_requires=REQUIRES,
-        extras_require=extras_require,
         test_suite='deuce',
         zip_safe=False,
         data_files=[('bin', ['config.py'])],
-        packages=find_packages(exclude=['tests'])
+        packages=find_packages(exclude=['tests*', 'deuce/tests*'])
     )

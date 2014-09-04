@@ -10,7 +10,7 @@ import atexit
 
 import itertools
 from deuce.drivers.metadatadriver import MetadataStorageDriver, \
-    GapError, OverlapError
+    GapError, OverlapError, ConstraintError
 
 
 class MongoDbStorageDriver(MetadataStorageDriver):
@@ -26,6 +26,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             conf.metadata_driver.mongodb.url)
 
         self._db = self.client[self._dbfile]
+        self._vaults = self._db.vaults
         self._blocks = self._db.blocks
         self._files = self._db.files
         self._fileblocks = self._db.fileblocks
@@ -44,6 +45,42 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             res = min(conf.api_configuration.max_returned_num + 1, limit)
 
         return res
+
+    def create_vaults_generator(self, marker=None, limit=None):
+        """Creates and returns a generator that will return
+        the vault IDs.
+
+        :param marker: The vault_id to start of the list
+        :param limit: Number of returned items
+        """
+        self._vaults.ensure_index([('projectid', 1),
+            ('vaultid', 1)])
+        args = {'projectid': deuce.context.project_id}
+        if marker is not None:
+            args["vaultid"] = {"$gte": str(marker)}
+
+        limit = self._determine_limit(limit)
+
+        return list(vault["vaultid"] for vault in
+            self._vaults.find(args).sort('vaultid', 1).limit(limit))
+
+    def create_vault(self, vault_id):
+        """Creates a representation of a vault."""
+        args = {
+            'projectid': deuce.context.project_id,
+            'vaultid': vault_id,
+        }
+        self._vaults.insert(args)
+
+    def delete_vault(self, vault_id):
+        """Deletes the vault from metadata."""
+        self._vaults.ensure_index([('projectid', 1),
+            ('vaultid', 1)])
+        args = {
+            'projectid': deuce.context.project_id,
+            'vaultid': vault_id,
+        }
+        self._vaults.remove(args)
 
     def get_vault_statistics(self, vault_id):
         """Return the statistics on the vault.
@@ -160,6 +197,7 @@ class MongoDbStorageDriver(MetadataStorageDriver):
         }
 
         self._files.remove(args)
+        self._fileblocks.remove(args)
 
     def finalize_file(self, vault_id, file_id, file_size=None):
         """Updates FILES to set a file to finalized. This function
@@ -453,14 +491,49 @@ class MongoDbStorageDriver(MetadataStorageDriver):
             self._blocks.update(args, args, upsert=True)
 
     def unregister_block(self, vault_id, block_id):
+
+        self._require_no_block_refs(vault_id, block_id)
+
         self._blocks.ensure_index([('projectid', 1),
             ('vaultid', 1), ('blockid', 1)])
+
         args = {
             'projectid': deuce.context.project_id,
             'vaultid': vault_id,
             'blockid': str(block_id)
         }
         self._blocks.remove(args)
+
+    def get_block_ref_count(self, vault_id, block_id):
+
+        # Blocks can be in two places:
+        # 1) The fileblocks collection for unfinalized files
+        # 2) The files collection for finalized files
+
+        args = {
+            'projectid': deuce.context.project_id,
+            'vaultid': vault_id,
+            'blockid': str(block_id)
+        }
+
+        fileblocks_cnt = self._fileblocks.find(args).count()
+
+        # TODO: we currently count all documents. Let's
+        # optimize this query later
+        args = {
+            'projectid': deuce.context.project_id,
+            'vaultid': vault_id
+        }
+
+        res = self._files.find(args)
+
+        files_cnt = 0
+
+        for doc in res:
+            docgen = (rec['blockid'] for rec in doc['blocks'])
+            files_cnt += sum(1 for _ in docgen)
+
+        return files_cnt + fileblocks_cnt
 
     def get_health(self):
         try:

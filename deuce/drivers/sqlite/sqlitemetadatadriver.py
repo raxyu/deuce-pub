@@ -5,7 +5,7 @@ import importlib
 
 
 from deuce.drivers.metadatadriver import MetadataStorageDriver,\
-    OverlapError, GapError
+    OverlapError, GapError, ConstraintError
 
 # SQL schemas. Note: the schema is versions
 # in such a way that new instances always start
@@ -46,10 +46,39 @@ schemas.append([
         size INTEGER NOT NULL,
         PRIMARY KEY(projectid, vaultid, blockid)
     )
+    """,
+    """
+    CREATE TABLE vaults
+    (
+        projectid TEXT NOT NULL,
+        vaultid TEXT NOT NULL,
+        PRIMARY KEY(projectid, vaultid)
+    )
     """
 ])  # Version 1
 
 CURRENT_DB_VERSION = len(schemas)
+
+SQL_CREATE_VAULT = '''
+    INSERT OR REPLACE INTO vaults
+    (projectid, vaultid)
+    VALUES (:projectid, :vaultid)
+'''
+
+SQL_DELETE_VAULT = '''
+    DELETE FROM vaults
+    where projectid=:projectid
+    AND vaultid=:vaultid
+'''
+
+SQL_GET_ALL_VAULT = '''
+    SELECT vaultid
+    FROM vaults
+    WHERE projectid = :projectid
+    AND vaultid >= :marker
+    ORDER BY vaultid
+    LIMIT :limit
+'''
 
 SQL_CREATE_FILE = '''
     INSERT INTO files (projectid, vaultid, fileid)
@@ -112,6 +141,13 @@ SQL_GET_FILE_BLOCKS = '''
     AND offset >= :offset
     ORDER BY offset
     LIMIT :limit
+'''
+
+SQL_DELETE_FILE_BLOCKS_FOR_FILE = '''
+    DELETE FROM fileblocks
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+    AND fileid = :fileid
 '''
 
 SQL_GET_ALL_BLOCKS = '''
@@ -193,6 +229,14 @@ SQL_HAS_BLOCK = '''
     AND vaultid = :vaultid
 '''
 
+SQL_GET_BLOCK_REF_COUNT = '''
+    SELECT count(*)
+    FROM fileblocks
+    WHERE projectid = :projectid
+    AND vaultid = :vaultid
+    AND blockid = :blockid
+'''
+
 
 class SqliteStorageDriver(MetadataStorageDriver):
 
@@ -248,6 +292,42 @@ class SqliteStorageDriver(MetadataStorageDriver):
         the passed marker is None, empty string, etc
         """
         return marker or ''
+
+    def create_vault(self, vault_id):
+        """Creates a representation of a vault."""
+        args = {
+            'projectid': deuce.context.project_id,
+            'vaultid': vault_id
+        }
+        self._conn.execute(SQL_CREATE_VAULT, args)
+        self._conn.commit()
+        # TODO: check that one row was inserted
+        return
+
+    def delete_vault(self, vault_id):
+        """Deletes the vault from metadata."""
+        args = {
+            'projectid': deuce.context.project_id,
+            'vaultid': vault_id
+        }
+
+        self._conn.execute(SQL_DELETE_VAULT, args)
+        self._conn.commit()
+        return
+
+    def create_vaults_generator(self, marker=None, limit=None):
+        """Creates and returns a generator that will return
+        the vault IDs.
+        """
+
+        args = {
+            'projectid': deuce.context.project_id,
+            'marker': self._determine_marker(marker),
+            'limit': self._determine_limit(limit)
+        }
+
+        res = self._conn.execute(SQL_GET_ALL_VAULT, args)
+        return [row[0] for row in res]
 
     def get_vault_statistics(self, vault_id):
         """Return the statistics on the vault.
@@ -360,6 +440,9 @@ class SqliteStorageDriver(MetadataStorageDriver):
         }
 
         res = self._conn.execute(SQL_DELETE_FILE, args)
+        self._conn.commit()
+
+        res = self._conn.execute(SQL_DELETE_FILE_BLOCKS_FOR_FILE, args)
         self._conn.commit()
 
     def finalize_file(self, vault_id, file_id, file_size=None):
@@ -536,6 +619,9 @@ class SqliteStorageDriver(MetadataStorageDriver):
             self._conn.commit()
 
     def unregister_block(self, vault_id, block_id):
+
+        self._require_no_block_refs(vault_id, block_id)
+
         args = {
             'projectid': deuce.context.project_id,
             'vaultid': vault_id,
@@ -544,6 +630,18 @@ class SqliteStorageDriver(MetadataStorageDriver):
 
         self._conn.execute(SQL_UNREGISTER_BLOCK, args)
         self._conn.commit()
+
+    def get_block_ref_count(self, vault_id, block_id):
+
+        args = {
+            'projectid': deuce.context.project_id,
+            'vaultid': vault_id,
+            'blockid': block_id
+        }
+
+        query_res = self._conn.execute(SQL_GET_BLOCK_REF_COUNT, args)
+
+        return next(query_res)[0]
 
     def get_health(self):
         try:

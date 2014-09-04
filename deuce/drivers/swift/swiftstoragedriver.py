@@ -44,7 +44,8 @@ class SwiftStorageDriver(BlockStorageDriver):
                 url=deuce.context.openstack.swift.storage_url,
                 token=deuce.context.openstack.auth_token,
                 container=vault_id)
-            return True if response else False
+
+            return response
 
         except ClientException:
             return False
@@ -120,7 +121,7 @@ class SwiftStorageDriver(BlockStorageDriver):
                 container=vault_id,
                 name=str(block_id),
                 contents=blockdata,
-                content_length=len(blockdata),
+                content_length=str(len(blockdata)),
                 etag=mdetag,
                 response_dict=response)
             return response['status'] == 201 \
@@ -152,7 +153,7 @@ class SwiftStorageDriver(BlockStorageDriver):
                 container=vault_id,
                 name=str(block_id))
 
-            return True if response else False
+            return response
 
         except ClientException:
             return False
@@ -177,7 +178,8 @@ class SwiftStorageDriver(BlockStorageDriver):
         try:
             buff = BytesIO()
             response = dict()
-
+            # NOTE(TheSriram): block is a tuple of
+            # headers and response body.
             block = self.Conn.get_object(
                 url=deuce.context.openstack.swift.storage_url,
                 token=deuce.context.openstack.auth_token,
@@ -198,6 +200,8 @@ class SwiftStorageDriver(BlockStorageDriver):
         """Returns the length of an object"""
         response = dict()
         try:
+            # NOTE(TheSriram): block is a tuple of
+            # headers and response body
             block = \
                 self.Conn.get_object(
                     url=deuce.context.openstack.swift.storage_url,

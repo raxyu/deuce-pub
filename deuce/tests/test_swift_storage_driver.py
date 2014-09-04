@@ -1,11 +1,8 @@
 import six
 from deuce.drivers.blockstoragedriver import BlockStorageDriver
 from pecan import conf
-if six.PY2:
-    from deuce.drivers.swift.py2 import SwiftStorageDriver
 
-else:
-    from deuce.drivers.swift.py3 import SwiftStorageDriver
+from deuce.drivers.swift import SwiftStorageDriver
 
 from deuce.tests.test_disk_storage_driver import DiskStorageDriverTest
 
@@ -65,8 +62,8 @@ class SwiftStorageDriverTest(DiskStorageDriverTest):
                 str(conf.block_storage_driver.swift.testing.storage_url)
             token = 'mocking_token'
 
-        self._hdrs = {"x-project-id": 'testswfitstoragedrv',
-                      "x-auth-token": token}
+        self._hdrs = {"x-project-id": self.create_project_id(),
+                      "x-auth-token": self.create_auth_token()}
         return storage_url, token
 
     def test_basic_construction(self):
