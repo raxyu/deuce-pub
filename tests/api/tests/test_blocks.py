@@ -206,7 +206,7 @@ class TestListBlocks(base.TestBase):
             if i < 20 / value - (1 + pages):
                 self.assertIn('x-next-batch', resp.headers)
                 url = resp.headers['x-next-batch']
-                self.assertUrl(url, blockpath=True, nextlist=True)
+                self.assertUrl(url, blocks=True, nextlist=True)
             else:
                 self.assertNotIn('x-next-batch', resp.headers)
             self.assertEqual(len(resp.json()), value,

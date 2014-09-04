@@ -55,6 +55,7 @@ class TestBase(fixtures.BaseTestFixture):
                                             cls.storage_url,
                                             cls.tenantid)
 
+        cls.vaults = []
         cls.blocks = []
         cls.api_version = cls.config.version
 
@@ -115,8 +116,9 @@ class TestBase(fixtures.BaseTestFixture):
             self.assertEqual(content_type,
                              'application/octet-stream')
 
-    def assertUrl(self, url, base=False, blockpath=False, files=False,
-                  filepath=False, fileblock=False, nextlist=False):
+    def assertUrl(self, url, base=False, vaults=False, vaultspath=True,
+                  blocks=False, files=False, filepath=False, fileblock=False,
+                  nextlist=False):
 
         msg = 'url: {0}'.format(url)
         u = urlparse.urlparse(url)
@@ -125,7 +127,16 @@ class TestBase(fixtures.BaseTestFixture):
         if base:
             self.assertEqual(u.path, '/{0}'.format(self.api_version), msg)
 
-        if blockpath:
+        if vaults:
+            self.assertEqual(u.path, '/{0}/vaults/'.format(self.api_version,
+                                                          msg))
+
+        if vaultspath:
+            valid = re.compile('/{0}/vaults/[a-zA-Z0-9\-_]*'
+                               ''.format(self.api_version))
+            self.assertIsNotNone(valid.match(u.path), msg)
+
+        if blocks:
             self.assertEqual(u.path, '/{0}/vaults/{1}/blocks'
                              ''.format(self.api_version, self.vaultname), msg)
 
@@ -172,6 +183,7 @@ class TestBase(fixtures.BaseTestFixture):
         """
         if not self._create_empty_vault(vaultname, size):
             raise Exception('Failed to create vault')
+        self.vaults.append(self.vaultname)
         self.blocks = []
         self.files = []
 
