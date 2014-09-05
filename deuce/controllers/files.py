@@ -128,9 +128,10 @@ class FilesController(RestController):
         file = vault.create_file()
 
         response.headers["Location"] = "files/%s" % file.file_id
-        response.status_code = 201  # Created
+        response.status_code = 200  # Created
         logger.info('File [{0}] created'.
             format(response.headers["Location"]))
+        return dict()
 
     def _assign(self, vault, vault_id, file_id):
         f = vault.get_file(file_id)
