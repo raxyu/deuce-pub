@@ -1,11 +1,12 @@
 import logging
 from logging.config import dictConfig
 from common import local
+from config import deuceconfig
 _loggers = {}
 
 
 def setup():
-    log_config = config.dict()
+    log_config = deuceconfig.dict()
     log_config.update({'version': 1})
     dictConfig(log_config)
 
