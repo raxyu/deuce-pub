@@ -30,8 +30,8 @@ config_files_root = {
     'priority': 2
 }
 config_files_user = {
-    'config': '{0:}/.deuce/config.ini'.format(os.environ['HOME']),
-    'configspec': '{0:}/.deuce/configspec.ini'.format(os.environ['HOME']),
+    'config': 'ini/config.ini'.format(os.environ['HOME']),
+    'configspec': 'ini/configspec.ini'.format(os.environ['HOME']),
     'status': False,
     'priority': 1
 }
