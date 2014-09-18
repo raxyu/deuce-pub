@@ -8,6 +8,7 @@ from transport.wsgi import hooks
 
 import model
 import util.log as logging
+from config import conf
 
 
 class Driver(object):
