@@ -1,0 +1,8 @@
+aiohttp
+asyncio
+msgpack-python
+pecan
+pymongo
+six
+python-swiftclient
+python-logstash

@@ -1,0 +1,4 @@
+[DEUCE]
+title=Deuce Server
+description=De-duplication as a service
+ports=8080/tcp
