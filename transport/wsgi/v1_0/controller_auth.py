@@ -2,7 +2,7 @@ import logging
 import falcon
 
 
-class Auth:
+class ItemResource(object):
 
     def on_get(self, req, resp, project_id):
         resp.status = falcon.HTTP_200  # This is the default status
