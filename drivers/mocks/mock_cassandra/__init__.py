@@ -1,8 +1,3 @@
-
-
-import drivers.cassandra.cassandradriver \
-    as actual_driver
-
 import uuid
 
 

@@ -28,12 +28,9 @@ CQL_GET_ALL_VAULTS = '''
 class CassandraDriver():
 
     def __init__(self):
-        # Import the driver module.
-        self.cassandra = importlib.import_module('tests.mock_cassandra')
-
         # Import the cluster submodule
         cluster_module = importlib.import_module(
-            '{0}.cluster'.format('tests.mock_cassandra'))
+            '{0}.cluster'.format('drivers.mocks.mock_cassandra'))
 
         self._cluster = cluster_module.Cluster('127.0.0.1')
 

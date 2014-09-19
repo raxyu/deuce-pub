@@ -15,4 +15,4 @@ class ItemResource(object):
         resp.location = '/unregister/%s/%s' % (project_id, vault_id)
         resp.body = ('\n\nSystem is unregistering {0}/{1}...\n'.format(
             project_id, vault_id))
-        Tasks.unregister(self.driver, project_id, vault_id)
+        Tasks.unregister(project_id, vault_id)

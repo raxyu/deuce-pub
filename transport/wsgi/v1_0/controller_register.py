@@ -27,4 +27,4 @@ class ItemResource(object):
         resp.location = '/register/%s/%s' % (project_id, vault_id)
         resp.body = ('\n\nSystem is registering {0}/{1}...\n'.format(
             project_id, vault_id))
-        Tasks.register(self.driver, project_id, vault_id)
+        Tasks.register(project_id, vault_id)
