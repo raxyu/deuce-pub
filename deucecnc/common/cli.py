@@ -4,7 +4,7 @@ import functools
 import sys
 
 
-import util.log as logging
+import deucecnc.util.log as logging
 
 
 LOG = logging.getLogger(__name__)

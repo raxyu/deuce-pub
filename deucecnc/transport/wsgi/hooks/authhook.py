@@ -13,7 +13,8 @@ def authbypass(func):
 
 
 def token_is_valid(token, vault_id):
-    return True  # Suuuuuure it's valid...
+    # TODO................
+    return True
 
 
 @authbypass
@@ -29,8 +30,8 @@ def AuthHook(req, resp, params):
                                       description,
                                       href='http://docs.example.com/auth')
 
-    if 'vault_id' in params:
-        if not token_is_valid(token, params['vault_id']):
+    if 'project_id' in params:
+        if not token_is_valid(token, params['project_id']):
             description = ('The provided auth token is not valid. '
                            'Please request a new token and try again.')
 

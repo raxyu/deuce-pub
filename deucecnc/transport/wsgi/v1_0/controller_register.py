@@ -2,6 +2,8 @@ import logging
 import falcon
 from deucecnc.model.task import Tasks
 import json
+import deucecnc.util.log as logging
+logger = logging.getLogger(__name__)
 
 
 class ItemResource(object):
@@ -14,11 +16,6 @@ class ItemResource(object):
     '''
 
     def on_post(self, req, resp, project_id, vault_id):
-        try:
-            pass
-        except ValueError:
-            raise falcon.HTTPError(falcon.HTTP_753, 'unknow errors')
-
         resp.status = falcon.HTTP_201
         resp.location = '/register/%s/%s' % (project_id, vault_id)
         resp.body = ('\n\nSystem is registering {0}/{1}...\n'.format(

@@ -77,7 +77,7 @@ class CassandraDriver():
         res = self._session.execute(CQL_GET_ALL_VAULTS, args)
         return [row[0] for row in res]
 
-    def get_vault_statistics(self, vault_id):
+    def get_vault_statistics(self, project_id, vault_id):
         """Return the statistics on the vault.
 
         "param vault_id: The ID of the vault to gather statistics for"""
@@ -87,28 +87,6 @@ class CassandraDriver():
             projectid=project_id,
             vaultid=vault_id
         )
-
-        def __stats_query(cql_statement, default_value):
-            result = self._session.execute(cql_statement, args)
-            try:
-                return result[0][0]
-
-            except IndexError:  # pragma: no cover
-                return default_value
-
-        def __stats_get_vault_file_count():
-            return __stats_query(CQL_GET_COUNT_ALL_FILES, 0)
-
-        def __stats_get_vault_block_count():
-            return __stats_query(CQL_GET_COUNT_ALL_BLOCKS, 0)
-
-        # Add any statistics regarding files
-        res['files'] = {}
-        res['files']['count'] = __stats_get_vault_file_count()
-
-        # Add any statistics regarding blocks
-        res['blocks'] = {}
-        res['blocks']['count'] = __stats_get_vault_block_count()
 
         # Add any statistics specific to the Cassandra backend
         res['internal'] = {}

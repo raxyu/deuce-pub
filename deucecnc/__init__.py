@@ -1,3 +1,6 @@
+"""
+Deuce Global
+"""
 context = None
 
 import os
@@ -7,7 +10,7 @@ from validate import Validator
 
 class Config(object):
 
-    '''Builds conf on passing in a dict.'''
+    '''Builds deuce conf on passing in a dict.'''
 
     def __init__(self, config):
         for k, v in config.items():
@@ -15,9 +18,6 @@ class Config(object):
                 setattr(self, k, Config(v))
             else:
                 setattr(self, k, v)
-
-    def __getitem__(self, k):
-        return self.__dict__[k]
 
 
 # NOTE(TheSriram): The user can add in their rule of where they
@@ -30,20 +30,27 @@ config_files_root = {
     'priority': 2
 }
 config_files_user = {
-    'config': 'ini/config.ini'.format(os.environ['HOME']),
-    'configspec': 'ini/configspec.ini'.format(os.environ['HOME']),
+    'config': '{0:}/.deuce/config.ini'.format(os.environ['HOME']),
+    'configspec': '{0:}/.deuce/configspec.ini'.format(os.environ['HOME']),
     'status': False,
     'priority': 1
 }
 
-conf_list = [config_files_root, config_files_user]
+config_files_deuce = {
+    'config': os.path.abspath('ini/config.ini'),
+    'configspec': os.path.abspath('ini/configspec.ini'),
+    'status': True,
+    'priority': 3
+}
+
+conf_list = [config_files_root, config_files_user, config_files_deuce]
 
 
 def get_correct_conf(conf_list):
     for config_params in conf_list:
         conf_params = Config(config_params)
         for k, v in config_params.items():
-            if k not in ["status", "priority"]:
+            if k not in ["status", "priority"]:  # pragma: no cover
                 if not os.path.exists(os.path.abspath(
                     getattr(conf_params, k))) or \
                         (k + '.ini' not in getattr(conf_params, k)):
@@ -63,7 +70,7 @@ conf_ini = Config(config_files)
 
 for k, v in config_files.items():
     if not os.path.exists(os.path.abspath(getattr(conf_ini, k))) or \
-            (k + '.ini' not in getattr(conf_ini, k)):
+            (k + '.ini' not in getattr(conf_ini, k)):  # pragma: no cover
         raise OSError("Please set absolute path to "
                       "correct {0} ini file".format(k))
 
@@ -73,11 +80,12 @@ configspec = ConfigObj(
     list_values=False,
     _inspec=True)
 
-deuceconfig = ConfigObj(
+config = ConfigObj(
     os.path.abspath(conf_ini.config),
     configspec=configspec,
     interpolation=False)
-if not deuceconfig.validate(Validator()):
-    raise ValueError('Validation of deuceconfig failed wrt to configspec')
+if not config.validate(Validator()):  # pragma: no cover
+    raise ValueError('Validation of config failed wrt to configspec')
 
-conf = Config(deuceconfig.dict())
+conf_dict = config.dict()
+conf = Config(conf_dict)

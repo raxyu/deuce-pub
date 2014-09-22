@@ -10,7 +10,7 @@ class TestLogging(V1Base):
     def setUp(self):
         super(TestLogging, self).setUp()
 
-        self._hdrs = {"X-Project-ID": self.create_project_id()}
+        self._hdrs = {"X-Auth-Token": self.create_project_id()}
 
     def _testuuid(self, request_id):
         try:
@@ -21,7 +21,7 @@ class TestLogging(V1Base):
             return True
 
     def test_logging_handler(self):
-        self.simulate_get('/v1.0/', headers=self._hdrs)
+        self.simulate_get('/list/notmatter', headers=self._hdrs)
 
         # NOTE(TheSriram): Create a new LOG handler, and make sure the
         # the next time we try to create one, we receive the one created
@@ -33,18 +33,18 @@ class TestLogging(V1Base):
         self.assertEqual(LOG_new, LOG_exists)
 
     def test_logging_withoutcontext(self):
+
         LOG = logging.getLogger(__name__)
         with LogCapture() as capture:
             LOG.info("Testing Request ID outside wsgi call")
         self.assertFalse(self._testuuid(capture.records[0].request_id))
 
     def test_logging_requestid(self):
-        self.simulate_get('/v1.0/', headers=self._hdrs)
+        self.simulate_get('/list/notmatter', headers=self._hdrs)
 
         LOG = logging.getLogger(__name__)
 
         with LogCapture() as capture:
             LOG.info("Testing Request ID")
 
-        #YUDEBUG   
-        #self.assertTrue(self._testuuid(capture.records[0].request_id))
+        self.assertTrue(self._testuuid(capture.records[0].request_id))

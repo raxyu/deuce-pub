@@ -1,5 +1,5 @@
-import util.log as logging
-from transport.wsgi import Driver
+import deucecnc.util.log as logging
+from deucecnc.transport.wsgi import Driver
 
 app_container = Driver()
 logging.setup()

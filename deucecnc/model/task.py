@@ -16,5 +16,5 @@ class Tasks(object):
         DEBUG ONLY
     """
     @staticmethod
-    def debuglist(project_id):
+    def listing(project_id):
         return Tasks.driver.create_vaults_generator(project_id)

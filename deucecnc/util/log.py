@@ -1,12 +1,12 @@
 import logging
 from logging.config import dictConfig
 from deucecnc.common import local
-from config import deuceconfig
+from deucecnc import config
 _loggers = {}
 
 
 def setup():
-    log_config = deuceconfig.dict()
+    log_config = config.dict()
     log_config.update({'version': 1})
     dictConfig(log_config)
 
@@ -25,5 +25,5 @@ class ContextAdapter(logging.LoggerAdapter):
 
 def getLogger(name):
     if name not in _loggers:
-        _loggers[name] = ContextAdapter(logging.getLogger(name), extra={})
+        _loggers[name] = ContextAdapter(logging.getLogger(), extra={})
     return _loggers[name]

@@ -8,7 +8,7 @@ from deucecnc.transport.wsgi import hooks
 
 import deucecnc.model
 import deucecnc.util.log as logging
-from config import conf
+from deucecnc import conf
 
 
 class Driver(object):
@@ -24,6 +24,8 @@ class Driver(object):
         # Disk + Sqlite
 
         return [
+            hooks.DeucecncContextHook(req, resp, params),
+            hooks.TransactionidHook(req, resp, params),
             hooks.AuthHook(req, resp, params)
         ]
 

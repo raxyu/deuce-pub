@@ -1,16 +1,31 @@
 import uuid
 import unittest
 from falcon import testing as ftest
-from deucecnc.transport.wsgi import Driver
+from deucecnc.transport.wsgi import Driver, v1_0
+import deucecnc.util.log as logging
+import falcon
+
+
+class DummyContextObject(object):
+    pass
 
 
 class TestBase(unittest.TestCase):
 
     def setUp(self):
         super(TestBase, self).setUp()
+        import deucecnc
+        deucecnc.context = DummyContextObject()
+        deucecnc.context.project_id = self.create_project_id()
+        deucecnc.context.openstack = DummyContextObject()
+        deucecnc.context.openstack.auth_token = self.create_auth_token()
+        deucecnc.context.openstack.swift = DummyContextObject()
+        deucecnc.context.openstack.swift.storage_url = 'storage.url'
+
         self.app = Driver().app
         self.srmock = ftest.StartResponseMock()
         self.headers = {}
+        logging.setup()
 
     def tearDown(self):
         super(TestBase, self).tearDown()
@@ -85,3 +100,55 @@ class V1Base(TestBase):
     Should contain methods specific to V1 of the API
     """
     pass
+
+
+class HookTest(V1Base):
+
+    """
+    Used for testing Deuce Hooks
+    """
+
+    def app_setup(self, hooks):
+        endpoints = [
+            ('', v1_0.public_endpoints()),
+        ]
+        self.app = falcon.API(before=hooks)
+        for version_path, endpoints in endpoints:
+            for route, resource in endpoints:
+                self.app.add_route(version_path + route, resource)
+        self.srmock = ftest.StartResponseMock()
+        self.headers = {}
+
+    def setUp(self):
+        super(HookTest, self).setUp()
+
+    def tearDown(self):
+        super(HookTest, self).tearDown()
+
+    def create_service_catalog(self, objectStoreType='object-store',
+                               endpoints=True, region='test',
+                               url='url-data'):
+        catalog = {
+            'access': {
+                'serviceCatalog': []
+            }
+        }
+
+        if len(objectStoreType):
+            service = {
+                'name': 'test-service',
+                'type': objectStoreType,
+                'endpoints': [
+                ]
+            }
+            if endpoints:
+                endpoint = {
+                    'internalURL': url,
+                    'publicURL': url,
+                    'tenantId': '9876543210',
+                    'region': region,
+                }
+                service['endpoints'].append(endpoint)
+            catalog['access']['serviceCatalog'].append(service)
+
+        return catalog
