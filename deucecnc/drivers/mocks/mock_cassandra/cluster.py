@@ -50,7 +50,7 @@ CREATE TABLE blockreferences (
 );
 """]
 
-from drivers.mocks.mock_cassandra import Session
+from deucecnc.drivers.mocks.mock_cassandra import Session
 
 
 class Cluster(object):

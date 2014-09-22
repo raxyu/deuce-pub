@@ -1,6 +1,6 @@
 import logging
 from logging.config import dictConfig
-from common import local
+from deucecnc.common import local
 from config import deuceconfig
 _loggers = {}
 

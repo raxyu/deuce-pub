@@ -1,6 +1,7 @@
+import uuid
 import unittest
 from falcon import testing as ftest
-from transport.wsgi import Driver
+from deucecnc.transport.wsgi import Driver
 
 
 class TestBase(unittest.TestCase):
@@ -59,6 +60,22 @@ class TestBase(unittest.TestCase):
         """Simulate a PATCH request."""
         kwargs['method'] = 'PATCH'
         return self.simulate_request(*args, **kwargs)
+
+    def create_auth_token(self):
+        """Create a dummy Auth Token."""
+        return 'auth_{0:}'.format(str(uuid.uuid4()))
+
+    def create_project_id(self):
+        """Create a dummy project ID. This could be
+        anything, but for ease-of-use we just make it
+        a uuid"""
+        return 'project_{0:}'.format(str(uuid.uuid4()))
+
+    def create_vault_id(self):
+        """Creates a dummy vault ID. This could be
+        anything, but for ease-of-use we just make it
+        a uuid"""
+        return 'vault_{0:}'.format(str(uuid.uuid4()))
 
 
 class V1Base(TestBase):

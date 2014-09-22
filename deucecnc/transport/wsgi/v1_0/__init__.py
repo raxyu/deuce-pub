@@ -1,6 +1,6 @@
-from transport.wsgi.v1_0 import controller_auth
-from transport.wsgi.v1_0 import controller_register
-from transport.wsgi.v1_0 import controller_list
+from deucecnc.transport.wsgi.v1_0 import controller_auth
+from deucecnc.transport.wsgi.v1_0 import controller_register
+from deucecnc.transport.wsgi.v1_0 import controller_list
 
 
 def public_endpoints():

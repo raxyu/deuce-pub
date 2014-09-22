@@ -1,6 +1,6 @@
 import logging
 import falcon
-from model.task import Tasks
+from deucecnc.model.task import Tasks
 import json
 
 

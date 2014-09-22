@@ -1,5 +1,5 @@
-import model
-from drivers.cassandra import cassandradriver
+import deucecnc.model
+from deucecnc.drivers.cassandra import cassandradriver
 
 
 class Tasks(object):

@@ -3,11 +3,11 @@ from wsgiref import simple_server
 
 import falcon
 
-from transport.wsgi import v1_0
-from transport.wsgi import hooks
+from deucecnc.transport.wsgi import v1_0
+from deucecnc.transport.wsgi import hooks
 
-import model
-import util.log as logging
+import deucecnc.model
+import deucecnc.util.log as logging
 from config import conf
 
 
@@ -17,7 +17,7 @@ class Driver(object):
 
         self.app = None
         self._init_routes()
-        model.init_model()
+        deucecnc.model.init_model()
 
     def before_hooks(self, req, resp, params):
 

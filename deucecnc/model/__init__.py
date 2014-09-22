@@ -1,5 +1,5 @@
-from model.task import Tasks
-from drivers.cassandra import cassandradriver
+from deucecnc.model.task import Tasks
+from deucecnc.drivers.cassandra import cassandradriver
 import importlib
 
 
@@ -21,4 +21,4 @@ def _load_driver(classname):
 
 def init_model():
     Tasks.driver = _load_driver(
-        'drivers.cassandra.cassandradriver.CassandraDriver')
+        'deucecnc.drivers.cassandra.cassandradriver.CassandraDriver')

@@ -1,6 +1,6 @@
 import logging
 import falcon
-from model.task import Tasks
+from deucecnc.model.task import Tasks
 import json
 
 
@@ -26,7 +26,7 @@ class ItemResource(object):
         Tasks.register(project_id, vault_id)
 
     def on_delete(self, req, resp, project_id, vault_id):
-        resp.status = falcon.HTTP_200  # This is the default status
+        resp.status = falcon.HTTP_204  # This is the default status
         resp.location = '/unregister/%s/%s' % (project_id, vault_id)
         resp.body = ('\n\nSystem is unregistering {0}/{1}...\n'.format(
             project_id, vault_id))

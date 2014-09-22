@@ -2,7 +2,7 @@ import aiohttp
 import asyncio
 import hashlib
 from swiftclient.exceptions import ClientException
-from util.event_loop import get_event_loop
+from deucecnc.util.event_loop import get_event_loop
 
 # NOTE (TheSriram) : must include exception handling
 

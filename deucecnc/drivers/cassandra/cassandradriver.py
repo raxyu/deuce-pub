@@ -30,7 +30,7 @@ class CassandraDriver():
     def __init__(self):
         # Import the cluster submodule
         cluster_module = importlib.import_module(
-            '{0}.cluster'.format('drivers.mocks.mock_cassandra'))
+            '{0}.cluster'.format('deucecnc.drivers.mocks.mock_cassandra'))
 
         self._cluster = cluster_module.Cluster('127.0.0.1')
 
