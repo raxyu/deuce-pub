@@ -5,7 +5,7 @@ from functools import wraps
 from collections import namedtuple
 
 
-from transport.wsgi import errors
+from deucecnc.transport.wsgi import errors
 
 
 VAULT_ID_MAX_LEN = 128

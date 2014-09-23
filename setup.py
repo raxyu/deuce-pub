@@ -25,7 +25,7 @@ else:
         zip_safe=False,
         entry_points={
             'console_scripts': [
-                'deuce-cnc-server = cmd.server:run',
+                'deuce-cnc-server = deucecnc.cmd.server:run',
             ]
         },
         packages=find_packages(exclude=['tests*'])
