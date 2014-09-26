@@ -1,6 +1,6 @@
 from deucecnc.model.task import Tasks
-from deucecnc.drivers.cassandra import cassandradriver
 import importlib
+from deucecnc import conf
 
 
 Tasks.driver = None
@@ -16,9 +16,8 @@ def _load_driver(classname):
     class_name = classname[pos + 1:]
 
     mod = importlib.import_module(module_name)
-    return getattr(mod, class_name)()
+    return getattr(mod, class_name)(conf.cnc_driver.db_module)
 
 
 def init_model():
-    Tasks.driver = _load_driver(
-        'deucecnc.drivers.cassandra.cassandradriver.CassandraDriver')
+    Tasks.driver = _load_driver(conf.cnc_driver.driver)

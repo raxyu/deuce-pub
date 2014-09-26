@@ -3,12 +3,13 @@ from deucecnc.drivers.cassandra import CassandraDriver
 import random
 
 import deucecnc
+from deucecnc import conf
 from mock import MagicMock
 
 
 class CassandraDriverTest(V1Base):
     def create_driver(self):
-        return CassandraDriver()
+        return CassandraDriver(conf.cnc_driver.testing.db_module)
 
     def test_vault_statistics(self):
         driver = self.create_driver()

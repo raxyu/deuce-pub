@@ -2,6 +2,7 @@
 import importlib
 import six
 import uuid
+from deucecnc import conf
 
 
 CQL_ADD_VAULT = '''
@@ -27,14 +28,14 @@ CQL_GET_ALL_VAULTS = '''
 
 class CassandraDriver():
 
-    def __init__(self):
+    def __init__(self, db_module):
         # Import the cluster submodule
         cluster_module = importlib.import_module(
-            '{0}.cluster'.format('deucecnc.drivers.mocks.mock_cassandra'))
+            '{0}.cluster'.format(db_module))
 
-        self._cluster = cluster_module.Cluster('127.0.0.1')
+        self._cluster = cluster_module.Cluster(conf.cnc_driver.cluster)
 
-        deuce_keyspace = 'deucecnckeyspace'
+        deuce_keyspace = conf.cnc_driver.keyspace
         self._session = self._cluster.connect(deuce_keyspace)
 
     def _determine_limit(self, limit):
