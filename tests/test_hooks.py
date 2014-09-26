@@ -24,5 +24,10 @@ class TestHooks(HookTest):
             headers={'X-Auth-Token': 'blah'})
         self.assertEqual(self.srmock.status, falcon.HTTP_200)
 
+        # Wrong Auth Token
+        response = self.simulate_get('/list/anyproj',
+            headers={'X-Auth-Token': 'wrong'})
+        self.assertEqual(self.srmock.status, falcon.HTTP_401)
+
         response = self.simulate_get('/list/anyproj')
         self.assertEqual(self.srmock.status, falcon.HTTP_401)

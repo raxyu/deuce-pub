@@ -6,4 +6,6 @@ class Authentications(object):
 
     @staticmethod
     def validate(token, project_id):
+        if token is 'wrong':
+            return False
         return True

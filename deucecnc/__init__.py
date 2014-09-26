@@ -6,6 +6,7 @@ context = None
 import os
 from configobj import ConfigObj
 from validate import Validator
+import importlib
 
 
 class Config(object):
@@ -89,3 +90,7 @@ if not config.validate(Validator()):  # pragma: no cover
 
 conf_dict = config.dict()
 conf = Config(conf_dict)
+
+# Load the auth module
+mod = importlib.import_module(conf.auth.auth_module)
+auth_driver = getattr(mod, conf.auth.auth_class)()

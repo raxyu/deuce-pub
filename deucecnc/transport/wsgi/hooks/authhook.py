@@ -1,6 +1,6 @@
 import falcon
 from functools import wraps
-from deucecnc.util.auths import Authentications
+from deucecnc import auth_driver
 
 
 def authbypass(func):
@@ -18,7 +18,7 @@ def token_is_valid(token, project_id):
     # TODO 2. Update credentials with Auth.
     # TODO 3. Cache credentials so don't talk to Auth eveyrtime.
 
-    return Authentications.validate(token, project_id)
+    return auth_driver.validate(token, project_id)
 
 
 @authbypass
@@ -34,12 +34,12 @@ def AuthHook(req, resp, params):
                                       description,
                                       href='http://docs.example.com/auth')
 
-    if 'project_id' in params:
-        if not token_is_valid(token, params['project_id']):
-            description = ('The provided auth token is not valid. '
-                           'Please request a new token and try again.')
+    if 'project_id' in params and \
+            not token_is_valid(token, params['project_id']):
+        description = ('The provided auth token is not valid. '
+                       'Please request a new token and try again.')
 
-            raise falcon.HTTPUnauthorized('Authentication required',
-                                          description,
-                                          href='http://docs.example.com/auth',
-                                          scheme='Token; UUID')
+        raise falcon.HTTPUnauthorized('Authentication required',
+                                      description,
+                                      href='http://docs.example.com/auth',
+                                      scheme='Token; UUID')
