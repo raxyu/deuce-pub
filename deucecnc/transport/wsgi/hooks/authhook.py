@@ -1,5 +1,6 @@
 import falcon
 from functools import wraps
+from deucecnc.util.auths import Authentications
 
 
 def authbypass(func):
@@ -17,7 +18,7 @@ def token_is_valid(token, project_id):
     # TODO 2. Update credentials with Auth.
     # TODO 3. Cache credentials so don't talk to Auth eveyrtime.
 
-    return True
+    return Authentications.validate(token, project_id)
 
 
 @authbypass
