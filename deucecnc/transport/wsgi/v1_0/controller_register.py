@@ -1,6 +1,6 @@
 import logging
 import falcon
-from deucecnc.model.task import Tasks
+from deucecnc.model.tasks import Tasks
 import json
 import deucecnc.util.log as logging
 logger = logging.getLogger(__name__)

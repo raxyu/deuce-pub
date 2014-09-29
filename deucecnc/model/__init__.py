@@ -1,4 +1,4 @@
-from deucecnc.model.task import Tasks
+from deucecnc.model.tasks import Tasks
 import importlib
 from deucecnc import conf
 

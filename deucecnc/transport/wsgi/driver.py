@@ -14,10 +14,12 @@ from deucecnc import conf
 class Driver(object):
 
     def __init__(self):
-
         self.app = None
         self._init_routes()
         deucecnc.model.init_model()
+        # To schedule tasks of validation, cleanup, etc.
+        tasks = deucecnc.model.tasks.Tasks()
+        tasks.tasks_scheduler()
 
     def before_hooks(self, req, resp, params):
 
