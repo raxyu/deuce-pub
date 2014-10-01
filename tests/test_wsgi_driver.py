@@ -22,3 +22,4 @@ class TestDriver(TestCase):
                           return_value=mock_server_object):
             app_container = Driver()
             app_container.listen()
+            app_container.cleanup()

@@ -10,23 +10,18 @@ import time
 
 class Tasks(object):
     def __init__(self):
-        self._running = False
         self._scheduler = sched.scheduler(time.time, time.sleep)
         self._events = []
+        self._thd = None
 
     def tasks_periodic(self, scheduler, interval, action, actionargs=()):
-        if self._running:
-            print ('yud : tesks_periodic : POS1 ', datetime.datetime.now())
-            #event = scheduler.enter(interval, 1, self.tasks_periodic,
-            #              (scheduler, interval, action, actionargs))
-            #action(*actionargs)
-            event = scheduler.enter(interval, 1, action, *actionargs)
-            return event
-        else:
-            print ('yud : tesks_periodic : POS2... EXIT. ', datetime.datetime.now())
+        print ('yud : tesks_periodic : POS1 ', datetime.datetime.now())
+        event = scheduler.enter(interval, 1, self.tasks_periodic,
+                      (scheduler, interval, action, actionargs))
+        action(*actionargs)
+        return event
 
     def tasks_start(self, interval, task):
-        self._running = True
         print ('yud : task_start: POS1 : ', datetime.datetime.now())
         event = self.tasks_periodic(self._scheduler, interval, task)
         print ('yud : task_start: POS2 : ', datetime.datetime.now())
@@ -37,34 +32,38 @@ class Tasks(object):
         return thd
 
     def tasks_stop(self):
-        self._running = False
         #if self._scheduler:
-        #    #for event in self._events:
-        #    #    print ('yud: cancelling  POS1..... ', event)
-        #    #    #self._scheduler.cancel(event)
-        print ('yud: cancelling  ', datetime.datetime.now())
+        #    for event in self._events:
+        #        print ('yud: cancelling  POS1..... ', event)
+        #        self._scheduler.cancel(event)
+        for event in self._scheduler.queue:
+            print ('yud event 1 : ', event)
+            print ('yud event 2 : size[', len(self._events), '], ', self._events[0])
+            self._scheduler.cancel(event)
+        print ('yud: cancelled.  ', datetime.datetime.now())
+
+        self._thd.join()
+        print ('yud tasks_stop... EXIT.  ', datetime.datetime.now())
 
     """
         Tasks Scheduler
     """
     def tasks_scheduler(self):
-        print ('yud tasks_scheduler POS1...', datetime.datetime.now())
+        print ('\n\nyud tasks_scheduler POS1...', datetime.datetime.now())
 
         #schedule.every(1).seconds.do(deucecnc.model.tasks.Tasks.task_validation)
         #for i in range(2):
         #    schedule.run_pending()
         #    time.sleep(5)
 
-        thd = self.tasks_start(2, deucecnc.model.tasks.Tasks.task_validation)
+        self._thd = self.tasks_start(2, deucecnc.model.tasks.Tasks.task_validation)
         print ('yud tasks_scheduler POS2...', datetime.datetime.now())
 
-        time.sleep(5)
-        print ('yud tasks_scheduler POS3...', datetime.datetime.now())
-        self.tasks_stop()
-        time.sleep(5)
-        print ('yud tasks_scheduler POS4...', datetime.datetime.now())
-        thd.join()
-        print ('yud tasks_scheduler POS5... EXIT.  ', datetime.datetime.now())
+        #time.sleep(5)
+        #print ('yud tasks_scheduler POS3...', datetime.datetime.now())
+
+        #self.tasks_stop()
+        #print ('yud tasks_scheduler POS4... EXIT.  ', datetime.datetime.now())
 
 
 

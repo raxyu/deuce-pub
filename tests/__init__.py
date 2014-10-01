@@ -11,6 +11,9 @@ class DummyContextObject(object):
 
 
 class TestBase(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestBase, self).__init__(*args, **kwargs)
+        print ('testbase __init__')
 
     def setUp(self):
         super(TestBase, self).setUp()
@@ -21,8 +24,9 @@ class TestBase(unittest.TestCase):
         deucecnc.context.openstack.auth_token = self.create_auth_token()
         deucecnc.context.openstack.swift = DummyContextObject()
         deucecnc.context.openstack.swift.storage_url = 'storage.url'
+        self._driver = Driver()
+        self.app = self._driver.app
 
-        self.app = Driver().app
         self.srmock = ftest.StartResponseMock()
         self.headers = {}
         logging.setup()

@@ -10,6 +10,8 @@ import deucecnc.model
 import deucecnc.util.log as logging
 from deucecnc import conf
 
+from multiprocessing import Process
+
 
 class Driver(object):
 
@@ -18,8 +20,10 @@ class Driver(object):
         self._init_routes()
         deucecnc.model.init_model()
         # To schedule tasks of validation, cleanup, etc.
-        tasks = deucecnc.model.tasks.Tasks()
-        tasks.tasks_scheduler()
+        self._tasks = deucecnc.model.tasks.Tasks()
+
+        self._p = Process(target=self._tasks.tasks_scheduler)
+        self._p.start()
 
     def before_hooks(self, req, resp, params):
 
@@ -56,3 +60,6 @@ class Driver(object):
                                           conf.server.port,
                                           self.app)
         httpd.serve_forever()
+
+    def cleanup(self):
+        self._p.join()
