@@ -1,9 +1,13 @@
 from deucecnc.model.tasks import Tasks
+from deucecnc.model.list import List
+from deucecnc.model.register import Register
+from deucecnc.model.workers import WorkerValidation, WorkerCleanup
 import importlib
 from deucecnc import conf
+import deucecnc
 
 
-Tasks.driver = None
+deucecnc.db_driver = None
 
 
 def _load_driver(classname):
@@ -20,4 +24,4 @@ def _load_driver(classname):
 
 
 def init_model():
-    Tasks.driver = _load_driver(conf.cnc_driver.driver)
+    deucecnc.db_driver = _load_driver(conf.cnc_driver.driver)

@@ -1,6 +1,6 @@
 import logging
 import falcon
-from deucecnc.model.tasks import Tasks
+from deucecnc.model.list import List
 import json
 import deucecnc.util.log as logging
 logger = logging.getLogger(__name__)
@@ -12,4 +12,4 @@ class ItemResource(object):
         resp.status = falcon.HTTP_200  # This is the default status
         resp.location = '/list/'
 
-        resp.body = json.dumps(Tasks.listing(project_id))
+        resp.body = json.dumps(List.listing(project_id))
