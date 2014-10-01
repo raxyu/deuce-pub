@@ -13,7 +13,6 @@ class DummyContextObject(object):
 class TestBase(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestBase, self).__init__(*args, **kwargs)
-        print ('testbase __init__')
 
     def setUp(self):
         super(TestBase, self).setUp()

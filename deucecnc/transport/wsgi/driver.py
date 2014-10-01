@@ -22,7 +22,7 @@ class Driver(object):
         # To schedule tasks of validation, cleanup, etc.
         self._tasks = deucecnc.model.tasks.Tasks()
 
-        self._p = Process(target=self._tasks.tasks_scheduler)
+        self._p = Process(target=self._tasks.tasks_schedule_cnc)
         self._p.start()
 
     def before_hooks(self, req, resp, params):
